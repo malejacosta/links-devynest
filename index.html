@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinksHub – Tu página de enlaces</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #0f0f12;
+            --paper: #fafaf8;
+            --accent: #5046e4;
+            --accent-light: rgba(80, 70, 228, 0.1);
+            --muted: #8b8b99;
+            --border: #e8e8ec;
+            --radius: 14px;
+            --radius-sm: 8px;
+            --shadow: 0 4px 24px rgba(0,0,0,0.08);
+            --shadow-lg: 0 12px 48px rgba(0,0,0,0.12);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--paper);
+            color: var(--ink);
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, .logo-text {
+            font-family: 'Syne', sans-serif;
+        }
+
+        /* ─── BUILDER LAYOUT ─── */
+        #builder {
+            min-height: 100vh;
+            background: #f4f4f2;
+        }
+
+        .builder-topbar {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-mark {
+            width: 36px;
+            height: 36px;
+            background: var(--accent);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 18px;
+            color: white;
+            letter-spacing: -1px;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--ink);
+            letter-spacing: -0.5px;
+        }
+
+        .topbar-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        /* ─── BUTTONS ─── */
+        .btn {
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 500;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #3d34d4;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(80,70,228,0.35);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--ink);
+            border: 1.5px solid var(--border);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        .btn-danger {
+            background: #fee2e2;
+            color: #c53030;
+            border: none;
+            padding: 7px 11px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .btn-danger:hover { background: #fca5a5; }
+
+        /* ─── MAIN GRID ─── */
+        .builder-body {
+            max-width: 1160px;
+            margin: 0 auto;
+            padding: 32px 24px;
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 28px;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .builder-body { grid-template-columns: 1fr; }
+            .preview-sticky { position: static !important; }
+        }
+
+        /* ─── PANEL ─── */
+        .panel {
+            background: white;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-header h2 {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--ink);
+            letter-spacing: -0.2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-body { padding: 24px; }
+
+        /* ─── FORM ─── */
+        .form-group { margin-bottom: 20px; }
+        .form-group:last-child { margin-bottom: 0; }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--muted);
+            margin-bottom: 7px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            color: var(--ink);
+            background: white;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 80px;
+            line-height: 1.5;
+        }
+
+        /* ─── EMOJI GRID ─── */
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+        }
+
+        .emoji-btn {
+            aspect-ratio: 1;
+            border: 1.5px solid var(--border);
+            background: white;
+            border-radius: 10px;
+            font-size: 22px;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .emoji-btn:hover {
+            border-color: var(--accent);
+            background: var(--accent-light);
+            transform: scale(1.08);
+        }
+
+        .emoji-btn.active {
+            border-color: var(--accent);
+            background: var(--accent-light);
+            box-shadow: 0 0 0 2px var(--accent);
+        }
+
+        /* ─── GRADIENT GRID ─── */
+        .gradient-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .gradient-option {
+            height: 48px;
+            border-radius: 10px;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .gradient-option:hover { transform: scale(1.06); }
+
+        .gradient-option.active {
+            border-color: var(--ink);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* ─── LINKS ─── */
+        .links-list { display: flex; flex-direction: column; gap: 12px; }
+
+        .link-item {
+            background: #fafaf8;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+        }
+
+        .link-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .link-row select { flex: 1; }
+
+        .link-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        @media (max-width: 600px) {
+            .link-inputs { grid-template-columns: 1fr; }
+        }
+
+        .add-link-btn {
+            width: 100%;
+            padding: 13px;
+            border: 2px dashed var(--border);
+            background: white;
+            color: var(--muted);
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            margin-top: 12px;
+        }
+
+        .add-link-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: var(--accent-light);
+        }
+
+        /* ─── PREVIEW ─── */
+        .preview-sticky {
+            position: sticky;
+            top: 80px;
+        }
+
+        .preview-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--muted);
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .phone-frame {
+            background: var(--ink);
+            border-radius: 40px;
+            padding: 14px;
+            box-shadow: var(--shadow-lg), inset 0 0 0 1px rgba(255,255,255,0.1);
+            position: relative;
+        }
+
+        .phone-notch {
+            width: 100px;
+            height: 24px;
+            background: var(--ink);
+            border-radius: 0 0 18px 18px;
+            margin: 0 auto 12px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .phone-screen {
+            border-radius: 28px;
+            overflow: hidden;
+            min-height: 560px;
+        }
+
+        .profile-page {
+            min-height: 560px;
+            padding: 32px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .profile-avatar {
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            margin-bottom: 14px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(8px);
+            border: 2px solid rgba(255,255,255,0.3);
+            flex-shrink: 0;
+        }
+
+        .profile-name {
+            font-family: 'Syne', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: white;
+            text-align: center;
+            margin-bottom: 6px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .profile-bio {
+            font-size: 13px;
+            color: rgba(255,255,255,0.8);
+            text-align: center;
+            line-height: 1.5;
+            margin-bottom: 24px;
+            max-width: 280px;
+        }
+
+        .profile-links {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .profile-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 16px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 14px;
+            text-decoration: none;
+            color: white;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .profile-link:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-1px);
+        }
+
+        .profile-link-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            flex-shrink: 0;
+        }
+
+        .profile-link-text {
+            flex: 1;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .profile-link-arrow { opacity: 0.6; font-size: 13px; }
+
+        .profile-footer {
+            margin-top: 28px;
+            font-size: 11px;
+            color: rgba(255,255,255,0.4);
+            font-family: 'Syne', sans-serif;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        /* ─── MODAL ─── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15,15,18,0.75);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal-box {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-box h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+
+        .modal-box p.subtitle {
+            color: var(--muted);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .url-box {
+            background: #f4f4f2;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 13px;
+            font-family: 'DM Sans', monospace;
+            word-break: break-all;
+            color: var(--ink);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .qr-wrap {
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        #qrcode { display: flex; align-items: center; justify-content: center; }
+
+        .modal-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .modal-actions .btn { justify-content: center; }
+
+        /* ─── HOSTING BANNER ─── */
+        .hosting-tip {
+            background: #fffbeb;
+            border: 1.5px solid #fbbf24;
+            border-radius: 10px;
+            padding: 14px 16px;
+        }
+
+        .hosting-tip h4 {
+            font-size: 13px;
+            font-weight: 700;
+            color: #92400e;
+            margin-bottom: 8px;
+            font-family: 'Syne', sans-serif;
+        }
+
+        .hosting-tip p {
+            font-size: 12px;
+            color: #78350f;
+            line-height: 1.6;
+        }
+
+        .hosting-tip a {
+            color: #92400e;
+            font-weight: 600;
+            text-decoration: underline;
+        }
+
+        .hosting-steps {
+            list-style: none;
+            margin-top: 8px;
+        }
+
+        .hosting-steps li {
+            font-size: 12px;
+            color: #78350f;
+            padding: 2px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            line-height: 1.5;
+        }
+
+        .step-num {
+            background: #fbbf24;
+            color: #7c2d12;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            font-size: 10px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        /* ─── DIVIDER ─── */
+        .divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 20px 0;
+        }
+
+        /* ─── USER PAGE (standalone view) ─── */
+        #userView {
+            display: none;
+            min-height: 100vh;
+        }
+
+        #userView.active { display: flex; align-items: center; justify-content: center; }
+
+        .user-view-inner {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 48px 24px;
+        }
+
+        /* ─── SECTION DIVIDERS ─── */
+        .panel + .panel { margin-top: 20px; }
+
+        /* ─── TOAST ─── */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--ink);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 9999;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* ─── COUNTER ─── */
+        .char-count {
+            font-size: 11px;
+            color: var(--muted);
+            text-align: right;
+            margin-top: 4px;
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 640px) {
+            .builder-topbar { padding: 12px 16px; }
+            .builder-body { padding: 16px; }
+            .topbar-actions .btn-ghost { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     EDITOR / BUILDER
+═══════════════════════════════════════ -->
+<div id="builder">
+    <nav class="builder-topbar">
+        <div class="logo">
+            <div class="logo-mark">L</div>
+            <span class="logo-text">LinksHub</span>
+        </div>
+        <div class="topbar-actions">
+            <button class="btn btn-ghost" onclick="exportHTML()">⬇ Exportar HTML</button>
+            <button class="btn btn-primary" onclick="openShareModal()">⚡ Generar mi link</button>
+        </div>
+    </nav>
+
+    <div class="builder-body">
+        <!-- LEFT COLUMN: EDITOR -->
+        <div class="editor-col">
+            <!-- Profile Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>✦ Tu perfil</h2>
+                </div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label>Nombre o marca</label>
+                        <input type="text" id="profileName" class="form-control"
+                               placeholder="Ej: Alejandra Acosta" oninput="updatePreview()" maxlength="50">
+                        <div class="char-count"><span id="nameCount">0</span>/50</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <textarea id="profileBio" class="form-control"
+                                  placeholder="Diseñadora de packaging · Buenos Aires"
+                                  oninput="updatePreview()" maxlength="120"></textarea>
+                        <div class="char-count"><span id="bioCount">0</span>/120</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Avatar</label>
+                        <div class="emoji-grid" id="emojiGrid"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Fondo</label>
+                        <div class="gradient-grid" id="gradientGrid"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Links Panel -->
+            <div class="panel" style="margin-top: 20px;">
+                <div class="panel-header">
+                    <h2>🔗 Tus enlaces</h2>
+                </div>
+                <div class="panel-body">
+                    <div class="links-list" id="linksContainer"></div>
+                    <button class="add-link-btn" onclick="addLink()">+ Agregar enlace</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: PREVIEW -->
+        <div class="preview-sticky">
+            <div class="preview-label">📱 Vista previa en vivo</div>
+            <div class="phone-frame">
+                <div class="phone-notch"></div>
+                <div class="phone-screen" id="phoneScreen">
+                    <div class="profile-page" id="previewPage" style="background: linear-gradient(135deg, #5046e4 0%, #7c3aed 100%)">
+                        <div class="profile-avatar" id="previewAvatar">👤</div>
+                        <div class="profile-name" id="previewName">Tu Nombre</div>
+                        <div class="profile-bio" id="previewBio">Tu descripción aparecerá aquí</div>
+                        <div class="profile-links" id="previewLinks"></div>
+                        <div class="profile-footer">⬡ LINKSHUB</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     USER VIEW (vista pública del perfil)
+═══════════════════════════════════════ -->
+<div id="userView">
+    <div class="user-view-inner">
+        <div class="profile-page" id="publicPage" style="min-height: 100vh; border-radius: 28px; box-shadow: 0 24px 80px rgba(0,0,0,0.2);">
+            <div class="profile-avatar" id="pubAvatar">👤</div>
+            <div class="profile-name" id="pubName"></div>
+            <div class="profile-bio" id="pubBio"></div>
+            <div class="profile-links" id="pubLinks"></div>
+            <div class="profile-footer">⬡ LINKSHUB</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     MODAL: SHARE
+═══════════════════════════════════════ -->
+<div id="shareModal" class="modal-overlay">
+    <div class="modal-box">
+        <h2>🎉 Tu LinksHub está listo</h2>
+        <p class="subtitle">Este link contiene toda tu información — funciona sin servidor.</p>
+
+        <div class="url-box" id="generatedUrl">—</div>
+
+        <div class="modal-actions">
+            <button class="btn btn-primary" onclick="copyLink()">📋 Copiar link</button>
+            <button class="btn btn-ghost" onclick="downloadQR()">⬇ Descargar QR</button>
+        </div>
+
+        <div class="qr-wrap">
+            <div id="qrcode"></div>
+        </div>
+
+        <div class="hosting-tip">
+            <h4>⚠ Para que el link funcione para tus usuarios</h4>
+            <p>Necesitás alojar este archivo HTML en internet. Es gratis y tarda 2 minutos:</p>
+            <ul class="hosting-steps">
+                <li>
+                    <span class="step-num">1</span>
+                    <span>Descargá el archivo HTML con el botón <strong>"Exportar HTML"</strong> del editor</span>
+                </li>
+                <li>
+                    <span class="step-num">2</span>
+                    <span>Entrá a <a href="https://netlify.com/drop" target="_blank">netlify.com/drop</a> y arrastrá el archivo ahí</span>
+                </li>
+                <li>
+                    <span class="step-num">3</span>
+                    <span>Netlify te da una URL gratuita (ej: <em>abc-def.netlify.app</em>)</span>
+                </li>
+                <li>
+                    <span class="step-num">4</span>
+                    <span>Usá el botón "Generar mi link" → ese link ya funcionará para cualquiera</span>
+                </li>
+            </ul>
+        </div>
+
+        <hr class="divider">
+        <button class="btn btn-ghost" onclick="closeModal()" style="width:100%; justify-content:center;">Cerrar</button>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">✓ Copiado</div>
+
+<!-- QRCode.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script>
+// ═══════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════
+let profileData = {
+    name: '',
+    bio: '',
+    avatar: '👤',
+    background: 'linear-gradient(135deg, #5046e4 0%, #7c3aed 100%)'
+};
+
+let links = [];
+let linkIdCounter = 0;
+
+const emojis = ['👤','😊','🚀','💼','🎨','📱','💻','🌟','✨','🔥','💡','🎯','🌿','🦋','🎪','🏆','🎬','📸'];
+
+const gradients = [
+    'linear-gradient(135deg, #5046e4 0%, #7c3aed 100%)',
+    'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+    'linear-gradient(135deg, #e11d48 0%, #f97316 100%)',
+    'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)',
+    'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+    'linear-gradient(135deg, #d946ef 0%, #f43f5e 100%)',
+    'linear-gradient(135deg, #92400e 0%, #d97706 100%)',
+    'linear-gradient(150deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+];
+
+const platforms = [
+    { id: 'instagram', name: 'Instagram',  icon: '📷', color: '#E1306C', placeholder: 'usuario (sin @)' },
+    { id: 'whatsapp',  name: 'WhatsApp',   icon: '💬', color: '#25d366', placeholder: 'Número con código país' },
+    { id: 'facebook',  name: 'Facebook',   icon: '👥', color: '#1877f2', placeholder: 'usuario o página' },
+    { id: 'tiktok',    name: 'TikTok',     icon: '🎵', color: '#010101', placeholder: '@usuario' },
+    { id: 'linkedin',  name: 'LinkedIn',   icon: '💼', color: '#0077b5', placeholder: 'usuario' },
+    { id: 'youtube',   name: 'YouTube',    icon: '▶️', color: '#ff0000', placeholder: '@canal' },
+    { id: 'twitter',   name: 'X / Twitter',icon: '🐦', color: '#1da1f2', placeholder: 'usuario' },
+    { id: 'telegram',  name: 'Telegram',   icon: '✈️', color: '#0088cc', placeholder: 'usuario' },
+    { id: 'email',     name: 'Email',      icon: '✉️', color: '#ea4335', placeholder: 'tu@email.com' },
+    { id: 'website',   name: 'Sitio Web',  icon: '🌐', color: '#5046e4', placeholder: 'https://tusitio.com' },
+    { id: 'spotify',   name: 'Spotify',    icon: '🎧', color: '#1db954', placeholder: 'enlace del perfil' },
+    { id: 'github',    name: 'GitHub',     icon: '🐙', color: '#333333', placeholder: 'usuario' },
+    { id: 'behance',   name: 'Behance',    icon: '🎨', color: '#053eff', placeholder: 'usuario' },
+    { id: 'pinterest', name: 'Pinterest',  icon: '📌', color: '#e60023', placeholder: 'usuario' },
+];
+
+// ═══════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+    const hash = window.location.hash.slice(1);
+    if (hash) {
+        try {
+            const raw = decodeURIComponent(escape(atob(hash)));
+            const data = JSON.parse(raw);
+            showUserView(data);
+            return;
+        } catch(e) { /* malformed hash, show editor */ }
+    }
+
+    // Load saved draft from localStorage
+    const saved = localStorage.getItem('linkshub_draft');
+    if (saved) {
+        try {
+            const data = JSON.parse(saved);
+            profileData = data.profile || profileData;
+            // Restore fields
+            document.getElementById('profileName').value = profileData.name;
+            document.getElementById('profileBio').value = profileData.bio;
+            if (data.links) {
+                data.links.forEach(l => restoreLink(l));
+            }
+        } catch(e) {}
+    }
+
+    initEmojis();
+    initGradients();
+    if (links.length === 0) addLink();
+    updatePreview();
+    updateCounters();
+});
+
+// ═══════════════════════════════════════
+//  USER VIEW (public profile)
+// ═══════════════════════════════════════
+function showUserView(data) {
+    document.getElementById('builder').style.display = 'none';
+    const uv = document.getElementById('userView');
+    uv.classList.add('active');
+
+    const profile = data.profile || {};
+    const linksList = data.links || [];
+
+    document.getElementById('pubAvatar').textContent = profile.avatar || '👤';
+    document.getElementById('pubName').textContent = profile.name || '';
+    document.getElementById('pubBio').textContent = profile.bio || '';
+    document.getElementById('publicPage').style.background = profile.background || gradients[0];
+    document.title = (profile.name || 'LinksHub') + ' — LinksHub';
+
+    const container = document.getElementById('pubLinks');
+    container.innerHTML = '';
+
+    linksList.filter(l => l.url).forEach(l => {
+        const plat = platforms.find(p => p.id === l.platform) || platforms[0];
+        const a = document.createElement('a');
+        a.className = 'profile-link';
+        a.href = formatUrl(l.platform, l.url);
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.innerHTML = `
+            <div class="profile-link-icon" style="background:${plat.color}">${plat.icon}</div>
+            <div class="profile-link-text">${l.text || plat.name}</div>
+            <span class="profile-link-arrow">→</span>
+        `;
+        container.appendChild(a);
+    });
+}
+
+// ═══════════════════════════════════════
+//  EMOJI + GRADIENT INIT
+// ═══════════════════════════════════════
+function initEmojis() {
+    const container = document.getElementById('emojiGrid');
+    container.innerHTML = '';
+    emojis.forEach(e => {
+        const btn = document.createElement('button');
+        btn.className = 'emoji-btn' + (e === profileData.avatar ? ' active' : '');
+        btn.textContent = e;
+        btn.onclick = () => selectEmoji(e);
+        container.appendChild(btn);
+    });
+}
+
+function initGradients() {
+    const container = document.getElementById('gradientGrid');
+    container.innerHTML = '';
+    gradients.forEach(g => {
+        const div = document.createElement('div');
+        div.className = 'gradient-option' + (g === profileData.background ? ' active' : '');
+        div.style.background = g;
+        div.onclick = () => selectGradient(g);
+        container.appendChild(div);
+    });
+}
+
+function selectEmoji(e) {
+    profileData.avatar = e;
+    document.querySelectorAll('.emoji-btn').forEach(b => b.classList.toggle('active', b.textContent === e));
+    updatePreview();
+}
+
+function selectGradient(g) {
+    profileData.background = g;
+    document.querySelectorAll('.gradient-option').forEach((d, i) => d.classList.toggle('active', gradients[i] === g));
+    updatePreview();
+}
+
+// ═══════════════════════════════════════
+//  LINKS
+// ═══════════════════════════════════════
+function addLink(linkData) {
+    const id = linkIdCounter++;
+    const link = linkData || { id, platform: 'instagram', url: '', text: 'Instagram' };
+    link.id = id;
+    links.push(link);
+
+    const container = document.getElementById('linksContainer');
+    const el = document.createElement('div');
+    el.className = 'link-item';
+    el.id = `link-${id}`;
+
+    const platformOptions = platforms.map(p =>
+        `<option value="${p.id}" ${p.id === link.platform ? 'selected' : ''}>${p.icon} ${p.name}</option>`
+    ).join('');
+
+    el.innerHTML = `
+        <div class="link-row">
+            <select class="form-control" onchange="changePlatform(${id}, this.value)">${platformOptions}</select>
+            <button class="btn btn-danger" onclick="removeLink(${id})">✕</button>
+        </div>
+        <div class="link-inputs">
+            <input type="text" class="form-control" placeholder="${platforms.find(p=>p.id===link.platform)?.placeholder || 'URL'}"
+                   value="${link.url || ''}" oninput="updateLinkUrl(${id}, this.value)">
+            <input type="text" class="form-control" placeholder="Texto del botón"
+                   value="${link.text || ''}" oninput="updateLinkText(${id}, this.value)">
+        </div>
+    `;
+    container.appendChild(el);
+    updatePreview();
+    saveDraft();
+}
+
+function restoreLink(l) {
+    addLink(l);
+}
+
+function removeLink(id) {
+    links = links.filter(l => l.id !== id);
+    document.getElementById(`link-${id}`)?.remove();
+    updatePreview();
+    saveDraft();
+}
+
+function changePlatform(id, platformId) {
+    const link = links.find(l => l.id === id);
+    const plat = platforms.find(p => p.id === platformId);
+    if (!link || !plat) return;
+    link.platform = platformId;
+    link.text = plat.name;
+    const el = document.getElementById(`link-${id}`);
+    if (el) {
+        el.querySelector('input:first-of-type').placeholder = plat.placeholder;
+        el.querySelector('input:last-of-type').value = plat.name;
+    }
+    updatePreview();
+    saveDraft();
+}
+
+function updateLinkUrl(id, url) {
+    const link = links.find(l => l.id === id);
+    if (link) { link.url = url; updatePreview(); saveDraft(); }
+}
+
+function updateLinkText(id, text) {
+    const link = links.find(l => l.id === id);
+    if (link) { link.text = text; updatePreview(); saveDraft(); }
+}
+
+// ═══════════════════════════════════════
+//  FORMAT URL
+// ═══════════════════════════════════════
+function formatUrl(platform, url) {
+    if (!url) return '#';
+    const u = url.trim();
+    switch(platform) {
+        case 'whatsapp':  return `https://wa.me/${u.replace(/\D/g, '')}`;
+        case 'instagram': return `https://instagram.com/${u.replace('@', '')}`;
+        case 'facebook':  return u.includes('facebook.com') ? u : `https://facebook.com/${u}`;
+        case 'tiktok':    return `https://tiktok.com/@${u.replace('@', '')}`;
+        case 'linkedin':  return `https://linkedin.com/in/${u}`;
+        case 'youtube':   return u.includes('youtube.com') ? u : `https://youtube.com/@${u.replace('@', '')}`;
+        case 'twitter':   return `https://x.com/${u.replace('@', '')}`;
+        case 'telegram':  return `https://t.me/${u.replace('@', '')}`;
+        case 'email':     return `mailto:${u}`;
+        case 'github':    return `https://github.com/${u}`;
+        case 'behance':   return `https://behance.net/${u}`;
+        case 'pinterest': return `https://pinterest.com/${u}`;
+        case 'spotify':   return u.includes('spotify.com') ? u : `https://open.spotify.com/user/${u}`;
+        default: return u.startsWith('http') ? u : `https://${u}`;
+    }
+}
+
+// ═══════════════════════════════════════
+//  LIVE PREVIEW
+// ═══════════════════════════════════════
+function updatePreview() {
+    profileData.name = document.getElementById('profileName')?.value || '';
+    profileData.bio  = document.getElementById('profileBio')?.value || '';
+
+    document.getElementById('previewAvatar').textContent = profileData.avatar;
+    document.getElementById('previewName').textContent   = profileData.name || 'Tu Nombre';
+    document.getElementById('previewBio').textContent    = profileData.bio  || 'Tu descripción aparecerá aquí';
+    document.getElementById('previewPage').style.background = profileData.background;
+
+    const container = document.getElementById('previewLinks');
+    container.innerHTML = '';
+
+    links.filter(l => l.url).forEach(l => {
+        const plat = platforms.find(p => p.id === l.platform) || platforms[0];
+        const a = document.createElement('a');
+        a.className = 'profile-link';
+        a.href = '#';
+        a.onclick = e => e.preventDefault();
+        a.innerHTML = `
+            <div class="profile-link-icon" style="background:${plat.color}">${plat.icon}</div>
+            <div class="profile-link-text">${l.text || plat.name}</div>
+            <span class="profile-link-arrow">→</span>
+        `;
+        container.appendChild(a);
+    });
+
+    updateCounters();
+    saveDraft();
+}
+
+function updateCounters() {
+    const name = document.getElementById('profileName')?.value || '';
+    const bio  = document.getElementById('profileBio')?.value || '';
+    document.getElementById('nameCount').textContent = name.length;
+    document.getElementById('bioCount').textContent  = bio.length;
+}
+
+// ═══════════════════════════════════════
+//  SAVE DRAFT
+// ═══════════════════════════════════════
+function saveDraft() {
+    try {
+        localStorage.setItem('linkshub_draft', JSON.stringify({ profile: profileData, links }));
+    } catch(e) {}
+}
+
+// ═══════════════════════════════════════
+//  SHARE MODAL
+// ═══════════════════════════════════════
+function openShareModal() {
+    if (!profileData.name) {
+        showToast('⚠ Ingresá tu nombre primero');
+        document.getElementById('profileName').focus();
+        return;
+    }
+
+    const shareableUrl = buildShareUrl();
+    document.getElementById('generatedUrl').textContent = shareableUrl;
+
+    // QR
+    document.getElementById('qrcode').innerHTML = '';
+    new QRCode(document.getElementById('qrcode'), {
+        text: shareableUrl,
+        width: 180,
+        height: 180,
+        colorDark: '#0f0f12',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+    });
+
+    document.getElementById('shareModal').classList.add('active');
+}
+
+function buildShareUrl() {
+    const data = { profile: profileData, links };
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+    const base = window.location.href.split('#')[0];
+    return `${base}#${encoded}`;
+}
+
+function closeModal() {
+    document.getElementById('shareModal').classList.remove('active');
+}
+
+function copyLink() {
+    const url = document.getElementById('generatedUrl').textContent;
+    navigator.clipboard.writeText(url).then(() => showToast('✓ Link copiado al portapapeles')).catch(() => {
+        // Fallback
+        const ta = document.createElement('textarea');
+        ta.value = url; document.body.appendChild(ta);
+        ta.select(); document.execCommand('copy');
+        ta.remove(); showToast('✓ Link copiado');
+    });
+}
+
+function downloadQR() {
+    const canvas = document.querySelector('#qrcode canvas');
+    if (canvas) {
+        const a = document.createElement('a');
+        a.download = 'linkshub-qr.png';
+        a.href = canvas.toDataURL();
+        a.click();
+    } else {
+        showToast('⚠ Generá el link primero');
+    }
+}
+
+// ═══════════════════════════════════════
+//  EXPORT STANDALONE HTML
+// ═══════════════════════════════════════
+function exportHTML() {
+    if (!profileData.name) {
+        showToast('⚠ Ingresá tu nombre primero');
+        return;
+    }
+
+    const exportLinks = links.map(l => {
+        const plat = platforms.find(p => p.id === l.platform) || platforms[0];
+        return Object.assign({}, l, { icon: plat.icon, color: plat.color });
+    });
+    const data = { profile: profileData, links: exportLinks };
+    const dataStr = JSON.stringify(data);
+
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${escapeHtml(profileData.name)} — LinksHub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;background:${escapeHtml(profileData.background)}}
+.wrap{width:100%;max-width:420px;margin:0 auto;padding:40px 20px}
+.page{padding:40px 24px;border-radius:28px;box-shadow:0 24px 80px rgba(0,0,0,0.25);background:${escapeHtml(profileData.background)};display:flex;flex-direction:column;align-items:center}
+.avatar{width:90px;height:90px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:44px;margin-bottom:14px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.3)}
+.name{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:#fff;text-align:center;margin-bottom:6px;text-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.bio{font-size:13px;color:rgba(255,255,255,0.82);text-align:center;line-height:1.5;margin-bottom:26px;max-width:300px}
+.links{width:100%;display:flex;flex-direction:column;gap:10px}
+.link{display:flex;align-items:center;gap:12px;padding:13px 16px;background:rgba(255,255,255,0.16);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.25);border-radius:14px;text-decoration:none;color:#fff;transition:all .2s}
+.link:hover{background:rgba(255,255,255,0.26);transform:translateY(-1px)}
+.icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.label{flex:1;font-weight:500;font-size:14px}
+.arrow{opacity:.6;font-size:13px}
+.footer{margin-top:28px;font-size:11px;color:rgba(255,255,255,0.35);font-family:'Syne',sans-serif;letter-spacing:1px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="page" id="page"></div>
+</div>
+<script>
+var data = ${dataStr};
+var formatUrl = function(p,u){if(!u)return'#';var t=u.trim();switch(p){case'whatsapp':return'https://wa.me/'+t.replace(/\\D/g,'');case'instagram':return'https://instagram.com/'+t.replace('@','');case'facebook':return t.includes('facebook.com')?t:'https://facebook.com/'+t;case'tiktok':return'https://tiktok.com/@'+t.replace('@','');case'linkedin':return'https://linkedin.com/in/'+t;case'youtube':return t.includes('youtube.com')?t:'https://youtube.com/@'+t.replace('@','');case'twitter':return'https://x.com/'+t.replace('@','');case'telegram':return'https://t.me/'+t.replace('@','');case'email':return'mailto:'+t;case'github':return'https://github.com/'+t;case'behance':return'https://behance.net/'+t;case'pinterest':return'https://pinterest.com/'+t;default:return t.startsWith('http')?t:'https://'+t;}};
+var page=document.getElementById('page');
+page.innerHTML='<div class="avatar">'+data.profile.avatar+'</div><div class="name">'+data.profile.name+'</div><div class="bio">'+data.profile.bio+'</div><div class="links" id="links"></div><div class="footer">⬡ LINKSHUB</div>';
+var lc=document.getElementById('links');
+(data.links||[]).filter(function(l){return l.url}).forEach(function(l){
+var a=document.createElement('a');a.className='link';a.href=formatUrl(l.platform,l.url);a.target='_blank';a.rel='noopener noreferrer';
+a.innerHTML='<div class="icon" style="background:'+l.color+'">'+l.icon+'</div><div class="label">'+l.text+'</div><span class="arrow">→</span>';
+lc.appendChild(a);
+});
+<\/script>
+</body>
+</html>`;
+
+    const blob = new Blob([html], { type: 'text/html' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${profileData.name.toLowerCase().replace(/\s+/g,'-')}-linkshub.html`;
+    a.click();
+    showToast('✓ Archivo HTML descargado');
+}
+
+// ═══════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════
+function escapeHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let toastTimer;
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// Close modal on backdrop click
+document.getElementById('shareModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>
