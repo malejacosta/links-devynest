@@ -381,6 +381,15 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
 .uv-inner .pub-page{min-height:100vh;border-radius:0}
 .uv-inner .wa-fab{position:fixed;bottom:24px;right:24px;z-index:100}
 @media(min-width:500px){.uv-inner .pub-page{border-radius:0;min-height:100vh}}
+
+/* ════ EXPIRED PAGE ════ */
+.expired-overlay{position:fixed;inset:0;background:#1A1814;display:flex;align-items:center;justify-content:center;z-index:9999;padding:24px}
+.expired-box{background:#F7F5F0;border-radius:24px;padding:36px 28px;max-width:360px;width:100%;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.4)}
+.expired-icon{font-size:52px;margin-bottom:16px}
+.expired-box h2{font-family:'Fraunces',Georgia,serif;font-size:24px;font-weight:600;color:#1A1814;margin-bottom:8px;letter-spacing:-0.5px}
+.expired-box p{font-size:13.5px;color:#6B6860;line-height:1.6;margin-bottom:20px}
+.expired-count{display:inline-block;background:#FEF9C3;border:1.5px solid #FDE68A;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;color:#92400E;margin-bottom:20px}
+.uses-badge{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);backdrop-filter:blur(8px);color:rgba(255,255,255,.85);font-size:11px;font-weight:600;padding:6px 14px;border-radius:20px;z-index:500;pointer-events:none;font-family:'Cabinet Grotesk',system-ui,sans-serif;letter-spacing:0.3px}
 </style>
 </head>
 <body>
@@ -587,6 +596,13 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
     <h2>🎉 ¡Listo para compartir!</h2>
     <p class="sub">Este link lleva toda tu información. Funciona sin servidor.</p>
     <div class="url-box" id="generatedUrl">—</div>
+    <div style="background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:10px;padding:11px 15px;margin-bottom:14px;display:flex;align-items:flex-start;gap:10px">
+      <span style="font-size:18px;flex-shrink:0">🔢</span>
+      <div style="font-size:12.5px;color:#166534;line-height:1.5">
+        <strong>Límite de 8 vistas por dispositivo.</strong><br>
+        Caduca cuando el mismo navegador abre el link 8 veces. Para reiniciar el contador, generá un nuevo link.
+      </div>
+    </div>
     <div class="modal-btns">
       <button class="btn btn-ink" onclick="copyLink()">📋 Copiar link</button>
       <button class="btn btn-ghost" onclick="downloadQR()">⬇ Descargar QR</button>
@@ -1139,7 +1155,55 @@ function updatePreview() {
 /* ═══════════════════════════════════════════
    USER VIEW (public)
 ═══════════════════════════════════════════ */
+function showExpiredPage(p, used, maxUses) {
+  document.getElementById('builder').style.display = 'none';
+  document.body.style.background = '#0f0e0c';
+  const uv = document.getElementById('userView');
+  uv.classList.add('active');
+  uv.style.alignItems = 'center';
+  uv.style.justifyContent = 'center';
+  uv.style.minHeight = '100vh';
+  const usedN = used || maxUses || 8;
+  const maxN = maxUses || 8;
+  document.querySelector('.uv-inner').innerHTML =
+    '<div style="text-align:center;padding:60px 24px;font-family:\'Cabinet Grotesk\',system-ui,sans-serif">'
+    + '<div style="font-size:56px;margin-bottom:20px">🔒</div>'
+    + '<div style="font-family:\'Fraunces\',Georgia,serif;font-size:30px;font-weight:600;color:white;margin-bottom:10px;letter-spacing:-0.5px">Este link caducó</div>'
+    + '<div style="display:inline-block;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:8px 20px;margin:12px auto 20px;font-size:13px;color:rgba(255,255,255,.65);font-weight:600;letter-spacing:0.3px">'
+    + '🔑 ' + maxN + ' de ' + maxN + ' accesos utilizados'
+    + '</div>'
+    + '<div style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.7;max-width:300px;margin:0 auto 36px">'
+    + 'Este link de acceso limitado ya fue abierto el máximo de veces permitido.'
+    + (p && p.name ? '<br><br>Solicitá un nuevo link directamente a <strong style="color:rgba(255,255,255,.8)">' + (p.name||'') + '</strong>.' : '')
+    + '</div>'
+    + '<div style="font-size:11px;color:rgba(255,255,255,.2);letter-spacing:1.5px;font-style:italic">✦ linkshub</div>'
+    + '</div>';
+}
+
+function showUsageBadge(remaining) {
+  const badge = document.createElement('div');
+  const isLast = remaining === 1;
+  badge.style.cssText = 'position:fixed;top:16px;right:16px;z-index:9999;'
+    + 'background:rgba(15,14,12,.88);backdrop-filter:blur(12px);'
+    + 'color:white;padding:11px 18px;border-radius:12px;'
+    + 'font-family:\'DM Sans\',system-ui,sans-serif;font-size:13px;font-weight:600;'
+    + 'border:1px solid rgba(255,255,255,.1);animation:badgeIn .4s cubic-bezier(.34,1.56,.64,1);';
+  const dot = isLast ? '#EF4444' : remaining <= 3 ? '#F59E0B' : '#10B981';
+  badge.innerHTML = '<div style="display:flex;align-items:center;gap:8px">'
+    + '<span style="width:8px;height:8px;border-radius:50%;background:' + dot + ';flex-shrink:0;display:inline-block"></span>'
+    + (isLast ? '⚠ Última vista disponible' : 'Quedan <strong style="color:' + dot + '">&nbsp;' + remaining + '</strong>&nbsp;vistas disponibles')
+    + '</div>';
+  document.body.appendChild(badge);
+  setTimeout(() => { badge.style.transition = 'opacity .5s'; badge.style.opacity = '0'; setTimeout(() => badge.remove(), 500); }, 4500);
+}
+
 function showUserView(data) {
+  // ── USAGE LIMIT (CountAPI – global, cross-device) ──
+  const linkId = data.linkId;
+  const maxUses = data.maxUses || 8;
+
+  function doRender() {
+    // ── RENDER ──
   document.getElementById('builder').style.display = 'none';
   document.getElementById('userView').classList.add('active');
 
@@ -1178,6 +1242,30 @@ function showUserView(data) {
 
   document.title = (profile.name||'LinksHub') + ' — LinksHub';
   document.body.style.background = profile.background;
+  } // end doRender
+
+  if (linkId) {
+    fetch('https://api.countapi.xyz/hit/linkshub3/' + linkId)
+      .then(r => r.json())
+      .then(d => {
+        const used = d.value || 1;
+        const remaining = maxUses - used;
+        if (used > maxUses) {
+          showExpiredPage(data.profile, used, maxUses);
+        } else {
+          doRender();
+          if (remaining <= 3) {
+            setTimeout(() => showUsageBadge(remaining, maxUses), 700);
+          }
+        }
+      })
+      .catch(() => {
+        // CountAPI unavailable — fail open, show page
+        doRender();
+      });
+  } else {
+    doRender();
+  }
 }
 
 /* ═══════════════════════════════════════════
@@ -1213,6 +1301,10 @@ function openShareModal() {
   document.getElementById('shareModal').classList.add('active');
 }
 
+function generateLinkId() {
+  return 'lh_' + Math.random().toString(36).slice(2,10) + '_' + Date.now().toString(36);
+}
+
 function buildShareUrl() {
   const data = {
     profile: profileData,
@@ -1220,6 +1312,9 @@ function buildShareUrl() {
     services,
     featured: getFeatured(),
     wafab: getWafab(),
+    linkId: generateLinkId(),
+    maxUses: 8,
+    createdAt: Date.now(),
   };
   const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
   return window.location.href.split('#')[0] + '#' + encoded;
@@ -1327,6 +1422,8 @@ ${isLight ? `
 .sec-lbl{color:#9b9590}.footer{color:#9b9590}
 ` : ''}
 @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes badgeIn{from{opacity:0;transform:translateY(-10px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}}
 .hero{animation:fadeUp .5s ease both}
 .feat{animation:fadeUp .5s .1s ease both}
 .sec{animation:fadeUp .5s .15s ease both}
@@ -1356,6 +1453,18 @@ if(wf.enabled&&wf.number){html+='<a class="wa-fab" href="https://wa.me/'+wf.numb
 pg.innerHTML=html;
 document.title=(p.name||'LinksHub')+' — LinksHub';
 <\/script>
+
+<!-- EXPIRED PAGE -->
+<div id="expiredPage" class="expired-overlay" style="display:none">
+  <div class="expired-box">
+    <div class="expired-icon">&#128274;</div>
+    <h2>Link vencido</h2>
+    <p>Este link de acceso limitado ya fue utilizado el m&aacute;ximo de veces permitido y ya no est&aacute; disponible.</p>
+    <div class="expired-count">&#128100; 8 de 8 accesos utilizados</div>
+    <p style="font-size:12px;color:#9CA3AF">Solicit&aacute; un nuevo link al creador del contenido.</p>
+  </div>
+</div>
+<div id="usesBadge" class="uses-badge" style="display:none"></div>
 </body>
 </html>`;
 
