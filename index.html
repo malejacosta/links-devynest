@@ -356,8 +356,7 @@ select.fc{cursor:pointer;appearance:none;background-image:url("data:image/svg+xm
   background:var(--white);border:1.5px solid var(--border);border-radius:14px;
   padding:20px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;
 }
-.tip-box{background:#fffbeb;border:1.5px solid #fbbf24;border-radius:10px;padding:14px 16px}
-.tip-box h4{font-size:13px;font-weight:700;color:#92400e;margin-bottom:8px;font-family:'Fraunces',serif}
+
 .tip-steps{list-style:none}
 .tip-steps li{font-size:12px;color:#78350f;padding:2px 0;display:flex;align-items:flex-start;gap:6px;line-height:1.5}
 .step-n{background:#fbbf24;color:#7c2d12;width:16px;height:16px;border-radius:50%;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
@@ -608,14 +607,16 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
       <button class="btn btn-ghost" onclick="downloadQR()">⬇ Descargar QR</button>
     </div>
     <div class="qr-wrap"><div id="qrcode"></div></div>
-    <div class="tip-box">
-      <h4>⚠ Para que el link funcione para todos</h4>
-      <ul class="tip-steps">
-        <li><span class="step-n">1</span><span>Descargá el archivo con el botón <strong>"Exportar HTML"</strong></span></li>
-        <li><span class="step-n">2</span><span>Entrá a <a href="https://netlify.com/drop" target="_blank" style="color:#92400e;font-weight:600">netlify.com/drop</a> y arrastrá el archivo</span></li>
-        <li><span class="step-n">3</span><span>Netlify te da una URL gratis (ej: <em>milink.netlify.app</em>)</span></li>
-        <li><span class="step-n">4</span><span>Desde esa URL, usá "Generar mi link" → el link resultante funciona para cualquiera</span></li>
-      </ul>
+    <div style="background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600;color:#166534">
+        <span>✔</span> Este link ya está listo para compartir
+      </div>
+      <div style="display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600;color:#166534">
+        <span>✔</span> Funciona desde cualquier dispositivo
+      </div>
+      <div style="display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600;color:#166534">
+        <span>✔</span> No requiere instalación
+      </div>
     </div>
     <hr class="div">
     <button class="btn btn-ghost" onclick="closeModal()" style="width:100%;justify-content:center">Cerrar</button>
