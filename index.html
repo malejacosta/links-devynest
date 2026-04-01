@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LinksHub — Crea tu página de contacto profesional</title>
+<title>Devynest — Crea tu página de contacto profesional</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -397,8 +397,8 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
 <div id="builder">
   <nav class="topbar">
     <div class="logo">
-      <div class="logo-mark">L</div>
-      <span class="logo-name">LinksHub</span>
+      <div class="logo-mark">D</div>
+      <span class="logo-name">Devynest</span>
     </div>
     <div class="topbar-right">
       <button class="btn btn-ghost" onclick="exportHTML()">⬇ Exportar HTML</button>
@@ -470,6 +470,28 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
         <div class="panel">
           <div class="panel-hd"><h3>🎨 Fondo de tu página</h3></div>
           <div class="panel-bd">
+            <div class="fg">
+              <label>📸 Imagen personalizada</label>
+              <div class="bg-img-upload" id="bgImgZone" onclick="document.getElementById('bgImgInput').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleBgDrop(event)">
+                <div id="bgImgPreview" style="display:none;position:relative;border-radius:10px;overflow:hidden;height:100px">
+                  <img id="bgImgThumb" style="width:100%;height:100%;object-fit:cover" alt="">
+                  <button onclick="event.stopPropagation();removeBgImage()" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.55);color:white;border:none;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:600;cursor:pointer">✕ Quitar</button>
+                </div>
+                <div id="bgImgEmpty" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 0;color:var(--muted)">
+                  <span style="font-size:28px">🖼</span>
+                  <span style="font-size:13px;font-weight:600">Arrastrá o hacé clic para subir</span>
+                  <span style="font-size:11px">JPG, PNG · máx 3MB</span>
+                </div>
+              </div>
+              <input type="file" id="bgImgInput" accept="image/*" style="display:none" onchange="handleBgFileSelect(event)">
+              <div id="bgImgOverlayRow" style="display:none;margin-top:10px">
+                <label style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px">Oscuridad del overlay</label>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <input type="range" id="bgOverlay" min="0" max="80" value="30" style="flex:1;accent-color:var(--accent)" oninput="updateBgOverlay(this.value)">
+                  <span id="bgOverlayVal" style="font-size:12px;font-weight:600;color:var(--ink);min-width:32px">30%</span>
+                </div>
+              </div>
+            </div>
             <div class="fg">
               <label>Colores claros</label>
               <div class="bg-grid" id="bgGridLight"></div>
@@ -634,7 +656,9 @@ let profileData = {
   name:'', tag:'', bio:'', location:'',
   avatar:'👤', avatarPhoto: null,
   background: '#1a1714',
-  theme: 'dark'
+  theme: 'dark',
+  bgImage: null,
+  bgOverlay: 30,
 };
 let links = [], services = [], linkId = 0, serviceId = 0;
 
@@ -726,6 +750,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('wafabNumber').value    = d.wafab.number || '';
       }
       if (profileData.avatarPhoto) setAvatarImage(profileData.avatarPhoto);
+      if (profileData.bgImage) restoreBgImage(profileData.bgImage, profileData.bgOverlay);
     } catch(e) {}
   }
 
@@ -840,12 +865,77 @@ function renderBgGrid(containerId, options, isLight) {
 function selectBackground(opt) {
   profileData.background = opt.bg;
   profileData.theme = opt.theme;
+  // clear bg image when picking a solid/gradient
+  profileData.bgImage = null;
+  profileData.bgOverlay = 30;
+  document.getElementById('bgImgPreview').style.display = 'none';
+  document.getElementById('bgImgEmpty').style.display = 'flex';
+  document.getElementById('bgImgOverlayRow').style.display = 'none';
+  document.getElementById('bgImgInput').value = '';
   document.querySelectorAll('.bg-swatch').forEach(s => s.classList.remove('active'));
   const allOpts = [...backgrounds.light, ...backgrounds.dark, ...backgrounds.gradients];
   document.querySelectorAll('.bg-swatch').forEach((s, i) => {
     if (allOpts[i]?.bg === opt.bg) s.classList.add('active');
   });
   updatePreview();
+}
+
+/* ─── BG IMAGE UPLOAD ─── */
+function handleBgDrop(e) {
+  e.preventDefault();
+  document.getElementById('bgImgZone').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) processBgFile(file);
+}
+function handleBgFileSelect(e) {
+  const file = e.target.files[0];
+  if (file) processBgFile(file);
+}
+function processBgFile(file) {
+  if (!file.type.startsWith('image/')) { showToast('⚠ Solo imágenes (JPG, PNG)'); return; }
+  if (file.size > 3.5 * 1024 * 1024) { showToast('⚠ Imagen muy grande (máx 3MB)'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const src = e.target.result;
+    profileData.bgImage = src;
+    profileData.bgOverlay = 30;
+    // deselect solid swatches
+    document.querySelectorAll('.bg-swatch').forEach(s => s.classList.remove('active'));
+    // show preview
+    document.getElementById('bgImgThumb').src = src;
+    document.getElementById('bgImgPreview').style.display = 'block';
+    document.getElementById('bgImgEmpty').style.display = 'none';
+    document.getElementById('bgImgOverlayRow').style.display = 'block';
+    document.getElementById('bgOverlay').value = 30;
+    document.getElementById('bgOverlayVal').textContent = '30%';
+    updatePreview();
+    saveDraft();
+  };
+  reader.readAsDataURL(file);
+}
+function removeBgImage() {
+  profileData.bgImage = null;
+  document.getElementById('bgImgPreview').style.display = 'none';
+  document.getElementById('bgImgEmpty').style.display = 'flex';
+  document.getElementById('bgImgOverlayRow').style.display = 'none';
+  document.getElementById('bgImgInput').value = '';
+  updatePreview();
+  saveDraft();
+}
+function updateBgOverlay(val) {
+  profileData.bgOverlay = parseInt(val);
+  document.getElementById('bgOverlayVal').textContent = val + '%';
+  updatePreview();
+}
+function restoreBgImage(src, overlay) {
+  profileData.bgImage = src;
+  profileData.bgOverlay = overlay || 30;
+  document.getElementById('bgImgThumb').src = src;
+  document.getElementById('bgImgPreview').style.display = 'block';
+  document.getElementById('bgImgEmpty').style.display = 'none';
+  document.getElementById('bgImgOverlayRow').style.display = 'block';
+  document.getElementById('bgOverlay').value = profileData.bgOverlay;
+  document.getElementById('bgOverlayVal').textContent = profileData.bgOverlay + '%';
 }
 
 /* ═══════════════════════════════════════════
@@ -1104,7 +1194,7 @@ function buildPageHTML(forExport) {
     ${featHTML}
     ${svcSection}
     ${linkSection}
-    <div class="pub-footer">⬡ LINKSHUB</div>
+    <div class="pub-footer">⬡ DEVYNEST</div>
     ${waFabHTML}
   `;
 }
@@ -1140,7 +1230,13 @@ function updatePreview() {
   const pp = document.getElementById('previewPage');
   if (!pp) return;
 
-  pp.style.background = p.background;
+  if (p.bgImage) {
+    const ov = Math.round((p.bgOverlay || 30) * 0.8 * 255 / 100);
+    const rgba = `rgba(0,0,0,${(p.bgOverlay || 30) / 100})`;
+    pp.style.background = `linear-gradient(${rgba},${rgba}), url('${p.bgImage}') center/cover no-repeat`;
+  } else {
+    pp.style.background = p.background;
+  }
   pp.className = 'pub-page' + (p.theme === 'light' ? ' theme-light' : '');
   pp.innerHTML = buildPageHTML(false);
 
@@ -1228,7 +1324,12 @@ function showUserView(data) {
   }
 
   const pp = document.getElementById('publicPage');
-  pp.style.background = profile.background || '#1a1714';
+  if (profile.bgImage) {
+    const rgba = `rgba(0,0,0,${(profile.bgOverlay || 30) / 100})`;
+    pp.style.background = `linear-gradient(${rgba},${rgba}), url('${profile.bgImage}') center/cover no-repeat`;
+  } else {
+    pp.style.background = profile.background || '#1a1714';
+  }
   pp.className = 'pub-page' + (profile.theme === 'light' ? ' theme-light' : '');
   pp.innerHTML = buildPageHTML(true);
 
@@ -1364,14 +1465,16 @@ function exportHTML() {
     wafab: getWafab(),
   };
 
-  const bg = profileData.background.replace(/`/g, '\\`');
+  const bg = profileData.bgImage
+    ? `linear-gradient(rgba(0,0,0,${(profileData.bgOverlay||30)/100}),rgba(0,0,0,${(profileData.bgOverlay||30)/100})), url('${profileData.bgImage}') center/cover no-repeat`
+    : profileData.background.replace(/`/g, '\\`');
   const isLight = profileData.theme === 'light';
 
   const htmlContent = `<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>${esc(profileData.name)} — LinksHub</title>
+<title>${esc(profileData.name)} — Devynest</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -1449,10 +1552,10 @@ var svcItems=svcs.filter(function(s){return s.name}).map(function(s){var cu=fcu(
 if(svcItems){html+='<div class="sec"><div class="sec-lbl">Servicios</div><div class="svcs">'+svcItems+'</div></div>';}
 var lnkItems=ls.filter(function(l){return l.url}).map(function(l){return'<a class="lnk" href="'+fu(l.platform,l.url)+'" target="_blank" rel="noopener"><div class="lnk-ico" style="background:'+l._color+'">'+l._icon+'</div><div class="lnk-txt">'+(l.text||l.platform)+'</div><span class="lnk-arr">→</span></a>';}).join('');
 if(lnkItems){html+='<div class="sec"><div class="sec-lbl">Contacto y redes</div><div class="links">'+lnkItems+'</div></div>';}
-html+='<div class="footer">⬡ LINKSHUB</div>';
+html+='<div class="footer">⬡ DEVYNEST</div>';
 if(wf.enabled&&wf.number){html+='<a class="wa-fab" href="https://wa.me/'+wf.number.replace(/\\D/g,'')+'" target="_blank" rel="noopener">💬</a>';}
 pg.innerHTML=html;
-document.title=(p.name||'LinksHub')+' — LinksHub';
+document.title=(p.name||'Devynest')+' — Devynest';
 <\/script>
 
 <!-- EXPIRED PAGE -->
