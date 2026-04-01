@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Devynest — Crea tu página de contacto profesional</title>
+<title>DEVYNEST Links — Crea tu página de contacto profesional</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════════
    TOKENS
@@ -32,7 +32,7 @@
   --transition: all .2s cubic-bezier(.4,0,.2,1);
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh}
+body{font-family:'Montserrat',sans-serif;background:var(--paper);color:var(--ink);min-height:100vh}
 
 /* ═══════════════════════════════════════════
    SCROLLBAR
@@ -60,16 +60,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
   background:var(--ink);
   border-radius:9px;
   display:flex;align-items:center;justify-content:center;
-  font-family:'Fraunces',serif;font-weight:700;font-size:17px;color:var(--white);
+  font-family:'Montserrat',sans-serif;font-weight:700;font-size:17px;color:var(--white);
   letter-spacing:-1px;
 }
-.logo-name{font-family:'Fraunces',serif;font-weight:600;font-size:19px;color:var(--ink);letter-spacing:-.5px}
+.logo-name{font-family:'Montserrat',sans-serif;font-weight:600;font-size:19px;color:var(--ink);letter-spacing:-.5px}
 .topbar-right{display:flex;align-items:center;gap:10px}
 
 /* BUTTONS */
 .btn{
   padding:9px 18px;border-radius:var(--radius-sm);border:none;cursor:pointer;
-  font-family:'DM Sans',sans-serif;font-weight:500;font-size:14px;
+  font-family:'Montserrat',sans-serif;font-weight:500;font-size:14px;
   display:inline-flex;align-items:center;gap:7px;
   transition:var(--transition);text-decoration:none;white-space:nowrap;line-height:1
 }
@@ -101,7 +101,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
 }
 .tab-btn{
   padding:8px 16px;border-radius:10px;border:none;cursor:pointer;
-  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;
+  font-family:'Montserrat',sans-serif;font-size:13px;font-weight:500;
   background:transparent;color:var(--ink2);transition:var(--transition);white-space:nowrap;
   display:flex;align-items:center;gap:5px;
 }
@@ -112,7 +112,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
 .panel{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px}
 .panel:last-child{margin-bottom:0}
 .panel-hd{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.panel-hd h3{font-family:'Fraunces',serif;font-size:15px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:8px}
+.panel-hd h3{font-family:'Montserrat',sans-serif;font-size:15px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:8px}
 .panel-bd{padding:22px}
 .tab-content{display:none}
 .tab-content.active{display:block}
@@ -125,7 +125,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);m
 label{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.6px}
 .fc{
   width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);
-  font-family:'DM Sans',sans-serif;font-size:15px;color:var(--ink);background:var(--white);
+  font-family:'Montserrat',sans-serif;font-size:15px;color:var(--ink);background:var(--white);
   transition:var(--transition)
 }
 .fc:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(201,96,26,.1)}
@@ -178,7 +178,7 @@ select.fc{cursor:pointer;appearance:none;background-image:url("data:image/svg+xm
 @media(max-width:560px){.link-row2{grid-template-columns:1fr}}
 .add-link-btn{
   width:100%;padding:12px;border:2px dashed var(--border2);background:transparent;
-  color:var(--muted);border-radius:10px;cursor:pointer;font-family:'DM Sans',sans-serif;
+  color:var(--muted);border-radius:10px;cursor:pointer;font-family:'Montserrat',sans-serif;
   font-size:14px;font-weight:500;transition:var(--transition);margin-top:2px;
 }
 .add-link-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-lt)}
@@ -188,7 +188,7 @@ select.fc{cursor:pointer;appearance:none;background-image:url("data:image/svg+xm
   background:#fdfaf5;border:1.5px solid var(--border);border-radius:11px;padding:14px;margin-bottom:10px;
 }
 .service-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.service-hd span{font-size:13px;font-weight:600;color:var(--ink2);font-family:'Fraunces',serif}
+.service-hd span{font-size:13px;font-weight:600;color:var(--ink2);font-family:'Montserrat',sans-serif}
 .service-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
 @media(max-width:560px){.service-grid{grid-template-columns:1fr}}
 
@@ -243,7 +243,7 @@ select.fc{cursor:pointer;appearance:none;background-image:url("data:image/svg+xm
   border-radius:99px;padding:3px 10px;margin-bottom:8px;
   font-size:11px;color:rgba(255,255,255,.9);letter-spacing:.3px;
 }
-.pub-name{font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:#fff;text-align:center;margin-bottom:6px;text-shadow:0 2px 10px rgba(0,0,0,.2);line-height:1.2}
+.pub-name{font-family:'Montserrat',sans-serif;font-size:22px;font-weight:600;color:#fff;text-align:center;margin-bottom:6px;text-shadow:0 2px 10px rgba(0,0,0,.2);line-height:1.2}
 .pub-bio{font-size:13px;color:rgba(255,255,255,.82);text-align:center;line-height:1.55;max-width:260px;margin-bottom:4px}
 .pub-location{font-size:12px;color:rgba(255,255,255,.6);display:flex;align-items:center;gap:4px;margin-top:5px}
 
@@ -265,7 +265,7 @@ select.fc{cursor:pointer;appearance:none;background-image:url("data:image/svg+xm
 .pub-page.theme-light .pub-featured{background:rgba(255,255,255,.7);border-color:rgba(0,0,0,.1)}
 .pub-feat-tag{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:4px}
 .pub-page.theme-light .pub-feat-tag{color:var(--muted)}
-.pub-feat-title{font-family:'Fraunces',serif;font-size:15px;font-weight:600;color:#fff;margin-bottom:4px;line-height:1.3}
+.pub-feat-title{font-family:'Montserrat',sans-serif;font-size:15px;font-weight:600;color:#fff;margin-bottom:4px;line-height:1.3}
 .pub-page.theme-light .pub-feat-title{color:var(--ink)}
 .pub-feat-desc{font-size:12px;color:rgba(255,255,255,.75);line-height:1.5;margin-bottom:10px}
 .pub-page.theme-light .pub-feat-desc{color:var(--ink2)}
@@ -288,9 +288,9 @@ select.fc{cursor:pointer;appearance:none;background-image:url("data:image/svg+xm
 }
 .pub-page.theme-light .pub-service-card{background:rgba(255,255,255,.65);border-color:rgba(0,0,0,.08)}
 .svc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px}
-.svc-name{font-family:'Fraunces',serif;font-size:13px;font-weight:600;color:#fff;line-height:1.3}
+.svc-name{font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;color:#fff;line-height:1.3}
 .pub-page.theme-light .svc-name{color:var(--ink)}
-.svc-price{font-size:13px;font-weight:600;color:rgba(255,255,255,.9);white-space:nowrap;font-family:'DM Mono',monospace}
+.svc-price{font-size:13px;font-weight:600;color:rgba(255,255,255,.9);white-space:nowrap;font-family:'Montserrat',sans-serif}
 .pub-page.theme-light .svc-price{color:var(--ink)}
 .svc-desc{font-size:11px;color:rgba(255,255,255,.65);line-height:1.5;margin-bottom:8px}
 .pub-page.theme-light .svc-desc{color:var(--ink2)}
@@ -327,7 +327,7 @@ select.fc{cursor:pointer;appearance:none;background-image:url("data:image/svg+xm
 }
 .wa-fab:hover{transform:scale(1.08);box-shadow:0 6px 22px rgba(37,211,102,.5)}
 
-.pub-footer{font-size:10px;color:rgba(255,255,255,.3);font-family:'Fraunces',serif;letter-spacing:1.2px;text-align:center;padding:18px 0 16px}
+.pub-footer{font-size:10px;color:rgba(255,255,255,.3);font-family:'Montserrat',sans-serif;letter-spacing:1.2px;text-align:center;padding:18px 0 16px}
 .pub-page.theme-light .pub-footer{color:var(--muted)}
 
 /* ═══════════════════════════════════════════
@@ -343,11 +343,11 @@ select.fc{cursor:pointer;appearance:none;background-image:url("data:image/svg+xm
   background:var(--white);border-radius:20px;padding:30px;max-width:440px;width:100%;
   box-shadow:var(--shadow-lg);max-height:90vh;overflow-y:auto;
 }
-.modal-box h2{font-family:'Fraunces',serif;font-size:22px;font-weight:600;letter-spacing:-.5px;margin-bottom:4px}
+.modal-box h2{font-family:'Montserrat',sans-serif;font-size:22px;font-weight:600;letter-spacing:-.5px;margin-bottom:4px}
 .modal-box .sub{color:var(--muted);font-size:14px;margin-bottom:22px}
 .url-box{
   background:#f5f0e8;border:1.5px solid var(--border2);border-radius:10px;
-  padding:11px 14px;font-size:12px;font-family:'DM Mono',monospace;
+  padding:11px 14px;font-size:12px;font-family:'Montserrat',sans-serif;
   word-break:break-all;color:var(--ink);margin-bottom:14px;line-height:1.5;
 }
 .modal-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
@@ -385,10 +385,10 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
 .expired-overlay{position:fixed;inset:0;background:#1A1814;display:flex;align-items:center;justify-content:center;z-index:9999;padding:24px}
 .expired-box{background:#F7F5F0;border-radius:24px;padding:36px 28px;max-width:360px;width:100%;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.4)}
 .expired-icon{font-size:52px;margin-bottom:16px}
-.expired-box h2{font-family:'Fraunces',Georgia,serif;font-size:24px;font-weight:600;color:#1A1814;margin-bottom:8px;letter-spacing:-0.5px}
+.expired-box h2{font-family:'Montserrat',sans-serif;font-size:24px;font-weight:600;color:#1A1814;margin-bottom:8px;letter-spacing:-0.5px}
 .expired-box p{font-size:13.5px;color:#6B6860;line-height:1.6;margin-bottom:20px}
 .expired-count{display:inline-block;background:#FEF9C3;border:1.5px solid #FDE68A;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;color:#92400E;margin-bottom:20px}
-.uses-badge{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);backdrop-filter:blur(8px);color:rgba(255,255,255,.85);font-size:11px;font-weight:600;padding:6px 14px;border-radius:20px;z-index:500;pointer-events:none;font-family:'Cabinet Grotesk',system-ui,sans-serif;letter-spacing:0.3px}
+.uses-badge{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);backdrop-filter:blur(8px);color:rgba(255,255,255,.85);font-size:11px;font-weight:600;padding:6px 14px;border-radius:20px;z-index:500;pointer-events:none;font-family:'Montserrat',sans-serif;letter-spacing:0.3px}
 </style>
 </head>
 <body>
@@ -398,11 +398,11 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
   <nav class="topbar">
     <div class="logo">
       <div class="logo-mark">D</div>
-      <span class="logo-name">Devynest</span>
+      <span class="logo-name">DEVYNEST <span style="font-weight:400;opacity:.7">Links</span></span>
     </div>
     <div class="topbar-right">
-      <button class="btn btn-ghost" onclick="exportHTML()">⬇ Exportar HTML</button>
-      <button class="btn btn-ink" onclick="openShareModal()">⚡ Generar mi link</button>
+      <button class="btn btn-ghost" onclick="exportHTML()">Exportar</button>
+      <button class="btn btn-ink" onclick="openShareModal()">Generar mi link</button>
     </div>
   </nav>
 
@@ -411,11 +411,11 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
     <div>
       <!-- TABS -->
       <div class="editor-tabs">
-        <button class="tab-btn active" onclick="switchTab('perfil',this)">👤 Perfil</button>
-        <button class="tab-btn" onclick="switchTab('apariencia',this)">🎨 Apariencia</button>
-        <button class="tab-btn" onclick="switchTab('destacado',this)">📌 Destacado</button>
-        <button class="tab-btn" onclick="switchTab('servicios',this)">🛍 Servicios</button>
-        <button class="tab-btn" onclick="switchTab('links',this)">🔗 Links</button>
+        <button class="tab-btn active" onclick="switchTab('perfil',this)">· Perfil</button>
+        <button class="tab-btn" onclick="switchTab('apariencia',this)">· Apariencia</button>
+        <button class="tab-btn" onclick="switchTab('destacado',this)">· Destacado</button>
+        <button class="tab-btn" onclick="switchTab('servicios',this)">· Servicios</button>
+        <button class="tab-btn" onclick="switchTab('links',this)">· Links</button>
       </div>
 
       <!-- TAB: PERFIL -->
@@ -433,7 +433,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
                 <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="handleAvatarUpload(this)">
                 <div style="display:flex;flex-direction:column;gap:6px;align-items:center">
                   <span class="avatar-or">o elige un emoji</span>
-                  <button class="btn btn-danger-sm" id="clearPhotoBtn" onclick="clearPhoto()" style="display:none;font-size:11px">✕ Quitar foto</button>
+                  <button class="btn btn-danger-sm" id="clearPhotoBtn" onclick="clearPhoto()" style="display:none;font-size:11px">Quitar foto</button>
                 </div>
                 <div class="emoji-grid" id="emojiGrid"></div>
               </div>
@@ -468,17 +468,17 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
       <!-- TAB: APARIENCIA -->
       <div id="tab-apariencia" class="tab-content">
         <div class="panel">
-          <div class="panel-hd"><h3>🎨 Fondo de tu página</h3></div>
+          <div class="panel-hd"><h3>Fondo de tu página</h3></div>
           <div class="panel-bd">
             <div class="fg">
-              <label>📸 Imagen personalizada</label>
+              <label>Imagen personalizada</label>
               <div class="bg-img-upload" id="bgImgZone" onclick="document.getElementById('bgImgInput').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleBgDrop(event)">
                 <div id="bgImgPreview" style="display:none;position:relative;border-radius:10px;overflow:hidden;height:100px">
                   <img id="bgImgThumb" style="width:100%;height:100%;object-fit:cover" alt="">
                   <button onclick="event.stopPropagation();removeBgImage()" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.55);color:white;border:none;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:600;cursor:pointer">✕ Quitar</button>
                 </div>
                 <div id="bgImgEmpty" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 0;color:var(--muted)">
-                  <span style="font-size:28px">🖼</span>
+                  <span style="font-size:28px">↑</span>
                   <span style="font-size:13px;font-weight:600">Arrastrá o hacé clic para subir</span>
                   <span style="font-size:11px">JPG, PNG · máx 3MB</span>
                 </div>
@@ -511,7 +511,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
       <!-- TAB: DESTACADO -->
       <div id="tab-destacado" class="tab-content">
         <div class="panel">
-          <div class="panel-hd"><h3>📌 Card destacada</h3><span style="font-size:12px;color:var(--muted)">Promo, lanzamiento, anuncio</span></div>
+          <div class="panel-hd"><h3>Card destacada</h3><span style="font-size:12px;color:var(--muted)">Promo, lanzamiento, anuncio</span></div>
           <div class="panel-bd">
             <div class="featured-toggle">
               <label class="toggle-wrap">
@@ -551,7 +551,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
       <!-- TAB: SERVICIOS -->
       <div id="tab-servicios" class="tab-content">
         <div class="panel">
-          <div class="panel-hd"><h3>🛍 Tus servicios / productos</h3></div>
+          <div class="panel-hd"><h3>Servicios / Productos</h3></div>
           <div class="panel-bd">
             <div id="servicesContainer"></div>
             <button class="add-link-btn" onclick="addService()">+ Agregar servicio</button>
@@ -562,14 +562,14 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
       <!-- TAB: LINKS -->
       <div id="tab-links" class="tab-content">
         <div class="panel">
-          <div class="panel-hd"><h3>🔗 Redes y contacto</h3></div>
+          <div class="panel-hd"><h3>Redes y contacto</h3></div>
           <div class="panel-bd">
             <div id="linksContainer"></div>
             <button class="add-link-btn" onclick="addLink()">+ Agregar enlace</button>
           </div>
         </div>
         <div class="panel" style="margin-top:16px">
-          <div class="panel-hd"><h3>💬 Botón flotante WhatsApp</h3></div>
+          <div class="panel-hd"><h3>Botón flotante WhatsApp</h3></div>
           <div class="panel-bd">
             <div class="featured-toggle" style="margin-bottom:12px">
               <label class="toggle-wrap">
@@ -614,30 +614,30 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
 <!-- ═══════════════════ SHARE MODAL ═══════════════════ -->
 <div id="shareModal" class="modal-overlay">
   <div class="modal-box">
-    <h2>🎉 ¡Listo para compartir!</h2>
+    <h2>¡Listo para compartir!</h2>
     <p class="sub">Este link lleva toda tu información. Funciona sin servidor.</p>
     <div class="url-box" id="generatedUrl">—</div>
     <div style="background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:10px;padding:11px 15px;margin-bottom:14px;display:flex;align-items:flex-start;gap:10px">
-      <span style="font-size:18px;flex-shrink:0">🔢</span>
+      <span style="font-size:18px;flex-shrink:0"></span>
       <div style="font-size:12.5px;color:#166534;line-height:1.5">
         <strong>Límite de 8 vistas por dispositivo.</strong><br>
         Caduca cuando el mismo navegador abre el link 8 veces. Para reiniciar el contador, generá un nuevo link.
       </div>
     </div>
     <div class="modal-btns">
-      <button class="btn btn-ink" onclick="copyLink()">📋 Copiar link</button>
-      <button class="btn btn-ghost" onclick="downloadQR()">⬇ Descargar QR</button>
+      <button class="btn btn-ink" onclick="copyLink()">Copiar link</button>
+      <button class="btn btn-ghost" onclick="downloadQR()">Descargar QR</button>
     </div>
     <div class="qr-wrap"><div id="qrcode"></div></div>
     <div style="background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:8px">
       <div style="display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600;color:#166534">
-        <span>✔</span> Este link ya está listo para compartir
+        <span>✓</span> Este link ya está listo para compartir
       </div>
       <div style="display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600;color:#166534">
-        <span>✔</span> Funciona desde cualquier dispositivo
+        <span>✓</span> Funciona desde cualquier dispositivo
       </div>
       <div style="display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600;color:#166534">
-        <span>✔</span> No requiere instalación
+        <span>✓</span> No requiere instalación
       </div>
     </div>
     <hr class="div">
@@ -662,7 +662,7 @@ let profileData = {
 };
 let links = [], services = [], linkId = 0, serviceId = 0;
 
-const emojis = ['👤','😊','🚀','💼','🎨','📸','💻','🌟','✨','🔥','💡','🎯','🌿','🦋','🏆','🎬','📦','🍃'];
+const emojis = ['🫧','🌙','⚡','🪷','🦋','🌊','🍂','🪐','💫','🌿','🔮','🎯','🦚','🌸','🫶','✦','🪞','🐚','🌺','🍃','🪸','🌾','🫐','🦩'];
 
 const backgrounds = {
   light: [
@@ -802,7 +802,7 @@ function clearPhoto() {
   profileData.avatarPhoto = null;
   profileData.avatar = '👤';
   const wrap = document.getElementById('avatarPreview');
-  wrap.innerHTML = '<span class="upload-icon">📷</span><span class="upload-hint">Subir foto</span>';
+  wrap.innerHTML = '<span class="upload-icon">↑</span><span class="upload-hint">Subir foto</span>';
   document.getElementById('clearPhotoBtn').style.display = 'none';
   document.getElementById('avatarInput').value = '';
   document.querySelectorAll('.emoji-btn').forEach(b => {
@@ -833,7 +833,7 @@ function selectEmoji(e) {
   profileData.avatarPhoto = null;
   document.querySelectorAll('.emoji-btn').forEach(b => b.classList.toggle('active', b.dataset.emoji === e));
   const wrap = document.getElementById('avatarPreview');
-  wrap.innerHTML = '<span class="upload-icon">📷</span><span class="upload-hint">Subir foto</span>';
+  wrap.innerHTML = '<span class="upload-icon">↑</span><span class="upload-hint">Subir foto</span>';
   document.getElementById('clearPhotoBtn').style.display = 'none';
   document.getElementById('avatarInput').value = '';
   updatePreview();
@@ -892,8 +892,8 @@ function handleBgFileSelect(e) {
   if (file) processBgFile(file);
 }
 function processBgFile(file) {
-  if (!file.type.startsWith('image/')) { showToast('⚠ Solo imágenes (JPG, PNG)'); return; }
-  if (file.size > 3.5 * 1024 * 1024) { showToast('⚠ Imagen muy grande (máx 3MB)'); return; }
+  if (!file.type.startsWith('image/')) { showToast('Solo imágenes (JPG, PNG)'); return; }
+  if (file.size > 3.5 * 1024 * 1024) { showToast('Imagen muy grande (máx 3MB)'); return; }
   const reader = new FileReader();
   reader.onload = e => {
     const src = e.target.result;
@@ -1015,7 +1015,7 @@ function updateLinkText(id, v) { const l=links.find(x=>x.id===id); if(l){l.text=
 function addService(data) {
   const id = serviceId++;
   const svc = data ? { ...data, id } : { id, name:'', price:'', desc:'', ctaType:'wa', ctaValue:'' };
-  if (!data) services.push(svc);
+  services.push(svc);
 
   const c = document.getElementById('servicesContainer');
   const el = document.createElement('div');
@@ -1025,7 +1025,7 @@ function addService(data) {
   el.innerHTML = `
     <div class="service-hd">
       <span>Servicio #${c.children.length+1}</span>
-      <button class="btn-danger-sm" onclick="removeService(${id})">✕ Eliminar</button>
+      <button class="btn-danger-sm" onclick="removeService(${id})">Eliminar</button>
     </div>
     <div class="service-grid">
       <div><label>Nombre del servicio</label><input type="text" class="fc" placeholder="Ej: Consultoría de packaging" value="${svc.name}" oninput="updateSvc(${id},'name',this.value)"></div>
@@ -1037,7 +1037,6 @@ function addService(data) {
       <div><label>Link / número / email</label><input type="text" class="fc" placeholder="URL, número o email" value="${svc.ctaValue}" oninput="updateSvc(${id},'ctaValue',this.value)"></div>
     </div>`;
   c.appendChild(el);
-  if (!data) services.push(svc);
   updatePreview();
 }
 
@@ -1053,7 +1052,7 @@ function restoreService(s) {
   el.innerHTML = `
     <div class="service-hd">
       <span>Servicio</span>
-      <button class="btn-danger-sm" onclick="removeService(${id})">✕ Eliminar</button>
+      <button class="btn-danger-sm" onclick="removeService(${id})">Eliminar</button>
     </div>
     <div class="service-grid">
       <div><label>Nombre del servicio</label><input type="text" class="fc" placeholder="Ej: Consultoría de packaging" value="${svc.name}" oninput="updateSvc(${id},'name',this.value)"></div>
@@ -1194,7 +1193,7 @@ function buildPageHTML(forExport) {
     ${featHTML}
     ${svcSection}
     ${linkSection}
-    <div class="pub-footer">⬡ DEVYNEST</div>
+    <div class="pub-footer">DEVYNEST Links</div>
     ${waFabHTML}
   `;
 }
@@ -1263,9 +1262,9 @@ function showExpiredPage(p, used, maxUses) {
   const usedN = used || maxUses || 8;
   const maxN = maxUses || 8;
   document.querySelector('.uv-inner').innerHTML =
-    '<div style="text-align:center;padding:60px 24px;font-family:\'Cabinet Grotesk\',system-ui,sans-serif">'
+    '<div style="text-align:center;padding:60px 24px;font-family:\'Montserrat\',sans-serif">'
     + '<div style="font-size:56px;margin-bottom:20px">🔒</div>'
-    + '<div style="font-family:\'Fraunces\',Georgia,serif;font-size:30px;font-weight:600;color:white;margin-bottom:10px;letter-spacing:-0.5px">Este link caducó</div>'
+    + '<div style="font-family:\'Montserrat\',sans-serif;font-size:30px;font-weight:600;color:white;margin-bottom:10px;letter-spacing:-0.5px">Este link caducó</div>'
     + '<div style="display:inline-block;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:8px 20px;margin:12px auto 20px;font-size:13px;color:rgba(255,255,255,.65);font-weight:600;letter-spacing:0.3px">'
     + '🔑 ' + maxN + ' de ' + maxN + ' accesos utilizados'
     + '</div>'
@@ -1283,7 +1282,7 @@ function showUsageBadge(remaining) {
   badge.style.cssText = 'position:fixed;top:16px;right:16px;z-index:9999;'
     + 'background:rgba(15,14,12,.88);backdrop-filter:blur(12px);'
     + 'color:white;padding:11px 18px;border-radius:12px;'
-    + 'font-family:\'DM Sans\',system-ui,sans-serif;font-size:13px;font-weight:600;'
+    + 'font-family:\'Montserrat\',sans-serif;font-size:13px;font-weight:600;'
     + 'border:1px solid rgba(255,255,255,.1);animation:badgeIn .4s cubic-bezier(.34,1.56,.64,1);';
   const dot = isLast ? '#EF4444' : remaining <= 3 ? '#F59E0B' : '#10B981';
   badge.innerHTML = '<div style="display:flex;align-items:center;gap:8px">'
@@ -1390,7 +1389,7 @@ function saveDraft() {
 ═══════════════════════════════════════════ */
 function openShareModal() {
   if (!profileData.name) {
-    showToast('⚠ Ingresá tu nombre primero'); return;
+    showToast('Ingresá tu nombre primero'); return;
   }
   const url = buildShareUrl();
   document.getElementById('generatedUrl').textContent = url;
@@ -1440,7 +1439,7 @@ function copyLink() {
 
 function downloadQR() {
   const canvas = document.querySelector('#qrcode canvas');
-  if (!canvas) { showToast('⚠ Generá el link primero'); return; }
+  if (!canvas) { showToast('Generá el link primero'); return; }
   const a = document.createElement('a');
   a.download = 'linkshub-qr.png';
   a.href = canvas.toDataURL(); a.click();
@@ -1450,7 +1449,7 @@ function downloadQR() {
    EXPORT STANDALONE HTML
 ═══════════════════════════════════════════ */
 function exportHTML() {
-  if (!profileData.name) { showToast('⚠ Ingresá tu nombre primero'); return; }
+  if (!profileData.name) { showToast('Ingresá tu nombre primero'); return; }
 
   const exportLinks = links.map(l => {
     const plat = platforms.find(p=>p.id===l.platform)||platforms[0];
@@ -1474,23 +1473,23 @@ function exportHTML() {
 <html lang="es">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>${esc(profileData.name)} — Devynest</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono&display=swap" rel="stylesheet">
+<title>${esc(profileData.name)} — DEVYNEST Links</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'DM Sans',sans-serif;min-height:100vh;background:${bg};display:flex;align-items:flex-start;justify-content:center}
+body{font-family:'Montserrat',sans-serif;min-height:100vh;background:${bg};display:flex;align-items:flex-start;justify-content:center}
 .w{width:100%;max-width:480px;margin:0 auto;min-height:100vh}
 .page{min-height:100vh;padding-bottom:80px;position:relative}
 .hero{padding:36px 22px 22px;display:flex;flex-direction:column;align-items:center}
 .ava{width:88px;height:88px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:40px;border:3px solid rgba(255,255,255,.3);background:rgba(255,255,255,.18);overflow:hidden;margin-bottom:12px}
 .ava img{width:100%;height:100%;object-fit:cover}
 .badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.25);border-radius:99px;padding:3px 10px;margin-bottom:8px;font-size:11px;color:rgba(255,255,255,.9)}
-.name{font-family:'Fraunces',serif;font-size:24px;font-weight:600;color:#fff;text-align:center;margin-bottom:6px;text-shadow:0 2px 10px rgba(0,0,0,.2)}
+.name{font-family:'Montserrat',sans-serif;font-size:24px;font-weight:600;color:#fff;text-align:center;margin-bottom:6px;text-shadow:0 2px 10px rgba(0,0,0,.2)}
 .bio{font-size:13px;color:rgba(255,255,255,.82);text-align:center;line-height:1.55;max-width:280px}
 .loc{font-size:12px;color:rgba(255,255,255,.6);display:flex;align-items:center;gap:4px;margin-top:5px}
 .feat{margin:0 18px 16px;padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.18);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.28)}
 .feat-tag{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:4px}
-.feat-title{font-family:'Fraunces',serif;font-size:15px;font-weight:600;color:#fff;margin-bottom:4px;line-height:1.3}
+.feat-title{font-family:'Montserrat',sans-serif;font-size:15px;font-weight:600;color:#fff;margin-bottom:4px;line-height:1.3}
 .feat-desc{font-size:12px;color:rgba(255,255,255,.75);line-height:1.5;margin-bottom:10px}
 .feat-btn{display:inline-flex;align-items:center;gap:5px;background:#fff;color:#1a1714;font-size:12px;font-weight:600;padding:7px 14px;border-radius:8px;text-decoration:none;transition:all .2s}
 .feat-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.18)}
@@ -1499,8 +1498,8 @@ body{font-family:'DM Sans',sans-serif;min-height:100vh;background:${bg};display:
 .svcs{display:flex;flex-direction:column;gap:9px}
 .svc{padding:13px 14px;border-radius:12px;background:rgba(255,255,255,.13);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.22)}
 .svc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px}
-.svc-nm{font-family:'Fraunces',serif;font-size:13px;font-weight:600;color:#fff;line-height:1.3}
-.svc-pr{font-size:13px;font-weight:600;color:rgba(255,255,255,.9);white-space:nowrap;font-family:'DM Mono',monospace}
+.svc-nm{font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;color:#fff;line-height:1.3}
+.svc-pr{font-size:13px;font-weight:600;color:rgba(255,255,255,.9);white-space:nowrap;font-family:'Montserrat',sans-serif}
 .svc-ds{font-size:11px;color:rgba(255,255,255,.65);line-height:1.5;margin-bottom:8px}
 .svc-ct{font-size:11px;font-weight:600;color:#fff;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);border-radius:7px;padding:5px 11px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;transition:all .2s}
 .svc-ct:hover{background:rgba(255,255,255,.3)}
@@ -1510,7 +1509,7 @@ body{font-family:'DM Sans',sans-serif;min-height:100vh;background:${bg};display:
 .lnk-ico{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
 .lnk-txt{flex:1;font-weight:500;font-size:13px}
 .lnk-arr{opacity:.5;font-size:12px}
-.footer{font-size:10px;color:rgba(255,255,255,.3);font-family:'Fraunces',serif;letter-spacing:1.2px;text-align:center;padding:20px 0 16px}
+.footer{font-size:10px;color:rgba(255,255,255,.3);font-family:'Montserrat',sans-serif;letter-spacing:1.2px;text-align:center;padding:20px 0 16px}
 .wa-fab{position:fixed;bottom:24px;right:24px;width:52px;height:52px;border-radius:50%;background:#25d366;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 16px rgba(37,211,102,.4);text-decoration:none;transition:all .2s;border:2px solid rgba(255,255,255,.3);z-index:100}
 .wa-fab:hover{transform:scale(1.08)}
 ${isLight ? `
@@ -1552,16 +1551,16 @@ var svcItems=svcs.filter(function(s){return s.name}).map(function(s){var cu=fcu(
 if(svcItems){html+='<div class="sec"><div class="sec-lbl">Servicios</div><div class="svcs">'+svcItems+'</div></div>';}
 var lnkItems=ls.filter(function(l){return l.url}).map(function(l){return'<a class="lnk" href="'+fu(l.platform,l.url)+'" target="_blank" rel="noopener"><div class="lnk-ico" style="background:'+l._color+'">'+l._icon+'</div><div class="lnk-txt">'+(l.text||l.platform)+'</div><span class="lnk-arr">→</span></a>';}).join('');
 if(lnkItems){html+='<div class="sec"><div class="sec-lbl">Contacto y redes</div><div class="links">'+lnkItems+'</div></div>';}
-html+='<div class="footer">⬡ DEVYNEST</div>';
+html+='<div class="footer">DEVYNEST Links</div>';
 if(wf.enabled&&wf.number){html+='<a class="wa-fab" href="https://wa.me/'+wf.number.replace(/\\D/g,'')+'" target="_blank" rel="noopener">💬</a>';}
 pg.innerHTML=html;
-document.title=(p.name||'Devynest')+' — Devynest';
+document.title=(p.name||'DEVYNEST Links')+' — DEVYNEST Links';
 <\/script>
 
 <!-- EXPIRED PAGE -->
 <div id="expiredPage" class="expired-overlay" style="display:none">
   <div class="expired-box">
-    <div class="expired-icon">&#128274;</div>
+    <div class="expired-icon">✕</div>
     <h2>Link vencido</h2>
     <p>Este link de acceso limitado ya fue utilizado el m&aacute;ximo de veces permitido y ya no est&aacute; disponible.</p>
     <div class="expired-count">&#128100; 8 de 8 accesos utilizados</div>
