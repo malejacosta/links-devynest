@@ -498,9 +498,8 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
     </div>
     <div class="topbar-right">
       <div class="user-chip"><span class="user-chip-dot"></span><span id="userEmailLabel">—</span></div>
-      <button class="btn btn-ghost" onclick="exportHTML()">Exportar</button>
       <button class="btn btn-accent" onclick="openShareModal()">✦ Generar mi link</button>
-      <button class="btn btn-ghost" onclick="handleLogout()" title="Cerrar sesión" style="padding:9px 12px">↩</button>
+      <button class="btn btn-ghost" onclick="handleLogout()" style="gap:6px">Salir ↩</button>
     </div>
   </nav>
 
@@ -1442,7 +1441,6 @@ function generateLinkId() {
 }
 
 function buildShareUrl() {
-  const maxUsesVal = parseInt(document.getElementById('maxUsesSelect')?.value ?? '10');
   const data = {
     profile: profileData,
     links,
@@ -1450,7 +1448,7 @@ function buildShareUrl() {
     featured: getFeatured(),
     wafab: getWafab(),
     linkId: generateLinkId(),
-    maxUses: maxUsesVal,
+    maxUses: 0,
     createdAt: Date.now(),
   };
   const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
