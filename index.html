@@ -435,6 +435,12 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
 .auth-divider{text-align:center;font-size:11px;color:var(--muted);margin:16px 0;position:relative}
 .auth-divider::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border)}
 .auth-divider span{background:var(--white);padding:0 10px;position:relative}
+.pass-wrap{position:relative}
+.pass-wrap .fc{padding-right:44px}
+.pass-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:var(--muted);padding:4px;line-height:1;transition:var(--transition)}
+.pass-toggle:hover{color:var(--ink)}
+.forgot-link{display:block;text-align:right;font-size:12px;color:var(--accent);font-weight:500;margin-top:7px;cursor:pointer;text-decoration:none;background:none;border:none;font-family:'Montserrat',sans-serif;transition:var(--transition)}
+.forgot-link:hover{color:var(--accent-dk);text-decoration:underline}
 
 /* ─── BUILDER INTRO BANNER ─── */
 .builder-intro{
@@ -478,7 +484,11 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
     </div>
     <div class="fg" style="margin-top:12px">
       <label>Contraseña</label>
-      <input type="password" id="authPassword" class="fc" placeholder="Mínimo 6 caracteres" autocomplete="current-password">
+      <div class="pass-wrap">
+        <input type="password" id="authPassword" class="fc" placeholder="Mínimo 6 caracteres" autocomplete="current-password">
+        <button type="button" class="pass-toggle" onclick="togglePassword()" title="Mostrar/ocultar contraseña" id="passToggleBtn">👁</button>
+      </div>
+      <button type="button" class="forgot-link" id="forgotLink" onclick="sendPasswordReset()">¿Olvidaste tu contraseña?</button>
     </div>
     <button class="btn btn-accent" id="authSubmitBtn" onclick="handleAuth()" style="width:100%;justify-content:center;margin-top:18px;padding:12px">Iniciar sesión</button>
     <div class="auth-divider" style="margin-top:18px"><span>o</span></div>
@@ -1701,6 +1711,7 @@ function switchAuthTab(mode) {
   document.getElementById('authSubmitBtn').textContent = mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta';
   document.getElementById('authError').classList.remove('show');
   document.getElementById('authPassword').placeholder = mode === 'login' ? 'Tu contraseña' : 'Mínimo 6 caracteres';
+  document.getElementById('forgotLink').style.display = mode === 'login' ? 'block' : 'none';
 }
 
 function showAuthError(msg) {
@@ -1745,6 +1756,34 @@ function handleGoogleAuth() {
       showAuthError(err.code?.includes('api-key') ? '⚠ Configurá las credenciales de Firebase.' : err.message);
     }
   });
+}
+
+function togglePassword() {
+  const input = document.getElementById('authPassword');
+  const btn   = document.getElementById('passToggleBtn');
+  const isHidden = input.type === 'password';
+  input.type = isHidden ? 'text' : 'password';
+  btn.textContent = isHidden ? '🙈' : '👁';
+}
+
+function sendPasswordReset() {
+  const email = document.getElementById('authEmail').value.trim();
+  if (!email) {
+    showAuthError('Ingresá tu email primero para recuperar la contraseña.');
+    return;
+  }
+  auth.sendPasswordResetEmail(email)
+    .then(() => {
+      document.getElementById('authError').classList.remove('show');
+      showToast('✓ Te enviamos un email para restablecer tu contraseña');
+    })
+    .catch(err => {
+      const msgs = {
+        'auth/user-not-found': 'No existe una cuenta con ese email.',
+        'auth/invalid-email':  'Email inválido.',
+      };
+      showAuthError(msgs[err.code] || err.message);
+    });
 }
 
 function handleLogout() {
