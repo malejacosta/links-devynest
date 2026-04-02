@@ -207,6 +207,26 @@ select.fc{cursor:pointer;appearance:none;background-image:url("data:image/svg+xm
 .toggle-wrap input:checked + .toggle-track:before{transform:translateX(20px)}
 .toggle-label{font-size:14px;color:var(--ink2);font-weight:500}
 
+/* ─── BG IMG UPLOAD ZONE ─── */
+.bg-img-upload{
+  border:2px dashed var(--border2);border-radius:10px;
+  cursor:pointer;transition:var(--transition);overflow:hidden;
+  background:var(--white);
+}
+.bg-img-upload:hover,.bg-img-upload.drag{border-color:var(--accent);background:var(--accent-lt)}
+
+/* ─── FEATURED FIELDS ─── */
+#featuredFields{transition:opacity .2s,filter .2s}
+#featuredFields.disabled{opacity:.4;pointer-events:none;filter:grayscale(.4)}
+
+/* ─── EMPTY PREVIEW STATE ─── */
+.preview-empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:420px;gap:10px;padding:24px;text-align:center;
+}
+.preview-empty-icon{font-size:36px;opacity:.4}
+.preview-empty-txt{font-size:12px;color:rgba(255,255,255,.4);font-family:'Montserrat',sans-serif;line-height:1.6}
+
 /* ═══════════════════════════════════════════
    PREVIEW COLUMN
 ═══════════════════════════════════════════ */
@@ -389,9 +409,85 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
 .expired-box p{font-size:13.5px;color:#6B6860;line-height:1.6;margin-bottom:20px}
 .expired-count{display:inline-block;background:#FEF9C3;border:1.5px solid #FDE68A;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;color:#92400E;margin-bottom:20px}
 .uses-badge{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);backdrop-filter:blur(8px);color:rgba(255,255,255,.85);font-size:11px;font-weight:600;padding:6px 14px;border-radius:20px;z-index:500;pointer-events:none;font-family:'Montserrat',sans-serif;letter-spacing:0.3px}
+
+/* ═══════════════════════════════════════════
+   AUTH VIEW
+═══════════════════════════════════════════ */
+#authView{
+  display:none;min-height:100vh;background:var(--paper);
+  align-items:center;justify-content:center;padding:24px;
+}
+#authView.active{display:flex}
+.auth-card{
+  background:var(--white);border:1px solid var(--border);border-radius:24px;
+  padding:36px 32px;max-width:420px;width:100%;
+  box-shadow:var(--shadow-lg);
+}
+.auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:24px;justify-content:center}
+.auth-hero{text-align:center;margin-bottom:28px}
+.auth-hero h1{font-family:'Montserrat',sans-serif;font-size:22px;font-weight:700;color:var(--ink);line-height:1.3;margin-bottom:10px;letter-spacing:-.5px}
+.auth-hero p{font-size:13px;color:var(--ink2);line-height:1.65}
+.auth-tabs-wrap{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:#f5f0e8;border-radius:10px;padding:4px;margin-bottom:22px}
+.auth-tab{padding:8px;border:none;background:transparent;border-radius:8px;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:500;color:var(--ink2);cursor:pointer;transition:var(--transition)}
+.auth-tab.active{background:var(--white);color:var(--ink);box-shadow:0 1px 6px rgba(26,23,20,.1)}
+.auth-error{background:var(--red-lt);color:var(--red);border-radius:8px;padding:9px 13px;font-size:12.5px;margin-bottom:14px;display:none}
+.auth-error.show{display:block}
+.auth-divider{text-align:center;font-size:11px;color:var(--muted);margin:16px 0;position:relative}
+.auth-divider::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border)}
+.auth-divider span{background:var(--white);padding:0 10px;position:relative}
+
+/* ─── BUILDER INTRO BANNER ─── */
+.builder-intro{
+  background:var(--white);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px 22px;margin-bottom:20px;
+  display:flex;align-items:flex-start;gap:14px;
+}
+.builder-intro-icon{font-size:22px;flex-shrink:0;margin-top:1px}
+.builder-intro h2{font-family:'Montserrat',sans-serif;font-size:16px;font-weight:700;color:var(--ink);margin-bottom:4px;letter-spacing:-.3px}
+.builder-intro p{font-size:12.5px;color:var(--ink2);line-height:1.6}
+
+/* ─── USER CHIP en topbar ─── */
+.user-chip{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink2);font-weight:500;padding:6px 10px;border-radius:8px;background:#f5f0e8}
+.user-chip-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0}
 </style>
+<!-- Firebase Auth -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 </head>
 <body>
+
+<!-- ═══════════════════ AUTH ═══════════════════ -->
+<div id="authView" class="active">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-mark">D</div>
+      <span class="logo-name">DEVYNEST <span style="font-weight:400;opacity:.7">Links</span></span>
+    </div>
+    <div class="auth-hero">
+      <h1>Creá tu página de contacto en minutos.</h1>
+      <p>Completá cómo te presentás, dónde te contactan y qué ofrecés. Vas a obtener un link y un QR listos para compartir sin instalar nada.</p>
+    </div>
+    <div class="auth-tabs-wrap">
+      <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Iniciar sesión</button>
+      <button class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">Crear cuenta</button>
+    </div>
+    <div class="auth-error" id="authError"></div>
+    <div class="fg">
+      <label>Email</label>
+      <input type="email" id="authEmail" class="fc" placeholder="tu@email.com" autocomplete="email">
+    </div>
+    <div class="fg" style="margin-top:12px">
+      <label>Contraseña</label>
+      <input type="password" id="authPassword" class="fc" placeholder="Mínimo 6 caracteres" autocomplete="current-password">
+    </div>
+    <button class="btn btn-accent" id="authSubmitBtn" onclick="handleAuth()" style="width:100%;justify-content:center;margin-top:18px;padding:12px">Iniciar sesión</button>
+    <div class="auth-divider" style="margin-top:18px"><span>o</span></div>
+    <button class="btn btn-ghost" onclick="handleGoogleAuth()" style="width:100%;justify-content:center;margin-top:0;padding:11px;gap:8px">
+      <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-3.59-13.46-8.69l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Continuar con Google
+    </button>
+  </div>
+</div>
 
 <!-- ═══════════════════ BUILDER ═══════════════════ -->
 <div id="builder">
@@ -401,12 +497,22 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
       <span class="logo-name">DEVYNEST <span style="font-weight:400;opacity:.7">Links</span></span>
     </div>
     <div class="topbar-right">
+      <div class="user-chip"><span class="user-chip-dot"></span><span id="userEmailLabel">—</span></div>
       <button class="btn btn-ghost" onclick="exportHTML()">Exportar</button>
-      <button class="btn btn-ink" onclick="openShareModal()">Generar mi link</button>
+      <button class="btn btn-accent" onclick="openShareModal()">✦ Generar mi link</button>
+      <button class="btn btn-ghost" onclick="handleLogout()" title="Cerrar sesión" style="padding:9px 12px">↩</button>
     </div>
   </nav>
 
   <div class="builder-body">
+    <!-- INTRO BANNER -->
+    <div class="builder-intro" style="grid-column:1/-1">
+      <div class="builder-intro-icon">✦</div>
+      <div>
+        <h2>Creá tu página de contacto en minutos.</h2>
+        <p>Completá cómo te presentás, dónde te contactan y qué ofrecés. Vas a obtener un link y un QR listos para compartir sin instalar nada.</p>
+      </div>
+    </div>
     <!-- LEFT -->
     <div>
       <!-- TABS -->
@@ -515,12 +621,12 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
           <div class="panel-bd">
             <div class="featured-toggle">
               <label class="toggle-wrap">
-                <input type="checkbox" id="featuredEnabled" onchange="updatePreview()">
+                <input type="checkbox" id="featuredEnabled" onchange="updatePreview();toggleFeaturedFields(this.checked)">
                 <span class="toggle-track"></span>
               </label>
               <span class="toggle-label">Mostrar card destacada</span>
             </div>
-            <div id="featuredFields">
+            <div id="featuredFields" class="disabled">
               <div class="fg">
                 <label>Etiqueta (ej: NUEVO · OFERTA · LANZAMIENTO)</label>
                 <input type="text" id="featTag" class="fc" placeholder="NUEVO" oninput="updatePreview()" maxlength="30">
@@ -617,13 +723,6 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
     <h2>¡Listo para compartir!</h2>
     <p class="sub">Este link lleva toda tu información. Funciona sin servidor.</p>
     <div class="url-box" id="generatedUrl">—</div>
-    <div style="background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:10px;padding:11px 15px;margin-bottom:14px;display:flex;align-items:flex-start;gap:10px">
-      <span style="font-size:18px;flex-shrink:0"></span>
-      <div style="font-size:12.5px;color:#166534;line-height:1.5">
-        <strong>Límite de 8 vistas por dispositivo.</strong><br>
-        Caduca cuando el mismo navegador abre el link 8 veces. Para reiniciar el contador, generá un nuevo link.
-      </div>
-    </div>
     <div class="modal-btns">
       <button class="btn btn-ink" onclick="copyLink()">Copiar link</button>
       <button class="btn btn-ghost" onclick="downloadQR()">Descargar QR</button>
@@ -716,48 +815,10 @@ const ctaOptions = [
 /* ═══════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════ */
+// initBuilder() is called by auth.onAuthStateChanged when user logs in
 document.addEventListener('DOMContentLoaded', () => {
-  const hash = window.location.hash.slice(1);
-  if (hash) {
-    try {
-      const raw = decodeURIComponent(escape(atob(hash)));
-      showUserView(JSON.parse(raw));
-      return;
-    } catch(e) {}
-  }
-
-  const saved = localStorage.getItem('linkshub_v3');
-  if (saved) {
-    try {
-      const d = JSON.parse(saved);
-      profileData = d.profile || profileData;
-      document.getElementById('profileName').value     = profileData.name || '';
-      document.getElementById('profileTag').value      = profileData.tag || '';
-      document.getElementById('profileBio').value      = profileData.bio || '';
-      document.getElementById('profileLocation').value = profileData.location || '';
-      if (d.links)    d.links.forEach(l => restoreLink(l));
-      if (d.services) d.services.forEach(s => restoreService(s));
-      if (d.featured) {
-        document.getElementById('featuredEnabled').checked = d.featured.enabled || false;
-        document.getElementById('featTag').value    = d.featured.tag || '';
-        document.getElementById('featTitle').value  = d.featured.title || '';
-        document.getElementById('featDesc').value   = d.featured.desc || '';
-        document.getElementById('featBtnText').value = d.featured.btnText || '';
-        document.getElementById('featBtnUrl').value  = d.featured.btnUrl || '';
-      }
-      if (d.wafab) {
-        document.getElementById('wafabEnabled').checked = d.wafab.enabled || false;
-        document.getElementById('wafabNumber').value    = d.wafab.number || '';
-      }
-      if (profileData.avatarPhoto) setAvatarImage(profileData.avatarPhoto);
-      if (profileData.bgImage) restoreBgImage(profileData.bgImage, profileData.bgOverlay);
-    } catch(e) {}
-  }
-
-  initEmojis();
-  initBackgrounds();
-  if (links.length === 0) addLink();
-  updatePreview();
+  // show builder hidden by default until auth resolves
+  document.getElementById('builder').style.display = 'none';
 });
 
 /* ═══════════════════════════════════════════
@@ -802,7 +863,7 @@ function clearPhoto() {
   profileData.avatarPhoto = null;
   profileData.avatar = '👤';
   const wrap = document.getElementById('avatarPreview');
-  wrap.innerHTML = '<span class="upload-icon">↑</span><span class="upload-hint">Subir foto</span>';
+  wrap.innerHTML = '<span class="upload-icon">📷</span><span class="upload-hint">Subir foto</span>';
   document.getElementById('clearPhotoBtn').style.display = 'none';
   document.getElementById('avatarInput').value = '';
   document.querySelectorAll('.emoji-btn').forEach(b => {
@@ -941,27 +1002,30 @@ function restoreBgImage(src, overlay) {
 /* ═══════════════════════════════════════════
    LINKS
 ═══════════════════════════════════════════ */
-function addLink(data) {
-  const id = linkId++;
-  const link = data ? { ...data, id } : { id, platform:'instagram', url:'', text:'Instagram' };
-  if (!data) links.push(link); else links.push(link);
-
+function _renderLinkItem(link) {
   const c = document.getElementById('linksContainer');
   const el = document.createElement('div');
   el.className = 'link-item';
-  el.id = 'link-' + id;
+  el.id = 'link-' + link.id;
   const opts = platforms.map(p => `<option value="${p.id}" ${p.id===link.platform?'selected':''}>${p.icon} ${p.name}</option>`).join('');
   const curPlat = platforms.find(p=>p.id===link.platform)||platforms[0];
   el.innerHTML = `
     <div class="link-row1">
-      <select class="fc" onchange="changePlatform(${id},this.value)">${opts}</select>
-      <button class="btn-danger-sm" onclick="removeLink(${id})">✕</button>
+      <select class="fc" onchange="changePlatform(${link.id},this.value)">${opts}</select>
+      <button class="btn-danger-sm" onclick="removeLink(${link.id})">✕</button>
     </div>
     <div class="link-row2">
-      <input type="text" class="fc" placeholder="${curPlat.ph}" value="${link.url||''}" oninput="updateLinkUrl(${id},this.value)">
-      <input type="text" class="fc" placeholder="Texto del botón" value="${link.text||curPlat.name}" oninput="updateLinkText(${id},this.value)">
+      <input type="text" class="fc" placeholder="${curPlat.ph}" value="${link.url||''}" oninput="updateLinkUrl(${link.id},this.value)">
+      <input type="text" class="fc" placeholder="Texto del botón" value="${link.text||curPlat.name}" oninput="updateLinkText(${link.id},this.value)">
     </div>`;
   c.appendChild(el);
+}
+
+function addLink(data) {
+  const id = linkId++;
+  const link = data ? { ...data, id } : { id, platform:'instagram', url:'', text:'Instagram' };
+  links.push(link);
+  _renderLinkItem(link);
   updatePreview();
 }
 
@@ -969,22 +1033,7 @@ function restoreLink(l) {
   const id = linkId++;
   const link = { ...l, id };
   links.push(link);
-  const c = document.getElementById('linksContainer');
-  const el = document.createElement('div');
-  el.className = 'link-item';
-  el.id = 'link-' + id;
-  const opts = platforms.map(p => `<option value="${p.id}" ${p.id===link.platform?'selected':''}>${p.icon} ${p.name}</option>`).join('');
-  const curPlat = platforms.find(p=>p.id===link.platform)||platforms[0];
-  el.innerHTML = `
-    <div class="link-row1">
-      <select class="fc" onchange="changePlatform(${id},this.value)">${opts}</select>
-      <button class="btn-danger-sm" onclick="removeLink(${id})">✕</button>
-    </div>
-    <div class="link-row2">
-      <input type="text" class="fc" placeholder="${curPlat.ph}" value="${link.url||''}" oninput="updateLinkUrl(${id},this.value)">
-      <input type="text" class="fc" placeholder="Texto del botón" value="${link.text||curPlat.name}" oninput="updateLinkText(${id},this.value)">
-    </div>`;
-  c.appendChild(el);
+  _renderLinkItem(link);
 }
 
 function removeLink(id) {
@@ -1012,31 +1061,34 @@ function updateLinkText(id, v) { const l=links.find(x=>x.id===id); if(l){l.text=
 /* ═══════════════════════════════════════════
    SERVICES
 ═══════════════════════════════════════════ */
-function addService(data) {
-  const id = serviceId++;
-  const svc = data ? { ...data, id } : { id, name:'', price:'', desc:'', ctaType:'wa', ctaValue:'' };
-  services.push(svc);
-
+function _renderServiceItem(svc) {
   const c = document.getElementById('servicesContainer');
   const el = document.createElement('div');
   el.className = 'service-item';
-  el.id = 'svc-' + id;
+  el.id = 'svc-' + svc.id;
   const ctaOpts = ctaOptions.map(o => `<option value="${o.id}" ${o.id===svc.ctaType?'selected':''}>${o.icon} ${o.label}</option>`).join('');
   el.innerHTML = `
     <div class="service-hd">
       <span>Servicio #${c.children.length+1}</span>
-      <button class="btn-danger-sm" onclick="removeService(${id})">Eliminar</button>
+      <button class="btn-danger-sm" onclick="removeService(${svc.id})">Eliminar</button>
     </div>
     <div class="service-grid">
-      <div><label>Nombre del servicio</label><input type="text" class="fc" placeholder="Ej: Consultoría de packaging" value="${svc.name}" oninput="updateSvc(${id},'name',this.value)"></div>
-      <div><label>Precio</label><input type="text" class="fc" placeholder="Ej: USD 150 · Desde $50" value="${svc.price}" oninput="updateSvc(${id},'price',this.value)"></div>
+      <div><label>Nombre del servicio</label><input type="text" class="fc" placeholder="Ej: Consultoría de packaging" value="${svc.name}" oninput="updateSvc(${svc.id},'name',this.value)"></div>
+      <div><label>Precio</label><input type="text" class="fc" placeholder="Ej: USD 150 · Desde $50" value="${svc.price}" oninput="updateSvc(${svc.id},'price',this.value)"></div>
     </div>
-    <div class="fg"><label>Descripción breve</label><textarea class="fc" placeholder="Qué incluye, para quién es..." oninput="updateSvc(${id},'desc',this.value)" style="min-height:60px">${svc.desc}</textarea></div>
+    <div class="fg"><label>Descripción breve</label><textarea class="fc" placeholder="Qué incluye, para quién es..." oninput="updateSvc(${svc.id},'desc',this.value)" style="min-height:60px">${svc.desc}</textarea></div>
     <div class="service-grid">
-      <div><label>Acción del botón</label><select class="fc" onchange="updateSvc(${id},'ctaType',this.value)">${ctaOpts}</select></div>
-      <div><label>Link / número / email</label><input type="text" class="fc" placeholder="URL, número o email" value="${svc.ctaValue}" oninput="updateSvc(${id},'ctaValue',this.value)"></div>
+      <div><label>Acción del botón</label><select class="fc" onchange="updateSvc(${svc.id},'ctaType',this.value)">${ctaOpts}</select></div>
+      <div><label>Link / número / email</label><input type="text" class="fc" placeholder="URL, número o email" value="${svc.ctaValue}" oninput="updateSvc(${svc.id},'ctaValue',this.value)"></div>
     </div>`;
   c.appendChild(el);
+}
+
+function addService(data) {
+  const id = serviceId++;
+  const svc = data ? { ...data, id } : { id, name:'', price:'', desc:'', ctaType:'wa', ctaValue:'' };
+  services.push(svc);
+  _renderServiceItem(svc);
   updatePreview();
 }
 
@@ -1044,26 +1096,7 @@ function restoreService(s) {
   const id = serviceId++;
   const svc = { ...s, id };
   services.push(svc);
-  const c = document.getElementById('servicesContainer');
-  const el = document.createElement('div');
-  el.className = 'service-item';
-  el.id = 'svc-' + id;
-  const ctaOpts = ctaOptions.map(o => `<option value="${o.id}" ${o.id===svc.ctaType?'selected':''}>${o.icon} ${o.label}</option>`).join('');
-  el.innerHTML = `
-    <div class="service-hd">
-      <span>Servicio</span>
-      <button class="btn-danger-sm" onclick="removeService(${id})">Eliminar</button>
-    </div>
-    <div class="service-grid">
-      <div><label>Nombre del servicio</label><input type="text" class="fc" placeholder="Ej: Consultoría de packaging" value="${svc.name}" oninput="updateSvc(${id},'name',this.value)"></div>
-      <div><label>Precio</label><input type="text" class="fc" placeholder="Ej: USD 150" value="${svc.price}" oninput="updateSvc(${id},'price',this.value)"></div>
-    </div>
-    <div class="fg"><label>Descripción</label><textarea class="fc" oninput="updateSvc(${id},'desc',this.value)" style="min-height:60px">${svc.desc}</textarea></div>
-    <div class="service-grid">
-      <div><label>Acción</label><select class="fc" onchange="updateSvc(${id},'ctaType',this.value)">${ctaOpts}</select></div>
-      <div><label>Link / número</label><input type="text" class="fc" value="${svc.ctaValue}" oninput="updateSvc(${id},'ctaValue',this.value)"></div>
-    </div>`;
-  c.appendChild(el);
+  _renderServiceItem(svc);
 }
 
 function removeService(id) {
@@ -1181,6 +1214,13 @@ function buildPageHTML(forExport) {
 
   const waFabHTML = (wafab.enabled && wafab.number) ?
     `<a class="wa-fab" href="https://wa.me/${wafab.number.replace(/\D/g,'')}" target="_blank" rel="noopener" title="Escribir por WhatsApp">💬</a>` : '';
+
+  if (!forExport && !p.name && links.every(l=>!l.url) && services.every(s=>!s.name)) {
+    return `<div class="preview-empty">
+      <div class="preview-empty-icon">✦</div>
+      <div class="preview-empty-txt">Completá tu perfil<br>para ver la vista previa</div>
+    </div>`;
+  }
 
   return `
     <div class="pub-hero">
@@ -1345,25 +1385,19 @@ function showUserView(data) {
   document.body.style.background = profile.background;
   } // end doRender
 
-  if (linkId) {
-    fetch('https://api.countapi.xyz/hit/linkshub3/' + linkId)
-      .then(r => r.json())
-      .then(d => {
-        const used = d.value || 1;
-        const remaining = maxUses - used;
-        if (used > maxUses) {
-          showExpiredPage(data.profile, used, maxUses);
-        } else {
-          doRender();
-          if (remaining <= 3) {
-            setTimeout(() => showUsageBadge(remaining, maxUses), 700);
-          }
-        }
-      })
-      .catch(() => {
-        // CountAPI unavailable — fail open, show page
-        doRender();
-      });
+  if (linkId && maxUses > 0) {
+    const storageKey = 'lh_views_' + linkId;
+    const used = parseInt(localStorage.getItem(storageKey) || '0') + 1;
+    localStorage.setItem(storageKey, used);
+    const remaining = maxUses - used;
+    if (used > maxUses) {
+      showExpiredPage(data.profile, used, maxUses);
+    } else {
+      doRender();
+      if (remaining <= 3) {
+        setTimeout(() => showUsageBadge(remaining, maxUses), 700);
+      }
+    }
   } else {
     doRender();
   }
@@ -1374,7 +1408,8 @@ function showUserView(data) {
 ═══════════════════════════════════════════ */
 function saveDraft() {
   try {
-    localStorage.setItem('linkshub_v3', JSON.stringify({
+    const storageKey = 'linkshub_v3' + (currentUser ? '_' + currentUser.uid : '');
+    localStorage.setItem(storageKey, JSON.stringify({
       profile: profileData,
       links,
       services,
@@ -1407,6 +1442,7 @@ function generateLinkId() {
 }
 
 function buildShareUrl() {
+  const maxUsesVal = parseInt(document.getElementById('maxUsesSelect')?.value ?? '10');
   const data = {
     profile: profileData,
     links,
@@ -1414,11 +1450,22 @@ function buildShareUrl() {
     featured: getFeatured(),
     wafab: getWafab(),
     linkId: generateLinkId(),
-    maxUses: 8,
+    maxUses: maxUsesVal,
     createdAt: Date.now(),
   };
   const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
   return window.location.href.split('#')[0] + '#' + encoded;
+}
+
+function refreshShareUrl() {
+  const url = buildShareUrl();
+  document.getElementById('generatedUrl').textContent = url;
+  document.getElementById('qrcode').innerHTML = '';
+  new QRCode(document.getElementById('qrcode'), {
+    text: url, width:180, height:180,
+    colorDark:'#1a1714', colorLight:'#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
 }
 
 function closeModal() {
@@ -1583,6 +1630,24 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+/* ═══════════════════════════════════════════
+   FEATURED TOGGLE
+═══════════════════════════════════════════ */
+function toggleFeaturedFields(enabled) {
+  const fields = document.getElementById('featuredFields');
+  if (!fields) return;
+  fields.classList.toggle('disabled', !enabled);
+}
+
+/* ═══════════════════════════════════════════
+   RESET BUILDER
+═══════════════════════════════════════════ */
+function resetBuilder() {
+  if (!confirm('¿Empezar de cero? Se perderán los cambios no guardados.')) return;
+  localStorage.removeItem('linkshub_v3');
+  location.reload();
+}
+
 /* TOAST */
 let toastT;
 function showToast(msg) {
@@ -1596,6 +1661,145 @@ function showToast(msg) {
 document.getElementById('shareModal').addEventListener('click', e => {
   if (e.target === document.getElementById('shareModal')) closeModal();
 });
+
+/* ═══════════════════════════════════════════
+   FIREBASE AUTH
+═══════════════════════════════════════════ */
+const firebaseConfig = {
+  apiKey:            "AIzaSyAduyVqfbgmWqK_WccS6egwx9kNOfmAkUo",
+  authDomain:        "devynestlinks.firebaseapp.com",
+  projectId:         "devynestlinks",
+  storageBucket:     "devynestlinks.firebasestorage.app",
+  messagingSenderId: "796757704032",
+  appId:             "1:796757704032:web:47237deb3adee75217f205",
+  measurementId:     "G-E0FZLTN5E7"
+};
+
+let _fbApp;
+try { _fbApp = firebase.app(); } catch(e) { _fbApp = firebase.initializeApp(firebaseConfig); }
+const auth = firebase.auth();
+let currentUser = null;
+let _authMode = 'login'; // 'login' | 'register'
+
+/* — Auth state observer — */
+auth.onAuthStateChanged(user => {
+  currentUser = user;
+  if (user) {
+    document.getElementById('authView').classList.remove('active');
+    document.getElementById('builder').style.display = '';
+    const lbl = document.getElementById('userEmailLabel');
+    if (lbl) lbl.textContent = user.email || user.displayName || 'Usuario';
+    initBuilder();
+  } else {
+    document.getElementById('authView').classList.add('active');
+    document.getElementById('builder').style.display = 'none';
+  }
+});
+
+function switchAuthTab(mode) {
+  _authMode = mode;
+  document.getElementById('tabLogin').classList.toggle('active', mode === 'login');
+  document.getElementById('tabRegister').classList.toggle('active', mode === 'register');
+  document.getElementById('authSubmitBtn').textContent = mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta';
+  document.getElementById('authError').classList.remove('show');
+  document.getElementById('authPassword').placeholder = mode === 'login' ? 'Tu contraseña' : 'Mínimo 6 caracteres';
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('authError');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function handleAuth() {
+  const email = document.getElementById('authEmail').value.trim();
+  const pass  = document.getElementById('authPassword').value;
+  document.getElementById('authError').classList.remove('show');
+  const btn = document.getElementById('authSubmitBtn');
+  btn.textContent = '...';
+  btn.disabled = true;
+
+  const promise = _authMode === 'login'
+    ? auth.signInWithEmailAndPassword(email, pass)
+    : auth.createUserWithEmailAndPassword(email, pass);
+
+  promise.catch(err => {
+    btn.disabled = false;
+    btn.textContent = _authMode === 'login' ? 'Iniciar sesión' : 'Crear cuenta';
+    const msgs = {
+      'auth/user-not-found':   'No existe una cuenta con ese email.',
+      'auth/wrong-password':   'Contraseña incorrecta.',
+      'auth/email-already-in-use': 'Ya existe una cuenta con ese email. Iniciá sesión.',
+      'auth/weak-password':    'La contraseña debe tener al menos 6 caracteres.',
+      'auth/invalid-email':    'Email inválido.',
+      'auth/invalid-credential': 'Email o contraseña incorrectos.',
+      'auth/too-many-requests': 'Demasiados intentos. Intentá más tarde.',
+      'auth/api-key-not-valid.-please-pass-a-valid-api-key.': '⚠ Configurá las credenciales de Firebase en el código.',
+    };
+    showAuthError(msgs[err.code] || (err.code?.includes('api-key') ? '⚠ Configurá las credenciales de Firebase.' : err.message));
+  });
+}
+
+function handleGoogleAuth() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(err => {
+    if (err.code !== 'auth/popup-closed-by-user') {
+      showAuthError(err.code?.includes('api-key') ? '⚠ Configurá las credenciales de Firebase.' : err.message);
+    }
+  });
+}
+
+function handleLogout() {
+  if (!confirm('¿Cerrar sesión?')) return;
+  auth.signOut();
+}
+
+/* — Reemplazar DOMContentLoaded para que no inicie el builder hasta auth — */
+function initBuilder() {
+  const hash = window.location.hash.slice(1);
+  if (hash) {
+    try {
+      const raw = decodeURIComponent(escape(atob(hash)));
+      showUserView(JSON.parse(raw));
+      return;
+    } catch(e) {}
+  }
+
+  const storageKey = 'linkshub_v3' + (currentUser ? '_' + currentUser.uid : '');
+  const saved = localStorage.getItem(storageKey);
+  if (saved) {
+    try {
+      const d = JSON.parse(saved);
+      profileData = d.profile || profileData;
+      document.getElementById('profileName').value     = profileData.name || '';
+      document.getElementById('profileTag').value      = profileData.tag || '';
+      document.getElementById('profileBio').value      = profileData.bio || '';
+      document.getElementById('profileLocation').value = profileData.location || '';
+      if (d.links)    d.links.forEach(l => restoreLink(l));
+      if (d.services) d.services.forEach(s => restoreService(s));
+      if (d.featured) {
+        document.getElementById('featuredEnabled').checked = d.featured.enabled || false;
+        document.getElementById('featTag').value    = d.featured.tag || '';
+        document.getElementById('featTitle').value  = d.featured.title || '';
+        document.getElementById('featDesc').value   = d.featured.desc || '';
+        document.getElementById('featBtnText').value = d.featured.btnText || '';
+        document.getElementById('featBtnUrl').value  = d.featured.btnUrl || '';
+      }
+      if (d.wafab) {
+        document.getElementById('wafabEnabled').checked = d.wafab.enabled || false;
+        document.getElementById('wafabNumber').value    = d.wafab.number || '';
+      }
+      if (profileData.avatarPhoto) setAvatarImage(profileData.avatarPhoto);
+      if (profileData.bgImage) restoreBgImage(profileData.bgImage, profileData.bgOverlay);
+      toggleFeaturedFields(d.featured?.enabled || false);
+    } catch(e) {}
+  }
+
+  initEmojis();
+  initBackgrounds();
+  if (links.length === 0) addLink();
+  updatePreview();
+}
 </script>
 </body>
 </html>
