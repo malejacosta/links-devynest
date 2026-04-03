@@ -154,7 +154,7 @@ select.fc{cursor:pointer;appearance:none;background-image:url("data:image/svg+xm
 .emoji-btn.active{border-color:var(--accent);background:var(--accent-lt);box-shadow:0 0 0 2px var(--accent)}
 
 /* ─── BACKGROUND SELECTOR ─── */
-.bg-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.bg-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
 .bg-swatch{
   height:52px;border-radius:10px;border:2.5px solid transparent;
   cursor:pointer;transition:var(--transition);position:relative;
@@ -531,6 +531,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
         <button class="tab-btn" onclick="switchTab('destacado',this)">· Destacado</button>
         <button class="tab-btn" onclick="switchTab('servicios',this)">· Servicios</button>
         <button class="tab-btn" onclick="switchTab('links',this)">· Links</button>
+        <button class="tab-btn" onclick="switchTab('estadisticas',this);renderStats()">· Stats</button>
       </div>
 
       <!-- TAB: PERFIL -->
@@ -619,6 +620,28 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
               <label>Degradados</label>
               <div class="bg-grid" id="bgGridGradients"></div>
             </div>
+            <div class="fg">
+              <label>Color libre</label>
+              <div style="display:flex;align-items:center;gap:12px;background:#f5f0e8;border-radius:10px;padding:12px">
+                <input type="color" id="customColorPicker" value="#1a1714"
+                  style="width:48px;height:48px;border:none;background:none;cursor:pointer;padding:0;border-radius:8px;flex-shrink:0"
+                  oninput="applyCustomColor(this.value)">
+                <div style="flex:1">
+                  <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">Código HEX</div>
+                  <input type="text" id="customColorHex" class="fc" value="#1A1714"
+                    placeholder="#FF5733" style="font-family:monospace;font-size:14px;text-transform:uppercase"
+                    oninput="applyCustomColorHex(this.value)" maxlength="7">
+                </div>
+                <div id="customColorPreview" style="width:48px;height:48px;border-radius:8px;border:2px solid var(--border);background:#1a1714;flex-shrink:0"></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+                <label class="toggle-wrap">
+                  <input type="checkbox" id="customColorLight" onchange="toggleCustomColorTheme(this.checked)">
+                  <span class="toggle-track"></span>
+                </label>
+                <span class="toggle-label" style="font-size:13px">Texto oscuro (para fondos claros)</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -697,6 +720,23 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
               <label>Número de WhatsApp</label>
               <input type="text" id="wafabNumber" class="fc" placeholder="5491234567890 (con código de país)" oninput="updatePreview()">
             </div>
+            <div class="fg">
+              <label>Mensaje predefinido (opcional)</label>
+              <input type="text" id="wafabMessage" class="fc" placeholder="Ej: Hola! Vi tu página y quiero consultar..." oninput="updatePreview()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: ESTADÍSTICAS -->
+      <div id="tab-estadisticas" class="tab-content">
+        <div class="panel">
+          <div class="panel-hd">
+            <h3>📊 Estadísticas</h3>
+            <button class="btn-ghost" onclick="renderStats()" style="font-size:12px;padding:5px 10px;border-radius:7px;border:1.5px solid var(--border2);background:transparent;cursor:pointer;font-family:'Montserrat',sans-serif;color:var(--ink2)">↻ Actualizar</button>
+          </div>
+          <div class="panel-bd">
+            <div id="statsContainer"></div>
           </div>
         </div>
       </div>
@@ -774,25 +814,52 @@ const emojis = ['🫧','🌙','⚡','🪷','🦋','🌊','🍂','🪐','💫','�
 
 const backgrounds = {
   light: [
-    { bg:'#ffffff', label:'Blanco', theme:'light' },
-    { bg:'#fdfaf5', label:'Crema', theme:'light' },
-    { bg:'#fef9c3', label:'Amarillo claro', theme:'light' },
-    { bg:'#fdf4e7', label:'Durazno', theme:'light' },
-    { bg:'#f0fdf4', label:'Menta', theme:'light' },
+    { bg:'#ffffff',   label:'Blanco',     theme:'light' },
+    { bg:'#fdfaf5',   label:'Crema',      theme:'light' },
+    { bg:'#fef9c3',   label:'Limón',      theme:'light' },
+    { bg:'#fdf4e7',   label:'Durazno',    theme:'light' },
+    { bg:'#f0fdf4',   label:'Menta',      theme:'light' },
+    { bg:'#e0f2fe',   label:'Celeste',    theme:'light' },
+    { bg:'#fce7f3',   label:'Rosa nude',  theme:'light' },
+    { bg:'#ede9fe',   label:'Lavanda',    theme:'light' },
+    { bg:'#ccfbf1',   label:'Verde agua', theme:'light' },
+    { bg:'#fdf2f8',   label:'Pétalo',     theme:'light' },
+    { bg:'#fef3c7',   label:'Arena',      theme:'light' },
+    { bg:'#f1f5f9',   label:'Gris perla', theme:'light' },
   ],
   dark: [
-    { bg:'#1a1714', label:'Tinta', theme:'dark' },
-    { bg:'#0f172a', label:'Noche', theme:'dark' },
-    { bg:'#1c1917', label:'Carbón', theme:'dark' },
-    { bg:'#1e1b2e', label:'Índigo', theme:'dark' },
-    { bg:'#142B1F', label:'Bosque', theme:'dark' },
+    { bg:'#1a1714',   label:'Tinta',       theme:'dark' },
+    { bg:'#0f172a',   label:'Noche',       theme:'dark' },
+    { bg:'#1c1917',   label:'Carbón',      theme:'dark' },
+    { bg:'#1e1b2e',   label:'Índigo',      theme:'dark' },
+    { bg:'#142B1F',   label:'Bosque',      theme:'dark' },
+    { bg:'#2d1b69',   label:'Ciruela',     theme:'dark' },
+    { bg:'#4a0e0e',   label:'Vino',        theme:'dark' },
+    { bg:'#0c1a3a',   label:'Marino',      theme:'dark' },
+    { bg:'#27272a',   label:'Zinc',        theme:'dark' },
+    { bg:'#0d0d0d',   label:'Obsidiana',   theme:'dark' },
+    { bg:'#1a0533',   label:'Cosmos',      theme:'dark' },
+    { bg:'#1c0a00',   label:'Chocolate',   theme:'dark' },
   ],
   gradients: [
-    { bg:'linear-gradient(150deg,#c9601a 0%,#7c2d12 100%)', label:'Terracota', theme:'dark' },
-    { bg:'linear-gradient(150deg,#1e3a5f 0%,#0891b2 100%)', label:'Océano', theme:'dark' },
-    { bg:'linear-gradient(150deg,#1a4731 0%,#059669 100%)', label:'Jade', theme:'dark' },
-    { bg:'linear-gradient(150deg,#4c1d95 0%,#7c3aed 100%)', label:'Violeta', theme:'dark' },
-    { bg:'linear-gradient(150deg,#831843 0%,#e11d48 100%)', label:'Rosa', theme:'dark' },
+    { bg:'linear-gradient(150deg,#c9601a 0%,#7c2d12 100%)',              label:'Terracota',   theme:'dark' },
+    { bg:'linear-gradient(150deg,#1e3a5f 0%,#0891b2 100%)',              label:'Océano',      theme:'dark' },
+    { bg:'linear-gradient(150deg,#1a4731 0%,#059669 100%)',              label:'Jade',        theme:'dark' },
+    { bg:'linear-gradient(150deg,#4c1d95 0%,#7c3aed 100%)',              label:'Violeta',     theme:'dark' },
+    { bg:'linear-gradient(150deg,#831843 0%,#e11d48 100%)',              label:'Rosa',        theme:'dark' },
+    { bg:'linear-gradient(150deg,#78350f 0%,#f59e0b 100%)',              label:'Ámbar',       theme:'dark' },
+    { bg:'linear-gradient(150deg,#0f0c29 0%,#302b63 50%,#24243e 100%)', label:'Medianoche',  theme:'dark' },
+    { bg:'linear-gradient(150deg,#134e4a 0%,#0d9488 100%)',              label:'Teal',        theme:'dark' },
+    { bg:'linear-gradient(135deg,#1a1a2e 0%,#16213e 40%,#0f3460 100%)', label:'Aurora',      theme:'dark' },
+    { bg:'linear-gradient(150deg,#831843 0%,#be185d 50%,#f43f5e 100%)', label:'Fucsia',      theme:'dark' },
+    { bg:'linear-gradient(150deg,#0f172a 0%,#1e3a5f 100%)',              label:'Abismo',      theme:'dark' },
+    { bg:'linear-gradient(150deg,#1e293b 0%,#475569 100%)',              label:'Pizarra',     theme:'dark' },
+    { bg:'linear-gradient(150deg,#ff6b6b 0%,#ee5a24 100%)',              label:'Coral',       theme:'dark' },
+    { bg:'linear-gradient(150deg,#2d6a4f 0%,#52b788 100%)',              label:'Neon verde',  theme:'dark' },
+    { bg:'linear-gradient(150deg,#b45309 0%,#fcd34d 100%)',              label:'Dorado',      theme:'dark' },
+    { bg:'linear-gradient(150deg,#0891b2 0%,#67e8f9 100%)',              label:'Cián',        theme:'dark' },
+    { bg:'linear-gradient(150deg,#fb923c 0%,#fde68a 100%)',              label:'Melocotón',   theme:'light' },
+    { bg:'linear-gradient(150deg,#bae6fd 0%,#e0f2fe 100%)',              label:'Cielo',       theme:'light' },
   ]
 };
 
@@ -811,7 +878,15 @@ const platforms = [
   {id:'spotify',   name:'Spotify',    icon:'🎧', color:'#1db954', ph:'enlace del perfil'},
   {id:'behance',   name:'Behance',    icon:'🎨', color:'#053eff', ph:'usuario'},
   {id:'github',    name:'GitHub',     icon:'🐙', color:'#333333', ph:'usuario'},
-  {id:'pinterest', name:'Pinterest',  icon:'📌', color:'#e60023', ph:'usuario'},
+  {id:'pinterest',     name:'Pinterest',              icon:'📌', color:'#e60023', ph:'usuario'},
+  {id:'threads',       name:'Threads',                icon:'🧵', color:'#000000', ph:'@usuario'},
+  {id:'substack',      name:'Substack',               icon:'📰', color:'#FF6719', ph:'usuario (sin .substack.com)'},
+  {id:'patreon',       name:'Patreon',                icon:'🎭', color:'#FF424D', ph:'usuario'},
+  {id:'twitch',        name:'Twitch',                 icon:'🟣', color:'#9146FF', ph:'usuario'},
+  {id:'snapchat',      name:'Snapchat',               icon:'👻', color:'#FFFC00', ph:'usuario'},
+  {id:'mercadopago',   name:'MercadoPago',            icon:'💳', color:'#00B1EA', ph:'enlace de cobro'},
+  {id:'shop',          name:'Tienda/Shop',            icon:'🛍️', color:'#2C7A4B', ph:'enlace de tu tienda'},
+  {id:'youtube_embed', name:'Video YouTube (embed)',  icon:'▶️', color:'#ff0000', ph:'URL del video (ej: https://youtube.com/watch?v=...)'},
 ];
 
 const ctaOptions = [
@@ -1122,24 +1197,38 @@ function updateSvc(id, key, val) {
 /* ═══════════════════════════════════════════
    FORMAT URL
 ═══════════════════════════════════════════ */
+function extractYouTubeId(url) {
+  if (!url) return null;
+  const m = url.match(/(?:youtu\.be\/|[?&]v=|\/embed\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
 function formatUrl(platform, url) {
   if (!url) return '#';
   const u = url.trim();
   switch(platform) {
-    case 'whatsapp':  return 'https://wa.me/' + u.replace(/\D/g,'');
-    case 'instagram': return 'https://instagram.com/' + u.replace('@','');
-    case 'facebook':  return u.includes('facebook.com') ? u : 'https://facebook.com/'+u;
-    case 'tiktok':    return 'https://tiktok.com/@' + u.replace('@','');
-    case 'linkedin':  return 'https://linkedin.com/in/' + u;
-    case 'youtube':   return u.includes('youtube.com') ? u : 'https://youtube.com/@'+u.replace('@','');
-    case 'twitter':   return 'https://x.com/' + u.replace('@','');
-    case 'telegram':  return 'https://t.me/' + u.replace('@','');
-    case 'email':     return 'mailto:' + u;
-    case 'github':    return 'https://github.com/' + u;
-    case 'behance':   return 'https://behance.net/' + u;
-    case 'pinterest': return 'https://pinterest.com/' + u;
-    case 'spotify':   return u.includes('spotify.com') ? u : 'https://open.spotify.com/user/'+u;
-    default: return u.startsWith('http') ? u : 'https://'+u;
+    case 'whatsapp':      return 'https://wa.me/' + u.replace(/\D/g,'');
+    case 'instagram':     return 'https://instagram.com/' + u.replace('@','');
+    case 'facebook':      return u.includes('facebook.com') ? u : 'https://facebook.com/'+u;
+    case 'tiktok':        return 'https://tiktok.com/@' + u.replace('@','');
+    case 'linkedin':      return 'https://linkedin.com/in/' + u;
+    case 'youtube':       return u.includes('youtube.com') ? u : 'https://youtube.com/@'+u.replace('@','');
+    case 'youtube_embed': return u.startsWith('http') ? u : 'https://'+u;
+    case 'twitter':       return 'https://x.com/' + u.replace('@','');
+    case 'telegram':      return 'https://t.me/' + u.replace('@','');
+    case 'email':         return 'mailto:' + u;
+    case 'github':        return 'https://github.com/' + u;
+    case 'behance':       return 'https://behance.net/' + u;
+    case 'pinterest':     return 'https://pinterest.com/' + u;
+    case 'spotify':       return u.includes('spotify.com') ? u : 'https://open.spotify.com/user/'+u;
+    case 'threads':       return 'https://threads.net/@' + u.replace('@','');
+    case 'substack':      return u.includes('.') ? (u.startsWith('http') ? u : 'https://'+u) : 'https://'+u+'.substack.com';
+    case 'patreon':       return 'https://patreon.com/' + u;
+    case 'twitch':        return 'https://twitch.tv/' + u;
+    case 'snapchat':      return 'https://snapchat.com/add/' + u;
+    case 'mercadopago':   return u.startsWith('http') ? u : 'https://'+u;
+    case 'shop':          return u.startsWith('http') ? u : 'https://'+u;
+    default:              return u.startsWith('http') ? u : 'https://'+u;
   }
 }
 
@@ -1208,6 +1297,14 @@ function buildPageHTML(forExport) {
 
   const linkItems = links.filter(l=>l.url).map(l => {
     const plat = platforms.find(p=>p.id===l.platform)||platforms[0];
+    if (l.platform === 'youtube_embed') {
+      const vid = extractYouTubeId(l.url);
+      if (!vid) return '';
+      return `<div style="padding:0 0 8px">
+        <iframe src="https://www.youtube.com/embed/${vid}" frameborder="0" allowfullscreen
+          style="width:100%;aspect-ratio:16/9;border-radius:10px;display:block"></iframe>
+      </div>`;
+    }
     const href = forExport ? formatUrl(l.platform, l.url) : '#';
     return `<a class="pub-link" href="${href}" target="_blank" rel="noopener" ${!forExport?'onclick="return false"':''}>
       <div class="pub-link-icon" style="background:${plat.color}">${plat.icon}</div>
@@ -1221,8 +1318,11 @@ function buildPageHTML(forExport) {
     <div class="pub-links">${linkItems}</div>
   </div>` : '';
 
-  const waFabHTML = (wafab.enabled && wafab.number) ?
-    `<a class="wa-fab" href="https://wa.me/${wafab.number.replace(/\D/g,'')}" target="_blank" rel="noopener" title="Escribir por WhatsApp">💬</a>` : '';
+  const waFabHTML = (wafab.enabled && wafab.number) ? (() => {
+    const num = wafab.number.replace(/\D/g,'');
+    const msg = wafab.message ? '?text=' + encodeURIComponent(wafab.message) : '';
+    return `<a class="wa-fab" href="https://wa.me/${num}${msg}" target="_blank" rel="noopener" title="Escribir por WhatsApp">💬</a>`;
+  })() : '';
 
   if (!forExport && !p.name && links.every(l=>!l.url) && services.every(s=>!s.name)) {
     return `<div class="preview-empty">
@@ -1262,6 +1362,7 @@ function getWafab() {
   return {
     enabled: document.getElementById('wafabEnabled')?.checked || false,
     number:  document.getElementById('wafabNumber')?.value || '',
+    message: document.getElementById('wafabMessage')?.value || '',
   };
 }
 
@@ -1368,7 +1469,8 @@ function showUserView(data) {
   }
   if (wafab) {
     document.getElementById('wafabEnabled').checked = wafab.enabled;
-    document.getElementById('wafabNumber').value = wafab.number||'';
+    document.getElementById('wafabNumber').value  = wafab.number||'';
+    document.getElementById('wafabMessage').value = wafab.message||'';
   }
 
   const pp = document.getElementById('publicPage');
@@ -1451,16 +1553,18 @@ function generateLinkId() {
 }
 
 function buildShareUrl() {
+  const lid = generateLinkId();
   const data = {
     profile: profileData,
     links,
     services,
     featured: getFeatured(),
     wafab: getWafab(),
-    linkId: generateLinkId(),
+    linkId: lid,
     maxUses: 0,
     createdAt: Date.now(),
   };
+  trackLinkGenerated(lid);
   const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
   return window.location.href.split('#')[0] + '#' + encoded;
 }
@@ -1594,7 +1698,8 @@ ${isLight ? `
 <script>
 var d=${JSON.stringify(data)};
 var p=d.profile,ls=d.links||[],svcs=d.services||[],feat=d.featured||{},wf=d.wafab||{};
-function fu(pl,u){if(!u)return'#';var t=u.trim();switch(pl){case'whatsapp':return'https://wa.me/'+t.replace(/\\D/g,'');case'instagram':return'https://instagram.com/'+t.replace('@','');case'facebook':return t.includes('facebook.com')?t:'https://facebook.com/'+t;case'tiktok':return'https://tiktok.com/@'+t.replace('@','');case'linkedin':return'https://linkedin.com/in/'+t;case'youtube':return t.includes('youtube.com')?t:'https://youtube.com/@'+t.replace('@','');case'twitter':return'https://x.com/'+t.replace('@','');case'telegram':return'https://t.me/'+t.replace('@','');case'email':return'mailto:'+t;case'github':return'https://github.com/'+t;case'behance':return'https://behance.net/'+t;case'pinterest':return'https://pinterest.com/'+t;case'spotify':return t.includes('spotify.com')?t:'https://open.spotify.com/user/'+t;default:return t.startsWith('http')?t:'https://'+t;}}
+function fu(pl,u){if(!u)return'#';var t=u.trim();switch(pl){case'whatsapp':return'https://wa.me/'+t.replace(/\\D/g,'');case'instagram':return'https://instagram.com/'+t.replace('@','');case'facebook':return t.includes('facebook.com')?t:'https://facebook.com/'+t;case'tiktok':return'https://tiktok.com/@'+t.replace('@','');case'linkedin':return'https://linkedin.com/in/'+t;case'youtube':return t.includes('youtube.com')?t:'https://youtube.com/@'+t.replace('@','');case'youtube_embed':return t.startsWith('http')?t:'https://'+t;case'twitter':return'https://x.com/'+t.replace('@','');case'telegram':return'https://t.me/'+t.replace('@','');case'email':return'mailto:'+t;case'github':return'https://github.com/'+t;case'behance':return'https://behance.net/'+t;case'pinterest':return'https://pinterest.com/'+t;case'spotify':return t.includes('spotify.com')?t:'https://open.spotify.com/user/'+t;case'threads':return'https://threads.net/@'+t.replace('@','');case'substack':return t.includes('.')?t.startsWith('http')?t:'https://'+t:'https://'+t+'.substack.com';case'patreon':return'https://patreon.com/'+t;case'twitch':return'https://twitch.tv/'+t;case'snapchat':return'https://snapchat.com/add/'+t;default:return t.startsWith('http')?t:'https://'+t;}}
+function eytid(u){if(!u)return null;var m=u.match(/(?:youtu\\.be\\/|[?&]v=|\\/embed\\/)([A-Za-z0-9_-]{11})/);return m?m[1]:null;}
 function fcu(type,v){if(!v)return'#';var t=v.trim();switch(type){case'wa':return'https://wa.me/'+t.replace(/\\D/g,'');case'email':return'mailto:'+t;default:return t.startsWith('http')?t:'https://'+t;}}
 function cci(type){var m={wa:'💬',email:'✉️',link:'🔗',calendar:'📅'};return m[type]||'→'}
 var pg=document.getElementById('pg');
@@ -1604,10 +1709,10 @@ var html='<div class="hero">'+ava+(p.tag?'<div class="badge">✦ '+p.tag+'</div>
 if(feat.enabled&&feat.title){html+='<div class="feat">'+(feat.tag?'<div class="feat-tag">✦ '+feat.tag+'</div>':'')+'<div class="feat-title">'+feat.title+'</div>'+(feat.desc?'<div class="feat-desc">'+feat.desc+'</div>':'')+(feat.btnText&&feat.btnUrl?'<a class="feat-btn" href="'+feat.btnUrl+'" target="_blank" rel="noopener">'+feat.btnText+' →</a>':'')+'</div>';}
 var svcItems=svcs.filter(function(s){return s.name}).map(function(s){var cu=fcu(s.ctaType,s.ctaValue);return'<div class="svc"><div class="svc-top"><div class="svc-nm">'+s.name+'</div>'+(s.price?'<div class="svc-pr">'+s.price+'</div>':'')+'</div>'+(s.desc?'<div class="svc-ds">'+s.desc+'</div>':'')+(cu!=='#'?'<a class="svc-ct" href="'+cu+'" target="_blank" rel="noopener">'+cci(s.ctaType)+' Consultar</a>':'')+'</div>';}).join('');
 if(svcItems){html+='<div class="sec"><div class="sec-lbl">Servicios</div><div class="svcs">'+svcItems+'</div></div>';}
-var lnkItems=ls.filter(function(l){return l.url}).map(function(l){return'<a class="lnk" href="'+fu(l.platform,l.url)+'" target="_blank" rel="noopener"><div class="lnk-ico" style="background:'+l._color+'">'+l._icon+'</div><div class="lnk-txt">'+(l.text||l.platform)+'</div><span class="lnk-arr">→</span></a>';}).join('');
+var lnkItems=ls.filter(function(l){return l.url}).map(function(l){if(l.platform==='youtube_embed'){var vid=eytid(l.url);if(!vid)return'';return'<div style="padding:0 0 8px"><iframe src="https://www.youtube.com/embed/'+vid+'" frameborder="0" allowfullscreen style="width:100%;aspect-ratio:16/9;border-radius:10px;display:block"></iframe></div>';}return'<a class="lnk" href="'+fu(l.platform,l.url)+'" target="_blank" rel="noopener"><div class="lnk-ico" style="background:'+l._color+'">'+l._icon+'</div><div class="lnk-txt">'+(l.text||l.platform)+'</div><span class="lnk-arr">→</span></a>';}).join('');
 if(lnkItems){html+='<div class="sec"><div class="sec-lbl">Contacto y redes</div><div class="links">'+lnkItems+'</div></div>';}
 html+='<div class="footer">DEVYNEST Links</div>';
-if(wf.enabled&&wf.number){html+='<a class="wa-fab" href="https://wa.me/'+wf.number.replace(/\\D/g,'')+'" target="_blank" rel="noopener">💬</a>';}
+if(wf.enabled&&wf.number){var _wn=wf.number.replace(/\\D/g,'');var _wm=wf.message?'?text='+encodeURIComponent(wf.message):'';html+='<a class="wa-fab" href="https://wa.me/'+_wn+_wm+'" target="_blank" rel="noopener">💬</a>';}
 pg.innerHTML=html;
 document.title=(p.name||'DEVYNEST Links')+' — DEVYNEST Links';
 <\/script>
@@ -1669,6 +1774,93 @@ function showToast(msg) {
 document.getElementById('shareModal').addEventListener('click', e => {
   if (e.target === document.getElementById('shareModal')) closeModal();
 });
+
+/* ═══════════════════════════════════════════
+   CUSTOM COLOR
+═══════════════════════════════════════════ */
+function applyCustomColor(hex) {
+  profileData.background = hex;
+  profileData.theme = document.getElementById('customColorLight').checked ? 'light' : 'dark';
+  profileData.bgImage = null;
+  document.getElementById('customColorHex').value = hex.toUpperCase();
+  document.getElementById('customColorPreview').style.background = hex;
+  document.querySelectorAll('.bg-swatch').forEach(s => s.classList.remove('active'));
+  updatePreview();
+}
+
+function applyCustomColorHex(hex) {
+  if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) return;
+  profileData.background = hex;
+  profileData.theme = document.getElementById('customColorLight').checked ? 'light' : 'dark';
+  profileData.bgImage = null;
+  document.getElementById('customColorPicker').value = hex;
+  document.getElementById('customColorPreview').style.background = hex;
+  document.querySelectorAll('.bg-swatch').forEach(s => s.classList.remove('active'));
+  updatePreview();
+}
+
+function toggleCustomColorTheme(isLight) {
+  profileData.theme = isLight ? 'light' : 'dark';
+  updatePreview();
+}
+
+/* ═══════════════════════════════════════════
+   ESTADÍSTICAS
+═══════════════════════════════════════════ */
+function trackLinkGenerated(linkId) {
+  try {
+    const key = 'linkshub_stats' + (currentUser ? '_' + currentUser.uid : '');
+    const stats = JSON.parse(localStorage.getItem(key) || '[]');
+    stats.unshift({ linkId, name: profileData.name || '(sin nombre)', createdAt: Date.now() });
+    localStorage.setItem(key, JSON.stringify(stats.slice(0, 30)));
+  } catch(e) {}
+}
+
+function renderStats() {
+  const container = document.getElementById('statsContainer');
+  if (!container) return;
+  try {
+    const key = 'linkshub_stats' + (currentUser ? '_' + currentUser.uid : '');
+    const stats = JSON.parse(localStorage.getItem(key) || '[]');
+    if (!stats.length) {
+      container.innerHTML = '<div style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;line-height:1.6">Aún no generaste ningún link.<br>Hacé clic en <strong>✦ Generar mi link</strong> para empezar.</div>';
+      return;
+    }
+    let totalViews = 0;
+    const rows = stats.map(s => {
+      const views = parseInt(localStorage.getItem('lh_views_' + s.linkId) || '0');
+      totalViews += views;
+      const date = new Date(s.createdAt).toLocaleDateString('es-AR', { day:'2-digit', month:'short', year:'numeric' });
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--ink)">${esc(s.name)}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${date}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;margin-left:12px">
+          <div style="font-size:18px;font-weight:700;color:var(--accent)">${views}</div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">vistas</div>
+        </div>
+      </div>`;
+    }).join('');
+    container.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">
+        <div style="background:#f5f0e8;border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:26px;font-weight:700;color:var(--ink)">${stats.length}</div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px">Links generados</div>
+        </div>
+        <div style="background:#fdf0e8;border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:26px;font-weight:700;color:var(--accent)">${totalViews}</div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px">Vistas totales</div>
+        </div>
+      </div>
+      ${rows}
+      <div style="font-size:11px;color:var(--muted);margin-top:14px;line-height:1.6;background:#f5f0e8;border-radius:8px;padding:10px 12px">
+        💡 Las vistas se registran en este navegador. Para estadísticas cross-device usá un acortador como bit.ly.
+      </div>`;
+  } catch(e) {
+    container.innerHTML = '<div style="color:var(--muted);font-size:13px">No se pudieron cargar las estadísticas.</div>';
+  }
+}
 
 /* ═══════════════════════════════════════════
    FIREBASE AUTH
@@ -1825,6 +2017,7 @@ function initBuilder() {
       if (d.wafab) {
         document.getElementById('wafabEnabled').checked = d.wafab.enabled || false;
         document.getElementById('wafabNumber').value    = d.wafab.number || '';
+        document.getElementById('wafabMessage').value   = d.wafab.message || '';
       }
       if (profileData.avatarPhoto) setAvatarImage(profileData.avatarPhoto);
       if (profileData.bgImage) restoreBgImage(profileData.bgImage, profileData.bgOverlay);
