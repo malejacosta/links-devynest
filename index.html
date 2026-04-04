@@ -858,11 +858,6 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
       <button class="btn btn-ink" onclick="copyLink()">Copiar link</button>
       <button class="btn btn-ghost" onclick="downloadQR()">Descargar QR</button>
     </div>
-    <div style="text-align:center;margin-top:4px">
-      <button id="shortenBtn" class="btn btn-ghost" onclick="shortenShareUrl()" style="font-size:12px;padding:7px 16px;gap:6px">
-        <i class="fa-solid fa-scissors" style="font-size:11px"></i> Acortar link (gratis)
-      </button>
-    </div>
     <div class="qr-wrap"><div id="qrcode"></div></div>
     <div style="background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:8px">
       <div style="display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600;color:#166534">
@@ -1794,17 +1789,32 @@ function openShareModal() {
   if (!profileData.name) {
     showToast('Ingresá tu nombre primero'); return;
   }
-  const url = buildShareUrl();
-  document.getElementById('generatedUrl').textContent = url;
+  const longUrl = buildShareUrl();
+  const urlBox = document.getElementById('generatedUrl');
+  urlBox.textContent = '✦ Generando link corto…';
+  urlBox.style.opacity = '0.5';
   document.getElementById('qrcode').innerHTML = '';
-  new QRCode(document.getElementById('qrcode'), {
-    text: url, width:180, height:180,
-    colorDark:'#1a1714', colorLight:'#ffffff',
-    correctLevel: QRCode.CorrectLevel.M
-  });
-  const sb = document.getElementById('shortenBtn');
-  if (sb) { sb.innerHTML = '<i class="fa-solid fa-scissors" style="font-size:11px"></i> Acortar link (gratis)'; sb.disabled = false; sb.style.color = ''; }
   document.getElementById('shareModal').classList.add('active');
+
+  // Acortar automáticamente con TinyURL
+  function renderUrl(u) {
+    urlBox.textContent = u;
+    urlBox.style.opacity = '1';
+    document.getElementById('qrcode').innerHTML = '';
+    new QRCode(document.getElementById('qrcode'), {
+      text: u, width:180, height:180,
+      colorDark:'#1a1714', colorLight:'#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  }
+  fetch('https://tinyurl.com/api-create.php?url=' + encodeURIComponent(longUrl))
+    .then(r => r.ok ? r.text() : Promise.reject())
+    .then(short => {
+      short = short.trim();
+      if (short.startsWith('https://tinyurl.com')) renderUrl(short);
+      else renderUrl(longUrl);
+    })
+    .catch(() => renderUrl(longUrl));
 }
 
 function generateLinkId() {
