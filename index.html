@@ -858,6 +858,11 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
       <button class="btn btn-ink" onclick="copyLink()">Copiar link</button>
       <button class="btn btn-ghost" onclick="downloadQR()">Descargar QR</button>
     </div>
+    <div style="text-align:center;margin-top:4px">
+      <button id="shortenBtn" class="btn btn-ghost" onclick="shortenShareUrl()" style="font-size:12px;padding:7px 16px;gap:6px">
+        <i class="fa-solid fa-scissors" style="font-size:11px"></i> Acortar link (gratis)
+      </button>
+    </div>
     <div class="qr-wrap"><div id="qrcode"></div></div>
     <div style="background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:8px">
       <div style="display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600;color:#166534">
@@ -978,6 +983,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 <script>
 /* ═══════════════════════════════════════════
    STATE
@@ -1796,6 +1802,8 @@ function openShareModal() {
     colorDark:'#1a1714', colorLight:'#ffffff',
     correctLevel: QRCode.CorrectLevel.M
   });
+  const sb = document.getElementById('shortenBtn');
+  if (sb) { sb.innerHTML = '<i class="fa-solid fa-scissors" style="font-size:11px"></i> Acortar link (gratis)'; sb.disabled = false; sb.style.color = ''; }
   document.getElementById('shareModal').classList.add('active');
 }
 
@@ -1816,7 +1824,7 @@ function buildShareUrl() {
     createdAt: Date.now(),
   };
   trackLinkGenerated(lid);
-  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+  const encoded = LZString.compressToEncodedURIComponent(JSON.stringify(data));
   return window.location.href.split('#')[0] + '#' + encoded;
 }
 
@@ -1833,6 +1841,33 @@ function refreshShareUrl() {
 
 function closeModal() {
   document.getElementById('shareModal').classList.remove('active');
+}
+
+async function shortenShareUrl() {
+  const longUrl = document.getElementById('generatedUrl').textContent.trim();
+  if (!longUrl || longUrl === '—') return;
+  const btn = document.getElementById('shortenBtn');
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="font-size:11px"></i> Acortando…';
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/shorten?url=' + encodeURIComponent(longUrl));
+    if (!res.ok) throw new Error('error');
+    const json = await res.json();
+    if (!json.short) throw new Error('invalid');
+    document.getElementById('generatedUrl').textContent = json.short;
+    document.getElementById('qrcode').innerHTML = '';
+    new QRCode(document.getElementById('qrcode'), {
+      text: json.short, width:180, height:180,
+      colorDark:'#1a1714', colorLight:'#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+    btn.innerHTML = '<i class="fa-solid fa-check" style="font-size:11px"></i> ¡Link acortado!';
+    btn.style.color = '#16a34a';
+  } catch(e) {
+    showToast('No se pudo acortar. Revisá tu conexión.');
+    btn.innerHTML = '<i class="fa-solid fa-scissors" style="font-size:11px"></i> Acortar link (gratis)';
+    btn.disabled = false;
+  }
 }
 
 function copyLink() {
@@ -2442,7 +2477,9 @@ function initBuilder() {
   const hash = window.location.hash.slice(1);
   if (hash) {
     try {
-      const raw = decodeURIComponent(escape(atob(hash)));
+      // Intentar LZ-String primero (links nuevos), luego btoa legacy
+      let raw = LZString.decompressFromEncodedURIComponent(hash);
+      if (!raw) raw = decodeURIComponent(escape(atob(hash)));
       showUserView(JSON.parse(raw));
       return;
     } catch(e) {}
