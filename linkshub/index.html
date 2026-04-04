@@ -1791,30 +1791,14 @@ function openShareModal() {
   }
   const longUrl = buildShareUrl();
   const urlBox = document.getElementById('generatedUrl');
-  urlBox.textContent = '✦ Generando link corto…';
-  urlBox.style.opacity = '0.5';
+  urlBox.textContent = longUrl;
   document.getElementById('qrcode').innerHTML = '';
+  new QRCode(document.getElementById('qrcode'), {
+    text: longUrl, width:180, height:180,
+    colorDark:'#1a1714', colorLight:'#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
   document.getElementById('shareModal').classList.add('active');
-
-  // Acortar automáticamente con TinyURL
-  function renderUrl(u) {
-    urlBox.textContent = u;
-    urlBox.style.opacity = '1';
-    document.getElementById('qrcode').innerHTML = '';
-    new QRCode(document.getElementById('qrcode'), {
-      text: u, width:180, height:180,
-      colorDark:'#1a1714', colorLight:'#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
-    });
-  }
-  fetch('https://tinyurl.com/api-create.php?url=' + encodeURIComponent(longUrl))
-    .then(r => r.ok ? r.text() : Promise.reject())
-    .then(short => {
-      short = short.trim();
-      if (short.startsWith('https://tinyurl.com')) renderUrl(short);
-      else renderUrl(longUrl);
-    })
-    .catch(() => renderUrl(longUrl));
 }
 
 function generateLinkId() {
@@ -1851,33 +1835,6 @@ function refreshShareUrl() {
 
 function closeModal() {
   document.getElementById('shareModal').classList.remove('active');
-}
-
-async function shortenShareUrl() {
-  const longUrl = document.getElementById('generatedUrl').textContent.trim();
-  if (!longUrl || longUrl === '—') return;
-  const btn = document.getElementById('shortenBtn');
-  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="font-size:11px"></i> Acortando…';
-  btn.disabled = true;
-  try {
-    const res = await fetch('/api/shorten?url=' + encodeURIComponent(longUrl));
-    if (!res.ok) throw new Error('error');
-    const json = await res.json();
-    if (!json.short) throw new Error('invalid');
-    document.getElementById('generatedUrl').textContent = json.short;
-    document.getElementById('qrcode').innerHTML = '';
-    new QRCode(document.getElementById('qrcode'), {
-      text: json.short, width:180, height:180,
-      colorDark:'#1a1714', colorLight:'#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
-    });
-    btn.innerHTML = '<i class="fa-solid fa-check" style="font-size:11px"></i> ¡Link acortado!';
-    btn.style.color = '#16a34a';
-  } catch(e) {
-    showToast('No se pudo acortar. Revisá tu conexión.');
-    btn.innerHTML = '<i class="fa-solid fa-scissors" style="font-size:11px"></i> Acortar link (gratis)';
-    btn.disabled = false;
-  }
 }
 
 function copyLink() {
