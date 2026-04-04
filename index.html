@@ -1651,6 +1651,7 @@ function updatePreview() {
    USER VIEW (public)
 ═══════════════════════════════════════════ */
 function showExpiredPage(p, used, maxUses) {
+  document.getElementById('authView').classList.remove('active');
   document.getElementById('builder').style.display = 'none';
   document.body.style.background = '#0f0e0c';
   const uv = document.getElementById('userView');
@@ -1699,6 +1700,7 @@ function showUserView(data) {
 
   function doRender() {
     // ── RENDER ──
+  document.getElementById('authView').classList.remove('active');
   document.getElementById('builder').style.display = 'none';
   document.getElementById('userView').classList.add('active');
 
