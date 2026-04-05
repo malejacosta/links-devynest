@@ -1,15 +1,35 @@
 // Cliente Redis sobre HTTP (Upstash REST API) — sin dependencias npm
-// Variables de entorno requeridas:
-//   UPSTASH_REDIS_REST_URL   → ej: https://xxxx.upstash.io
-//   UPSTASH_REDIS_REST_TOKEN → token de autenticación
+// Soporta las variantes de nombres de env vars de Vercel Marketplace:
+//   - UPSTASH_REDIS_REST_URL  + UPSTASH_REDIS_REST_TOKEN  (Upstash directo)
+//   - KV_REST_API_URL         + KV_REST_API_TOKEN          (Vercel KV legacy)
 
-async function cmd(...args) {
-  const url   = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+function getConfig() {
+  const url =
+    process.env.UPSTASH_REDIS_REST_URL ||
+    process.env.KV_REST_API_URL;
+
+  const token =
+    process.env.UPSTASH_REDIS_REST_TOKEN ||
+    process.env.KV_REST_API_TOKEN;
 
   if (!url || !token) {
-    throw new Error('[redis] Faltan UPSTASH_REDIS_REST_URL o UPSTASH_REDIS_REST_TOKEN');
+    const found = [];
+    if (process.env.UPSTASH_REDIS_REST_URL)   found.push('UPSTASH_REDIS_REST_URL');
+    if (process.env.UPSTASH_REDIS_REST_TOKEN) found.push('UPSTASH_REDIS_REST_TOKEN');
+    if (process.env.KV_REST_API_URL)          found.push('KV_REST_API_URL');
+    if (process.env.KV_REST_API_TOKEN)        found.push('KV_REST_API_TOKEN');
+
+    throw new Error(
+      `[redis] Faltan env vars. Encontradas: [${found.join(', ') || 'ninguna'}]. ` +
+      `Requeridas: UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN (o KV_REST_API_URL + KV_REST_API_TOKEN)`
+    );
   }
+
+  return { url, token };
+}
+
+async function cmd(...args) {
+  const { url, token } = getConfig();
 
   const res = await fetch(url, {
     method: 'POST',
@@ -28,14 +48,14 @@ async function cmd(...args) {
   const json = await res.json();
 
   if (json.error) {
-    throw new Error(`[redis] Error: ${json.error}`);
+    throw new Error(`[redis] ${json.error}`);
   }
 
   return json.result;
 }
 
 export const redis = {
-  set:    (key, value)  => cmd('SET', key, value),
-  get:    (key)         => cmd('GET', key),
-  exists: (key)         => cmd('EXISTS', key),
+  set:    (key, value) => cmd('SET', key, value),
+  get:    (key)        => cmd('GET', key),
+  exists: (key)        => cmd('EXISTS', key),
 };
