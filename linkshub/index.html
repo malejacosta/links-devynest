@@ -2441,6 +2441,29 @@ function handleLogout() {
 
 /* — Reemplazar DOMContentLoaded para que no inicie el builder hasta auth — */
 function initBuilder() {
+  // — Detectar ?id= en la URL y cargar mini web desde /api/get —
+  const urlParams = new URLSearchParams(window.location.search);
+  const sharedId = urlParams.get('id');
+  if (sharedId) {
+    fetch('/api/get?id=' + encodeURIComponent(sharedId))
+      .then(r => {
+        if (!r.ok) throw new Error('not found');
+        return r.json();
+      })
+      .then(entry => {
+        showUserView(entry.data);
+      })
+      .catch(() => {
+        // ID inválido o expirado: iniciar builder normal
+        _initBuilderFallback();
+      });
+    return;
+  }
+
+  _initBuilderFallback();
+}
+
+function _initBuilderFallback() {
   const hash = window.location.hash.slice(1);
   if (hash) {
     try {
