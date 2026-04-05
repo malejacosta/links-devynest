@@ -852,7 +852,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
 <div id="shareModal" class="modal-overlay">
   <div class="modal-box">
     <h2>¡Listo para compartir!</h2>
-    <p class="sub">Este link lleva toda tu información. Funciona sin servidor.</p>
+    <p class="sub">Tu link corto, listo para compartir.</p>
     <div class="url-box" id="generatedUrl">—</div>
     <div class="modal-btns">
       <button class="btn btn-ink" onclick="copyLink()">Copiar link</button>
@@ -978,7 +978,6 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 <script>
 /* ═══════════════════════════════════════════
    STATE
@@ -1785,28 +1784,27 @@ function saveDraft() {
 /* ═══════════════════════════════════════════
    SHARE MODAL
 ═══════════════════════════════════════════ */
-function openShareModal() {
-  if (!profileData.name) {
-    showToast('Ingresá tu nombre primero'); return;
-  }
-  const longUrl = buildShareUrl();
-  const urlBox = document.getElementById('generatedUrl');
-  urlBox.textContent = longUrl;
+function renderShortUrl(shortUrl) {
+  document.getElementById('generatedUrl').textContent = shortUrl;
   document.getElementById('qrcode').innerHTML = '';
   new QRCode(document.getElementById('qrcode'), {
-    text: longUrl, width:180, height:180,
+    text: shortUrl, width:180, height:180,
     colorDark:'#1a1714', colorLight:'#ffffff',
     correctLevel: QRCode.CorrectLevel.M
   });
+}
+
+async function openShareModal() {
+  if (!profileData.name) {
+    showToast('Ingresá tu nombre primero'); return;
+  }
+
+  const urlBox = document.getElementById('generatedUrl');
+  urlBox.textContent = 'Generando link…';
+  document.getElementById('qrcode').innerHTML = '';
   document.getElementById('shareModal').classList.add('active');
-}
 
-function generateLinkId() {
-  return 'lh_' + Math.random().toString(36).slice(2,10) + '_' + Date.now().toString(36);
-}
-
-function buildShareUrl() {
-  const lid = generateLinkId();
+  const lid = 'lh_' + Math.random().toString(36).slice(2,10) + '_' + Date.now().toString(36);
   const data = {
     profile: profileData,
     links,
@@ -1818,19 +1816,52 @@ function buildShareUrl() {
     createdAt: Date.now(),
   };
   trackLinkGenerated(lid);
-  const encoded = LZString.compressToEncodedURIComponent(JSON.stringify(data));
-  return window.location.href.split('#')[0] + '#' + encoded;
+
+  try {
+    const res = await fetch('/api/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('error');
+    const { id } = await res.json();
+    const shortUrl = 'https://links-devynest.vercel.app/?id=' + id;
+    renderShortUrl(shortUrl);
+  } catch (e) {
+    urlBox.textContent = 'Error al generar el link. Intentá de nuevo.';
+  }
 }
 
-function refreshShareUrl() {
-  const url = buildShareUrl();
-  document.getElementById('generatedUrl').textContent = url;
+async function refreshShareUrl() {
+  document.getElementById('generatedUrl').textContent = 'Generando link…';
   document.getElementById('qrcode').innerHTML = '';
-  new QRCode(document.getElementById('qrcode'), {
-    text: url, width:180, height:180,
-    colorDark:'#1a1714', colorLight:'#ffffff',
-    correctLevel: QRCode.CorrectLevel.M
-  });
+
+  const lid = 'lh_' + Math.random().toString(36).slice(2,10) + '_' + Date.now().toString(36);
+  const data = {
+    profile: profileData,
+    links,
+    services,
+    featured: getFeatured(),
+    wafab: getWafab(),
+    linkId: lid,
+    maxUses: 0,
+    createdAt: Date.now(),
+  };
+  trackLinkGenerated(lid);
+
+  try {
+    const res = await fetch('/api/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('error');
+    const { id } = await res.json();
+    const shortUrl = 'https://links-devynest.vercel.app/?id=' + id;
+    renderShortUrl(shortUrl);
+  } catch (e) {
+    document.getElementById('generatedUrl').textContent = 'Error al generar el link.';
+  }
 }
 
 function closeModal() {
@@ -2441,17 +2472,29 @@ function handleLogout() {
 
 /* — Reemplazar DOMContentLoaded para que no inicie el builder hasta auth — */
 function initBuilder() {
-  const hash = window.location.hash.slice(1);
-  if (hash) {
-    try {
-      // Intentar LZ-String primero (links nuevos), luego btoa legacy
-      let raw = LZString.decompressFromEncodedURIComponent(hash);
-      if (!raw) raw = decodeURIComponent(escape(atob(hash)));
-      showUserView(JSON.parse(raw));
-      return;
-    } catch(e) {}
+  // — Detectar ?id= en la URL y cargar mini web desde /api/get —
+  const urlParams = new URLSearchParams(window.location.search);
+  const sharedId = urlParams.get('id');
+  if (sharedId) {
+    fetch('/api/get?id=' + encodeURIComponent(sharedId))
+      .then(r => {
+        if (!r.ok) throw new Error('not found');
+        return r.json();
+      })
+      .then(entry => {
+        showUserView(entry.data);
+      })
+      .catch(() => {
+        // ID inválido o expirado: iniciar builder normal
+        _initBuilderFallback();
+      });
+    return;
   }
 
+  _initBuilderFallback();
+}
+
+function _initBuilderFallback() {
   const storageKey = 'linkshub_v3' + (currentUser ? '_' + currentUser.uid : '');
   const saved = localStorage.getItem(storageKey);
   if (saved) {
