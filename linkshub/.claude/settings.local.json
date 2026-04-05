@@ -20,7 +20,9 @@
       "Bash(gh auth:*)",
       "Bash(git --version)",
       "Bash(git config:*)",
-      "mcp__11071247-bec1-4381-80d7-ec5648087cd4__get_project"
+      "mcp__11071247-bec1-4381-80d7-ec5648087cd4__get_project",
+      "mcp__11071247-bec1-4381-80d7-ec5648087cd4__get_runtime_logs",
+      "mcp__11071247-bec1-4381-80d7-ec5648087cd4__get_deployment_build_logs"
     ]
   }
 }

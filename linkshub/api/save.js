@@ -26,24 +26,36 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'El body debe ser un objeto JSON válido.' });
   }
 
-  // Generar ID único (reintenta si ya existe en Redis)
+  // Generar ID único (reintenta si ya existe)
   let id;
   let attempts = 0;
-  do {
-    id = generateId();
-    attempts++;
-    if (attempts > 20) {
-      return res.status(500).json({ error: 'No se pudo generar un ID único.' });
-    }
-  } while (await redis.exists(`lh:${id}`));
+  try {
+    do {
+      id = generateId();
+      attempts++;
+      if (attempts > 20) {
+        return res.status(500).json({ error: 'No se pudo generar un ID único.' });
+      }
+      const exists = await redis.exists(`lh:${id}`);
+      if (exists === 0) break;
+    } while (true);
+  } catch (err) {
+    console.error('[save] Error al verificar ID:', err.message);
+    return res.status(500).json({ error: 'Error de conexión con Redis.', detail: err.message });
+  }
 
   const entry = {
     data,
     createdAt: new Date().toISOString(),
   };
 
-  // Guardar en Redis — sin expiración (persistente)
-  await redis.set(`lh:${id}`, JSON.stringify(entry));
+  try {
+    await redis.set(`lh:${id}`, JSON.stringify(entry));
+    console.log(`[save] Guardado OK — ID: ${id}`);
+  } catch (err) {
+    console.error('[save] Error al guardar:', err.message);
+    return res.status(500).json({ error: 'Error al guardar en Redis.', detail: err.message });
+  }
 
   return res.status(200).json({ id, url: `/api/get?id=${id}` });
 }

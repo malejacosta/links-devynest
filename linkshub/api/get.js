@@ -17,13 +17,26 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Falta el parámetro id.' });
   }
 
-  const raw = await redis.get(`lh:${id}`);
+  let raw;
+  try {
+    raw = await redis.get(`lh:${id}`);
+    console.log(`[get] ID: ${id} — encontrado: ${raw !== null}`);
+  } catch (err) {
+    console.error('[get] Error al leer Redis:', err.message);
+    return res.status(500).json({ error: 'Error de conexión con Redis.', detail: err.message });
+  }
 
   if (!raw) {
     return res.status(404).json({ error: 'No se encontró ningún dato con ese ID.' });
   }
 
-  const entry = typeof raw === 'string' ? JSON.parse(raw) : raw;
+  let entry;
+  try {
+    entry = JSON.parse(raw);
+  } catch (err) {
+    console.error('[get] Error al parsear JSON:', err.message);
+    return res.status(500).json({ error: 'Error al procesar los datos guardados.' });
+  }
 
   return res.status(200).json(entry);
 }
