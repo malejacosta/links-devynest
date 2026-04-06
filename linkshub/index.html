@@ -2367,10 +2367,24 @@ try { _fbApp = firebase.app(); } catch(e) { _fbApp = firebase.initializeApp(fire
 const auth = firebase.auth();
 let currentUser = null;
 let _authMode = 'login'; // 'login' | 'register'
+let _isSharedView = false; // true cuando la página se abrió con ?id=
+
+/* — Carga directa por ?id= (sin necesidad de login) — */
+const _sharedId = new URLSearchParams(window.location.search).get('id');
+if (_sharedId) {
+  _isSharedView = true; // bloquea el flujo de auth antes del fetch
+  fetch('/api/get?id=' + encodeURIComponent(_sharedId))
+    .then(r => { if (!r.ok) throw new Error('not found'); return r.json(); })
+    .then(entry => { showUserView(entry.data); })
+    .catch(() => {
+      _isSharedView = false; // ID inválido: volver al flujo normal de auth
+    });
+}
 
 /* — Auth state observer — */
 auth.onAuthStateChanged(user => {
   currentUser = user;
+  if (_isSharedView) return; // ya mostrando mini landing — no interrumpir
   if (user) {
     document.getElementById('authView').classList.remove('active');
     document.getElementById('builder').style.display = '';
