@@ -1,76 +1,42 @@
-// Cliente Redis sobre HTTP (Upstash REST API) — sin dependencias npm
-//
-// Soporta estas env vars (en orden de prioridad):
-//   1. UPSTASH_REDIS_REST_URL  + UPSTASH_REDIS_REST_TOKEN  (REST directo)
-//   2. KV_REST_API_URL         + KV_REST_API_TOKEN          (Vercel KV legacy)
-//   3. REDIS_URL               (TCP URL de Upstash → se deriva REST automáticamente)
-//      formato: rediss://default:TOKEN@host.upstash.io:6379
+// Cliente Redis usando ioredis (TCP/TLS)
+// Compatible con Redis Labs, Redis Cloud, Upstash (modo TCP)
+// Usa la variable de entorno REDIS_URL
 
-function getConfig() {
-  // Prioridad 1: vars REST explícitas
-  const restUrl   = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
-  const restToken = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
-  if (restUrl && restToken) {
-    return { url: restUrl, token: restToken };
+import Redis from 'ioredis';
+
+let client = null;
+
+function getClient() {
+  if (client && client.status === 'ready') return client;
+
+  const url = process.env.REDIS_URL;
+  if (!url) {
+    const found = [
+      'REDIS_URL', 'UPSTASH_REDIS_REST_URL', 'KV_REST_API_URL',
+    ].filter(v => !!process.env[v]);
+    throw new Error(
+      `[redis] Sin credenciales. Encontradas: [${found.join(', ') || 'ninguna'}]. ` +
+      'Necesitás REDIS_URL.'
+    );
   }
 
-  // Prioridad 2: REDIS_URL — parsear URL TCP de Upstash para derivar REST
-  const redisUrl = process.env.REDIS_URL;
-  if (redisUrl) {
-    try {
-      const parsed = new URL(redisUrl);
-      // rediss://default:TOKEN@host.upstash.io:6379
-      const host  = parsed.hostname;  // host.upstash.io
-      const token = parsed.password;  // TOKEN
-      if (host && token) {
-        return { url: `https://${host}`, token };
-      }
-      throw new Error('No se pudo extraer host o token de REDIS_URL');
-    } catch (e) {
-      throw new Error(`[redis] REDIS_URL inválida: ${e.message}`);
-    }
-  }
-
-  // Sin credenciales
-  const found = [
-    'UPSTASH_REDIS_REST_URL', 'UPSTASH_REDIS_REST_TOKEN',
-    'KV_REST_API_URL', 'KV_REST_API_TOKEN', 'REDIS_URL',
-  ].filter(v => !!process.env[v]);
-
-  throw new Error(
-    `[redis] Sin credenciales Redis. Encontradas: [${found.join(', ') || 'ninguna'}]. ` +
-    'Necesitás REDIS_URL o UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN.'
-  );
-}
-
-async function cmd(...args) {
-  const { url, token } = getConfig();
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(args),
+  client = new Redis(url, {
+    tls: url.startsWith('rediss://') ? { rejectUnauthorized: false } : undefined,
+    maxRetriesPerRequest: 3,
+    connectTimeout: 10000,
+    lazyConnect: false,
+    enableReadyCheck: false,
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`[redis] HTTP ${res.status}: ${text}`);
-  }
+  client.on('error', (err) => {
+    console.error('[redis] Error de conexión:', err.message);
+  });
 
-  const json = await res.json();
-
-  if (json.error) {
-    throw new Error(`[redis] ${json.error}`);
-  }
-
-  return json.result;
+  return client;
 }
 
 export const redis = {
-  set:    (key, value) => cmd('SET', key, value),
-  get:    (key)        => cmd('GET', key),
-  exists: (key)        => cmd('EXISTS', key),
+  set:    (key, value) => getClient().set(key, value),
+  get:    (key)        => getClient().get(key),
+  exists: (key)        => getClient().exists(key),
 };
