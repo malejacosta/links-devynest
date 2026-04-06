@@ -531,6 +531,14 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
 <!-- Firebase Auth -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script>
+/* Prevención de flash — corre sincrónicamente antes de renderizar el body.
+   Si hay ?id= en la URL, oculta toda la UI hasta que la mini landing esté lista. */
+if (new URLSearchParams(location.search).get('id')) {
+  document.head.insertAdjacentHTML('beforeend',
+    '<style id="_nf">#authView,#builder{display:none!important}</style>');
+}
+</script>
 </head>
 <body>
 
@@ -1700,6 +1708,9 @@ function showUserView(data) {
 
   function doRender() {
     // ── RENDER ──
+  // Remover el estilo de prevención de flash si existe
+  const nf = document.getElementById('_nf');
+  if (nf) nf.remove();
   document.getElementById('authView').classList.remove('active');
   document.getElementById('builder').style.display = 'none';
   document.getElementById('userView').classList.add('active');
