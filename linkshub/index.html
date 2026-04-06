@@ -1825,7 +1825,7 @@ async function openShareModal() {
     });
     if (!res.ok) throw new Error('error');
     const { id } = await res.json();
-    const shortUrl = 'https://links-devynest.vercel.app/?id=' + id;
+    const shortUrl = 'https://go.devynest.com/?id=' + id;
     renderShortUrl(shortUrl);
   } catch (e) {
     urlBox.textContent = 'Error al generar el link. Intentá de nuevo.';
@@ -1857,7 +1857,7 @@ async function refreshShareUrl() {
     });
     if (!res.ok) throw new Error('error');
     const { id } = await res.json();
-    const shortUrl = 'https://links-devynest.vercel.app/?id=' + id;
+    const shortUrl = 'https://go.devynest.com/?id=' + id;
     renderShortUrl(shortUrl);
   } catch (e) {
     document.getElementById('generatedUrl').textContent = 'Error al generar el link.';
