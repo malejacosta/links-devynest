@@ -83,6 +83,11 @@ body{font-family:'Montserrat',sans-serif;background:var(--paper);color:var(--ink
 .btn-danger-sm{background:var(--red-lt);color:var(--red);border:none;padding:6px 10px;border-radius:7px;font-size:12px;cursor:pointer;transition:var(--transition)}
 .btn-danger-sm:hover{background:#fca5a5}
 .btn-green-sm{background:var(--green-lt);color:var(--green);border:none;padding:6px 10px;border-radius:7px;font-size:12px;cursor:pointer;transition:var(--transition)}
+.btn-save{background:var(--green-lt);color:var(--green);border:1.5px solid #a7d9be}
+.btn-save:hover{background:#c6eeda;border-color:var(--green)}
+.btn-save.saving{opacity:.7;cursor:not-allowed}
+.btn-save.saved{background:var(--green-lt);color:var(--green)}
+.btn-save.error{background:var(--red-lt);color:var(--red);border-color:#fca5a5}
 
 /* BUILDER BODY */
 .builder-body{
@@ -93,6 +98,7 @@ body{font-family:'Montserrat',sans-serif;background:var(--paper);color:var(--ink
 @media(max-width:640px){.builder-body{padding:16px}}
 @media(max-width:640px){.topbar{padding:0 16px}}
 @media(max-width:640px){.topbar-right .btn-ghost{display:none}}
+@media(max-width:640px){#saveChangesBtn{display:none!important}}
 
 /* TABS */
 .editor-tabs{
@@ -627,6 +633,7 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
     <div class="topbar-right">
       <div class="user-chip"><span class="user-chip-dot"></span><span id="userEmailLabel">—</span></div>
       <button class="btn btn-ghost" id="adminNavBtn" onclick="location.href='/admin'" style="display:none;font-size:13px">⚙ Admin</button>
+      <button class="btn btn-save" id="saveChangesBtn" onclick="saveChanges()" style="display:none;font-size:13px">💾 Guardar cambios</button>
       <button class="btn btn-accent" onclick="openShareModal()">✦ Generar mi link</button>
       <button class="btn btn-ghost" onclick="handleLogout()" style="gap:6px">Salir ↩</button>
     </div>
@@ -1887,53 +1894,93 @@ async function openShareModal() {
   }
 
   const urlBox = document.getElementById('generatedUrl');
-  urlBox.textContent = 'Generando link…';
-  document.getElementById('qrcode').innerHTML = '';
   document.getElementById('shareModal').classList.add('active');
 
-  const lid = 'lh_' + Math.random().toString(36).slice(2,10) + '_' + Date.now().toString(36);
   const data = {
     profile: profileData,
     links,
     services,
     featured: getFeatured(),
     wafab: getWafab(),
-    linkId: lid,
     maxUses: 0,
-    createdAt: Date.now(),
   };
-  trackLinkGenerated(lid);
 
-  try {
-    const res = await fetch('/api/save', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error('error');
-    const { id } = await res.json();
-    const shortUrl = 'https://go.devynest.com/' + id;
-    renderShortUrl(shortUrl);
-  } catch (e) {
-    urlBox.textContent = 'Error al generar el link. Intentá de nuevo.';
+  // Si ya hay un ID publicado → actualizar; si no → crear nuevo
+  if (_publishedId) {
+    urlBox.textContent = 'Actualizando link…';
+    document.getElementById('qrcode').innerHTML = '';
+    try {
+      const res = await fetch('/api/update?id=' + encodeURIComponent(_publishedId), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('error');
+      const shortUrl = 'https://go.devynest.com/' + _publishedId;
+      renderShortUrl(shortUrl);
+    } catch (e) {
+      urlBox.textContent = 'Error al actualizar el link. Intentá de nuevo.';
+    }
+  } else {
+    urlBox.textContent = 'Generando link…';
+    document.getElementById('qrcode').innerHTML = '';
+    const lid = 'lh_' + Math.random().toString(36).slice(2,10) + '_' + Date.now().toString(36);
+    data.linkId = lid;
+    data.createdAt = Date.now();
+    trackLinkGenerated(lid);
+    try {
+      const res = await fetch('/api/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('error');
+      const { id } = await res.json();
+      // Guardar ID publicado para futuros updates
+      _publishedId = id;
+      if (currentUser) {
+        localStorage.setItem('lh_pub_' + currentUser.uid, id);
+      }
+      _showSaveBtn();
+      const shortUrl = 'https://go.devynest.com/' + id;
+      renderShortUrl(shortUrl);
+    } catch (e) {
+      urlBox.textContent = 'Error al generar el link. Intentá de nuevo.';
+    }
   }
 }
 
 async function refreshShareUrl() {
-  document.getElementById('generatedUrl').textContent = 'Generando link…';
+  document.getElementById('generatedUrl').textContent = 'Actualizando link…';
   document.getElementById('qrcode').innerHTML = '';
 
-  const lid = 'lh_' + Math.random().toString(36).slice(2,10) + '_' + Date.now().toString(36);
   const data = {
     profile: profileData,
     links,
     services,
     featured: getFeatured(),
     wafab: getWafab(),
-    linkId: lid,
     maxUses: 0,
-    createdAt: Date.now(),
   };
+
+  if (_publishedId) {
+    try {
+      const res = await fetch('/api/update?id=' + encodeURIComponent(_publishedId), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('error');
+      renderShortUrl('https://go.devynest.com/' + _publishedId);
+    } catch (e) {
+      document.getElementById('generatedUrl').textContent = 'Error al actualizar el link.';
+    }
+    return;
+  }
+
+  const lid = 'lh_' + Math.random().toString(36).slice(2,10) + '_' + Date.now().toString(36);
+  data.linkId = lid;
+  data.createdAt = Date.now();
   trackLinkGenerated(lid);
 
   try {
@@ -1944,6 +1991,9 @@ async function refreshShareUrl() {
     });
     if (!res.ok) throw new Error('error');
     const { id } = await res.json();
+    _publishedId = id;
+    if (currentUser) localStorage.setItem('lh_pub_' + currentUser.uid, id);
+    _showSaveBtn();
     const shortUrl = 'https://go.devynest.com/' + id;
     renderShortUrl(shortUrl);
   } catch (e) {
@@ -1953,6 +2003,59 @@ async function refreshShareUrl() {
 
 function closeModal() {
   document.getElementById('shareModal').classList.remove('active');
+}
+
+/* ═══════════════════════════════════════════
+   SAVE CHANGES (actualiza sin crear nuevo ID)
+═══════════════════════════════════════════ */
+function _showSaveBtn() {
+  const btn = document.getElementById('saveChangesBtn');
+  if (btn && _publishedId) btn.style.display = '';
+}
+
+async function saveChanges() {
+  if (!_publishedId) { openShareModal(); return; }
+  if (!profileData.name) { showToast('Ingresá tu nombre primero'); return; }
+
+  const btn = document.getElementById('saveChangesBtn');
+  btn.disabled = true;
+  btn.classList.add('saving');
+  btn.textContent = '⏳ Guardando…';
+
+  const data = {
+    profile: profileData,
+    links,
+    services,
+    featured: getFeatured(),
+    wafab: getWafab(),
+    maxUses: 0,
+  };
+
+  try {
+    const res = await fetch('/api/update?id=' + encodeURIComponent(_publishedId), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('error');
+    btn.classList.remove('saving');
+    btn.classList.add('saved');
+    btn.textContent = '✓ Cambios guardados';
+    setTimeout(() => {
+      btn.classList.remove('saved');
+      btn.textContent = '💾 Guardar cambios';
+      btn.disabled = false;
+    }, 2500);
+  } catch (e) {
+    btn.classList.remove('saving');
+    btn.classList.add('error');
+    btn.textContent = '✗ Error al guardar';
+    setTimeout(() => {
+      btn.classList.remove('error');
+      btn.textContent = '💾 Guardar cambios';
+      btn.disabled = false;
+    }, 3000);
+  }
 }
 
 function copyLink() {
@@ -2455,6 +2558,7 @@ const auth = firebase.auth();
 let currentUser = null;
 let _authMode = 'login'; // 'login' | 'register'
 let _isSharedView = false; // true cuando la página se abrió con /ID
+let _publishedId = null;  // ID del registro publicado en Redis (para updates)
 
 /* — Carga directa por /ID (sin necesidad de login) — */
 const _sharedId = (location.pathname.length > 1 && !location.pathname.startsWith('/api'))
@@ -2758,6 +2862,15 @@ function initBuilder() {
 }
 
 function _initBuilderFallback() {
+  // Restaurar ID publicado si existe
+  if (currentUser) {
+    const pubId = localStorage.getItem('lh_pub_' + currentUser.uid);
+    if (pubId) {
+      _publishedId = pubId;
+      _showSaveBtn();
+    }
+  }
+
   const storageKey = 'linkshub_v3' + (currentUser ? '_' + currentUser.uid : '');
   const saved = localStorage.getItem(storageKey);
   if (saved) {
