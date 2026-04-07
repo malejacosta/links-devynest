@@ -1,5 +1,25 @@
 import { redis } from './_redis.js';
 
+// Las imágenes base64 pueden pesar 200KB+ cada una y agotan la memoria Redis.
+// Si el valor empieza con "data:", se descarta antes de guardar.
+// El link público mostrará el avatar/fondo solo si el usuario usa una URL externa.
+function stripBase64Images(data) {
+  if (!data || typeof data !== 'object') return data;
+  const clean = { ...data };
+  if (clean.profile) {
+    clean.profile = { ...clean.profile };
+    if (typeof clean.profile.avatarPhoto === 'string' && clean.profile.avatarPhoto.startsWith('data:')) {
+      console.log('[SAVE] avatarPhoto base64 eliminado para ahorrar memoria Redis');
+      clean.profile.avatarPhoto = null;
+    }
+    if (typeof clean.profile.bgImage === 'string' && clean.profile.bgImage.startsWith('data:')) {
+      console.log('[SAVE] bgImage base64 eliminado para ahorrar memoria Redis');
+      clean.profile.bgImage = null;
+    }
+  }
+  return clean;
+}
+
 function generateId() {
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let id = '';
@@ -45,16 +65,20 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Error de conexión con Redis.', detail: err.message });
   }
 
+  const cleanData = stripBase64Images(data);
+
   const entry = {
-    data,
+    data: cleanData,
     createdAt: new Date().toISOString(),
   };
 
   const redisKey = `lh:${id}`;
+  const entrySize = JSON.stringify(entry).length;
   console.log(`[SAVE] uid recibido: ${uid || 'NINGUNO'}`);
   console.log(`[SAVE] ID generado: ${id}`);
   console.log(`[SAVE] REDIS WRITE KEY: ${redisKey}`);
-  console.log(`[SAVE] profile.name en data: ${data?.profile?.name || 'undefined'}`);
+  console.log(`[SAVE] profile.name en data: ${cleanData?.profile?.name || 'undefined'}`);
+  console.log(`[SAVE] tamaño del entry (bytes): ${entrySize}`);
 
   try {
     await redis.set(redisKey, JSON.stringify(entry));

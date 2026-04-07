@@ -3,6 +3,23 @@
 
 import { redis } from './_redis.js';
 
+function stripBase64Images(data) {
+  if (!data || typeof data !== 'object') return data;
+  const clean = { ...data };
+  if (clean.profile) {
+    clean.profile = { ...clean.profile };
+    if (typeof clean.profile.avatarPhoto === 'string' && clean.profile.avatarPhoto.startsWith('data:')) {
+      console.log('[UPDATE] avatarPhoto base64 eliminado para ahorrar memoria Redis');
+      clean.profile.avatarPhoto = null;
+    }
+    if (typeof clean.profile.bgImage === 'string' && clean.profile.bgImage.startsWith('data:')) {
+      console.log('[UPDATE] bgImage base64 eliminado para ahorrar memoria Redis');
+      clean.profile.bgImage = null;
+    }
+  }
+  return clean;
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -45,8 +62,9 @@ export default async function handler(req, res) {
       } catch (_) {}
     }
 
-    // Fusionar: datos nuevos del cliente + linkId original
-    const mergedData = { ...data };
+    // Fusionar: datos nuevos del cliente + linkId original + limpiar base64
+    const cleanData = stripBase64Images(data);
+    const mergedData = { ...cleanData };
     if (originalLinkId && !mergedData.linkId) mergedData.linkId = originalLinkId;
 
     const entry = {
@@ -54,6 +72,9 @@ export default async function handler(req, res) {
       createdAt,
       updatedAt: new Date().toISOString(),
     };
+
+    const entrySize = JSON.stringify(entry).length;
+    console.log(`[UPDATE] tamaño del entry (bytes): ${entrySize}`);
 
     await redis.set(redisKey, JSON.stringify(entry));
     console.log(`[UPDATE] OK — clave sobreescrita: ${redisKey}`);

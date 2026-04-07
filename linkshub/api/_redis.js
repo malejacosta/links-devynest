@@ -43,4 +43,8 @@ export const redis = {
   del:      (key)                  => getClient().del(key),
   sadd:     (key, ...members)      => getClient().sadd(key, ...members),
   smembers: (key)                  => getClient().smembers(key),
+  // Scan incremental — nunca bloquea el servidor como KEYS *
+  scan:     (cursor, ...args)      => getClient().scan(cursor, ...args),
+  // Info de memoria
+  info:     (section)              => getClient().info(section),
 };
