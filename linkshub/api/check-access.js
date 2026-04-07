@@ -1,5 +1,6 @@
 // Verifica si un usuario tiene suscripción activa.
-// El frontend envía el Firebase UID (no un secreto, es solo un identificador).
+// Admins bypasean el check de pago.
+// Registra cada usuario en el índice para el panel admin.
 
 import { redis } from './_redis.js';
 
@@ -10,9 +11,32 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { uid } = req.body || {};
+  const { uid, email } = req.body || {};
   if (!uid) return res.status(400).json({ error: 'uid requerido' });
 
+  // ── Admin bypass ──────────────────────────────────────────────────────────
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (adminEmail && email && email.toLowerCase() === adminEmail.toLowerCase()) {
+    return res.status(200).json({ active: true, isAdmin: true });
+  }
+
+  // ── Registrar usuario en índice (para panel admin) ────────────────────────
+  if (uid && email) {
+    try {
+      await redis.sadd('users:index', uid);
+      // Solo actualizar si no existe o para refrescar lastSeen
+      await redis.set(`user:${uid}`, JSON.stringify({
+        uid,
+        email,
+        lastSeen: new Date().toISOString(),
+      }));
+    } catch (e) {
+      // No bloquear el flujo si falla el registro
+      console.warn('[check-access] No se pudo registrar usuario:', e.message);
+    }
+  }
+
+  // ── Verificar suscripción ─────────────────────────────────────────────────
   try {
     const raw = await redis.get(`sub:${uid}`);
 

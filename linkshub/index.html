@@ -446,6 +446,26 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
 .paywall-btn:disabled{opacity:.6;cursor:not-allowed}
 .paywall-logout{margin-top:14px;font-size:12px;color:var(--muted);cursor:pointer;background:none;border:none;font-family:'Montserrat',sans-serif}
 .paywall-logout:hover{color:var(--ink)}
+/* ════ ADMIN PANEL ════ */
+#adminPanel{display:none;min-height:100vh;background:var(--paper);padding:32px 16px}
+#adminPanel.active{display:block}
+.admin-wrap{max-width:900px;margin:0 auto}
+.admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px}
+.admin-header h1{font-family:'Montserrat',sans-serif;font-size:20px;font-weight:700;color:var(--ink)}
+.admin-table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.admin-table th{background:var(--ink);color:#fff;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;padding:10px 14px;text-align:left}
+.admin-table td{padding:12px 14px;border-bottom:1px solid var(--border);font-size:13px;color:var(--ink2);vertical-align:middle}
+.admin-table tr:last-child td{border-bottom:none}
+.admin-table tr:hover td{background:#faf8f4}
+.badge-active{background:#d1fae5;color:#065f46;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-inactive{background:#fee2e2;color:#991b1b;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.admin-action{font-size:12px;padding:5px 10px;border-radius:6px;border:1.5px solid;cursor:pointer;font-weight:600;font-family:'Montserrat',sans-serif;transition:.15s}
+.admin-action.activate{border-color:var(--accent);color:var(--accent);background:transparent}
+.admin-action.activate:hover{background:var(--accent);color:#fff}
+.admin-action.deactivate{border-color:#dc2626;color:#dc2626;background:transparent}
+.admin-action.deactivate:hover{background:#dc2626;color:#fff}
+.admin-action:disabled{opacity:.4;cursor:not-allowed}
+.admin-empty{text-align:center;padding:40px;color:var(--muted);font-size:14px}
 /* ════ EXPIRED PAGE ════ */
 .expired-overlay{position:fixed;inset:0;background:#1A1814;display:flex;align-items:center;justify-content:center;z-index:9999;padding:24px}
 .expired-box{background:#F7F5F0;border-radius:24px;padding:36px 28px;max-width:360px;width:100%;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.4)}
@@ -606,6 +626,7 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
     </div>
     <div class="topbar-right">
       <div class="user-chip"><span class="user-chip-dot"></span><span id="userEmailLabel">—</span></div>
+      <button class="btn btn-ghost" id="adminNavBtn" onclick="location.href='/admin'" style="display:none;font-size:13px">⚙ Admin</button>
       <button class="btn btn-accent" onclick="openShareModal()">✦ Generar mi link</button>
       <button class="btn btn-ghost" onclick="handleLogout()" style="gap:6px">Salir ↩</button>
     </div>
@@ -892,6 +913,22 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
       Activar acceso — $380/mes
     </button>
     <button class="paywall-logout" onclick="auth.signOut()">Cerrar sesión</button>
+  </div>
+</div>
+
+<!-- ═══════════════════ ADMIN PANEL ═══════════════════ -->
+<div id="adminPanel">
+  <div class="admin-wrap">
+    <div class="admin-header">
+      <h1>✦ Panel Admin — DEVYNEST Links</h1>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="btn btn-ghost" onclick="adminRefresh()" id="adminRefreshBtn" style="font-size:13px">↻ Actualizar</button>
+        <button class="btn btn-ghost" onclick="handleLogout()" style="font-size:13px">Salir ↩</button>
+      </div>
+    </div>
+    <div id="adminTableWrap">
+      <div class="admin-empty">Cargando usuarios…</div>
+    </div>
   </div>
 </div>
 
@@ -2433,19 +2470,94 @@ if (_sharedId) {
     });
 }
 
-/* — Helpers de suscripción — */
-async function checkUserAccess(uid) {
+/* — Helpers de suscripción y admin — */
+async function checkUserAccess(uid, email) {
   try {
     const r = await fetch('/api/check-access', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid }),
+      body: JSON.stringify({ uid, email }),
     });
     return await r.json();
   } catch (e) {
     console.error('[access]', e);
     return { active: false, reason: 'error' };
   }
+}
+
+// ── Admin panel ──────────────────────────────────────────────────────────────
+async function adminRefresh() {
+  if (!currentUser) return;
+  const wrap = document.getElementById('adminTableWrap');
+  const btn  = document.getElementById('adminRefreshBtn');
+  btn.disabled = true;
+  wrap.innerHTML = '<div class="admin-empty">Cargando…</div>';
+
+  try {
+    const r = await fetch(`/api/admin?email=${encodeURIComponent(currentUser.email)}`);
+    const { users, error } = await r.json();
+    if (error) { wrap.innerHTML = `<div class="admin-empty">Error: ${error}</div>`; return; }
+
+    if (!users || users.length === 0) {
+      wrap.innerHTML = '<div class="admin-empty">No hay usuarios registrados aún.</div>';
+      return;
+    }
+
+    const fmt = iso => iso ? new Date(iso).toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric' }) : '—';
+
+    const rows = users.map(u => `
+      <tr>
+        <td style="font-weight:500;color:var(--ink)">${u.email || '—'}</td>
+        <td><span class="${u.subscription.active ? 'badge-active' : 'badge-inactive'}">${u.subscription.active ? 'Activo' : 'Inactivo'}</span></td>
+        <td>${u.subscription.expiresAt ? fmt(u.subscription.expiresAt) : '—'}</td>
+        <td>${u.lastSeen ? fmt(u.lastSeen) : '—'}</td>
+        <td style="white-space:nowrap">
+          ${u.subscription.active
+            ? `<button class="admin-action deactivate" onclick="adminAction('deactivate','${u.uid}',this)">Desactivar</button>`
+            : `<button class="admin-action activate"   onclick="adminAction('activate','${u.uid}',this)">Activar</button>`
+          }
+        </td>
+      </tr>`).join('');
+
+    wrap.innerHTML = `
+      <table class="admin-table">
+        <thead><tr>
+          <th>Email</th><th>Estado</th><th>Vence</th><th>Último acceso</th><th>Acción</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <p style="font-size:12px;color:var(--muted);margin-top:10px;text-align:right">${users.length} usuario${users.length !== 1 ? 's' : ''}</p>`;
+  } catch (e) {
+    wrap.innerHTML = `<div class="admin-empty">Error de conexión.</div>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function adminAction(action, targetUid, btn) {
+  if (!currentUser) return;
+  btn.disabled = true;
+  try {
+    const r = await fetch('/api/admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: currentUser.email, action, targetUid }),
+    });
+    const data = await r.json();
+    if (data.ok) adminRefresh();
+    else alert('Error: ' + (data.error || 'desconocido'));
+  } catch (e) {
+    alert('Error de conexión.');
+    btn.disabled = false;
+  }
+}
+
+function showAdminPanel() {
+  document.getElementById('adminPanel').classList.add('active');
+  document.getElementById('authView').classList.remove('active');
+  document.getElementById('builder').style.display = 'none';
+  document.getElementById('paywall').classList.remove('active');
+  adminRefresh();
 }
 
 function showPaywall(user) {
@@ -2504,10 +2616,23 @@ auth.onAuthStateChanged(async user => {
       history.replaceState(null, '', '/'); // limpiar URL
     }
 
-    // Verificar suscripción antes de mostrar builder
-    const access = await checkUserAccess(user.uid);
+    // Verificar suscripción (envía email para admin bypass)
+    const access = await checkUserAccess(user.uid, user.email);
+
+    if (access.isAdmin) {
+      // Mostrar botón admin en topbar
+      const adminBtn = document.getElementById('adminNavBtn');
+      if (adminBtn) adminBtn.style.display = '';
+      // Si la URL es /admin → mostrar panel admin
+      if (location.pathname === '/admin') {
+        showAdminPanel();
+        return;
+      }
+    }
+
     if (access.active) {
       hidePaywall();
+      document.getElementById('adminPanel').classList.remove('active');
       document.getElementById('builder').style.display = '';
       initBuilder();
     } else {
