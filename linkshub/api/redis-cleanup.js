@@ -72,15 +72,11 @@ export default async function handler(req, res) {
       });
     }
 
-    // POST → eliminar huérfanas en lotes de 50
+    // POST → eliminar huérfanas una por una
     let deleted = 0;
-    const batchSize = 50;
-    for (let i = 0; i < orphans.length; i += batchSize) {
-      const batch = orphans.slice(i, i + batchSize);
-      if (batch.length > 0) {
-        await redis.del(...batch);
-        deleted += batch.length;
-      }
+    for (const key of orphans) {
+      await redis.del(key);
+      deleted++;
     }
 
     // Leer memoria después
