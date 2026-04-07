@@ -16,23 +16,32 @@ export default async function handler(req, res) {
   if (!id)   return res.status(400).json({ error: 'id requerido en query string' });
   if (!data) return res.status(400).json({ error: 'body vacío' });
 
+  const redisKey = `lh:${id}`;
+  console.log(`[UPDATE] id recibido del query: "${id}"`);
+  console.log(`[UPDATE] uid recibido del query: ${uid || 'NINGUNO'}`);
+  console.log(`[UPDATE] REDIS WRITE KEY: ${redisKey}`);
+  console.log(`[UPDATE] profile.name en body: ${data?.profile?.name || 'undefined'}`);
+
   try {
     // Verificar que el ID existe antes de actualizar
-    const exists = await redis.exists(`lh:${id}`);
+    const exists = await redis.exists(redisKey);
+    console.log(`[UPDATE] ¿existe ${redisKey}? → ${exists}`);
     if (!exists) {
+      console.error(`[UPDATE] 404 — clave ${redisKey} no encontrada en Redis`);
       return res.status(404).json({ error: `ID ${id} no encontrado. Generá el link primero.` });
     }
 
     // Leer entry actual para conservar createdAt y linkId original
     let createdAt = new Date().toISOString();
     let originalLinkId = null;
-    const current = await redis.get(`lh:${id}`);
+    const current = await redis.get(redisKey);
     if (current) {
       try {
         const parsed = JSON.parse(current);
         createdAt = parsed.createdAt || createdAt;
-        // Preservar el linkId original para que el tracking de uso no se rompa
         originalLinkId = parsed.data?.linkId || null;
+        console.log(`[UPDATE] createdAt preservado: ${createdAt}`);
+        console.log(`[UPDATE] linkId original: ${originalLinkId || 'ninguno'}`);
       } catch (_) {}
     }
 
@@ -46,15 +55,17 @@ export default async function handler(req, res) {
       updatedAt: new Date().toISOString(),
     };
 
-    await redis.set(`lh:${id}`, JSON.stringify(entry));
+    await redis.set(redisKey, JSON.stringify(entry));
+    console.log(`[UPDATE] OK — clave sobreescrita: ${redisKey}`);
 
-    // Asociar el ID publicado al usuario para recuperación cross-device
-    if (uid) await redis.set(`pub:${uid}`, id);
+    if (uid) {
+      await redis.set(`pub:${uid}`, id);
+      console.log(`[UPDATE] pub:${uid} → ${id}`);
+    }
 
-    console.log(`[update] Actualizado OK — ID: ${id}`);
     return res.status(200).json({ ok: true, id });
   } catch (err) {
-    console.error('[update] Error:', err.message);
+    console.error('[UPDATE] Error:', err.message);
     return res.status(500).json({ error: 'Error al actualizar en Redis.', detail: err.message });
   }
 }

@@ -20,24 +20,31 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Falta el parámetro id.' });
   }
 
+  const redisKey = `lh:${id}`;
+  console.log(`[GET] id recibido del query: "${id}"`);
+  console.log(`[GET] REDIS READ KEY: ${redisKey}`);
+
   let raw;
   try {
-    raw = await redis.get(`lh:${id}`);
-    console.log(`[get] ID: ${id} — encontrado: ${raw !== null}`);
+    raw = await redis.get(redisKey);
+    console.log(`[GET] ¿encontrado en Redis? → ${raw !== null}`);
   } catch (err) {
-    console.error('[get] Error al leer Redis:', err.message);
+    console.error('[GET] Error al leer Redis:', err.message);
     return res.status(500).json({ error: 'Error de conexión con Redis.', detail: err.message });
   }
 
   if (!raw) {
+    console.error(`[GET] 404 — clave ${redisKey} no existe`);
     return res.status(404).json({ error: 'No se encontró ningún dato con ese ID.' });
   }
 
   let entry;
   try {
     entry = JSON.parse(raw);
+    console.log(`[GET] updatedAt en entry: ${entry.updatedAt || 'no existe (creado sin update)'}`);
+    console.log(`[GET] profile.name devuelto: ${entry.data?.profile?.name || 'undefined'}`);
   } catch (err) {
-    console.error('[get] Error al parsear JSON:', err.message);
+    console.error('[GET] Error al parsear JSON:', err.message);
     return res.status(500).json({ error: 'Error al procesar los datos guardados.' });
   }
 

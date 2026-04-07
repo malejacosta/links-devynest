@@ -50,13 +50,21 @@ export default async function handler(req, res) {
     createdAt: new Date().toISOString(),
   };
 
+  const redisKey = `lh:${id}`;
+  console.log(`[SAVE] uid recibido: ${uid || 'NINGUNO'}`);
+  console.log(`[SAVE] ID generado: ${id}`);
+  console.log(`[SAVE] REDIS WRITE KEY: ${redisKey}`);
+  console.log(`[SAVE] profile.name en data: ${data?.profile?.name || 'undefined'}`);
+
   try {
-    await redis.set(`lh:${id}`, JSON.stringify(entry));
-    // Asociar el ID publicado al usuario para recuperación cross-device
-    if (uid) await redis.set(`pub:${uid}`, id);
-    console.log(`[save] Guardado OK — ID: ${id}`);
+    await redis.set(redisKey, JSON.stringify(entry));
+    if (uid) {
+      await redis.set(`pub:${uid}`, id);
+      console.log(`[SAVE] pub:${uid} → ${id}`);
+    }
+    console.log(`[SAVE] OK — clave escrita: ${redisKey}`);
   } catch (err) {
-    console.error('[save] Error al guardar:', err.message);
+    console.error('[SAVE] Error al guardar:', err.message);
     return res.status(500).json({ error: 'Error al guardar en Redis.', detail: err.message });
   }
 
