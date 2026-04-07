@@ -1224,16 +1224,36 @@ function triggerAvatarUpload() {
 function handleAvatarUpload(input) {
   const file = input.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    profileData.avatarPhoto = e.target.result;
-    profileData.avatar = null;
-    setAvatarImage(e.target.result);
-    document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('active'));
+  if (!file.type.startsWith('image/')) { showToast('Solo imágenes (JPG, PNG, WEBP)'); return; }
+  if (file.size > 2 * 1024 * 1024) { showToast('Avatar: máximo 2MB'); return; }
+
+  // Preview inmediato con blob URL local (no bloquea UX)
+  const localUrl = URL.createObjectURL(file);
+  profileData.avatarPhoto = localUrl; // temporal hasta que suba
+  profileData.avatar = null;
+  setAvatarImage(localUrl);
+  document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('active'));
+  updatePreview();
+
+  // Subir al storage en background
+  _uploadImage(file, 'avatar').then(url => {
+    URL.revokeObjectURL(localUrl);
+    profileData.avatarPhoto = url;
+    setAvatarImage(url);
     updatePreview();
     saveDraft();
-  };
-  reader.readAsDataURL(file);
+  }).catch(() => {
+    // Fallback: guardar base64 para el draft local
+    const reader = new FileReader();
+    reader.onload = e => {
+      profileData.avatarPhoto = e.target.result;
+      setAvatarImage(e.target.result);
+      updatePreview();
+      saveDraft();
+    };
+    reader.readAsDataURL(file);
+    showToast('⚠ Foto guardada localmente (no se verá en el link público hasta configurar storage)');
+  });
 }
 
 function setAvatarImage(src) {
@@ -1336,26 +1356,40 @@ function handleBgFileSelect(e) {
   if (file) processBgFile(file);
 }
 function processBgFile(file) {
-  if (!file.type.startsWith('image/')) { showToast('Solo imágenes (JPG, PNG)'); return; }
-  if (file.size > 3.5 * 1024 * 1024) { showToast('Imagen muy grande (máx 3MB)'); return; }
-  const reader = new FileReader();
-  reader.onload = e => {
-    const src = e.target.result;
-    profileData.bgImage = src;
-    profileData.bgOverlay = 30;
-    // deselect solid swatches
-    document.querySelectorAll('.bg-swatch').forEach(s => s.classList.remove('active'));
-    // show preview
-    document.getElementById('bgImgThumb').src = src;
-    document.getElementById('bgImgPreview').style.display = 'block';
-    document.getElementById('bgImgEmpty').style.display = 'none';
-    document.getElementById('bgImgOverlayRow').style.display = 'block';
-    document.getElementById('bgOverlay').value = 30;
-    document.getElementById('bgOverlayVal').textContent = '30%';
+  if (!file.type.startsWith('image/')) { showToast('Solo imágenes (JPG, PNG, WEBP)'); return; }
+  if (file.size > 4 * 1024 * 1024) { showToast('Imagen muy grande (máx 4MB)'); return; }
+
+  // Preview inmediato con blob URL local
+  const localUrl = URL.createObjectURL(file);
+  profileData.bgImage = localUrl;
+  profileData.bgOverlay = 30;
+  document.querySelectorAll('.bg-swatch').forEach(s => s.classList.remove('active'));
+  document.getElementById('bgImgThumb').src = localUrl;
+  document.getElementById('bgImgPreview').style.display = 'block';
+  document.getElementById('bgImgEmpty').style.display = 'none';
+  document.getElementById('bgImgOverlayRow').style.display = 'block';
+  document.getElementById('bgOverlay').value = 30;
+  document.getElementById('bgOverlayVal').textContent = '30%';
+  updatePreview();
+
+  // Subir al storage en background
+  _uploadImage(file, 'bg').then(url => {
+    URL.revokeObjectURL(localUrl);
+    profileData.bgImage = url;
+    document.getElementById('bgImgThumb').src = url;
     updatePreview();
     saveDraft();
-  };
-  reader.readAsDataURL(file);
+  }).catch(() => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      profileData.bgImage = e.target.result;
+      document.getElementById('bgImgThumb').src = e.target.result;
+      updatePreview();
+      saveDraft();
+    };
+    reader.readAsDataURL(file);
+    showToast('⚠ Fondo guardado localmente (no se verá en el link público hasta configurar storage)');
+  });
 }
 function removeBgImage() {
   profileData.bgImage = null;
@@ -1596,8 +1630,10 @@ function buildPageHTML(forExport) {
   const wafab = getWafab();
 
   let avatarHTML = '';
-  if (p.avatarPhoto) {
-    avatarHTML = `<div class="pub-avatar"><img src="${p.avatarPhoto}" alt="${p.name}"></div>`;
+  // Solo usar avatarPhoto si es una URL real (http/https) — no base64 ni blob: URLs
+  const _avatarSrc = p.avatarPhoto && p.avatarPhoto.startsWith('http') ? p.avatarPhoto : null;
+  if (_avatarSrc) {
+    avatarHTML = `<div class="pub-avatar"><img src="${_avatarSrc}" alt="${p.name}" onerror="this.parentElement.innerHTML='${p.avatar || '👤'}'"></div>`;
   } else {
     avatarHTML = `<div class="pub-avatar">${p.avatar || '👤'}</div>`;
   }
@@ -1819,9 +1855,11 @@ function showUserView(data) {
   }
 
   const pp = document.getElementById('publicPage');
-  if (profile.bgImage) {
+  // bgImage solo se aplica si es URL real (http/https) — evita blob: y data: en el link público
+  const _bgSrc = profile.bgImage && profile.bgImage.startsWith('http') ? profile.bgImage : null;
+  if (_bgSrc) {
     const rgba = `rgba(0,0,0,${(profile.bgOverlay || 30) / 100})`;
-    pp.style.background = `linear-gradient(${rgba},${rgba}), url('${profile.bgImage}') center/cover no-repeat`;
+    pp.style.background = `linear-gradient(${rgba},${rgba}), url('${_bgSrc}') center/cover no-repeat`;
   } else {
     pp.style.background = profile.background || '#1a1714';
   }
@@ -1862,6 +1900,26 @@ function showUserView(data) {
 /* ═══════════════════════════════════════════
    SAVE DRAFT
 ═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   UPLOAD DE IMÁGENES → VERCEL BLOB
+═══════════════════════════════════════════ */
+// Sube un File al endpoint /api/upload-image y devuelve la URL pública permanente.
+// Usa body binario (Content-Type: image/*) — sin base64, sin overhead.
+async function _uploadImage(file, type = 'img') {
+  const res = await fetch(`/api/upload-image?type=${encodeURIComponent(type)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': file.type },
+    body: file,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+  const { url } = await res.json();
+  if (!url) throw new Error('Sin URL en respuesta');
+  return url;
+}
+
 function saveDraft() {
   try {
     const storageKey = 'linkshub_v3' + (currentUser ? '_' + currentUser.uid : '');
