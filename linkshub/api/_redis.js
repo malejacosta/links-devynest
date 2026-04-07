@@ -36,7 +36,9 @@ function getClient() {
 }
 
 export const redis = {
-  set:    (key, value) => getClient().set(key, value),
-  get:    (key)        => getClient().get(key),
-  exists: (key)        => getClient().exists(key),
+  set:    (key, value)           => getClient().set(key, value),
+  setex:  (key, seconds, value)  => getClient().setex(key, seconds, value),
+  get:    (key)                  => getClient().get(key),
+  exists: (key)                  => getClient().exists(key),
+  del:    (key)                  => getClient().del(key),
 };

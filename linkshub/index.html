@@ -428,6 +428,24 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
 .uv-inner .wa-fab{position:fixed;bottom:24px;right:24px;z-index:100}
 @media(min-width:500px){.uv-inner .pub-page{border-radius:0;min-height:100vh}}
 
+/* ════ PAYWALL ════ */
+#paywall{display:none;min-height:100vh;background:var(--paper);align-items:center;justify-content:center;padding:32px 16px}
+#paywall.active{display:flex}
+.paywall-box{background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:40px 32px;max-width:380px;width:100%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.07)}
+.paywall-icon{font-size:48px;margin-bottom:16px}
+.paywall-box h2{font-family:'Montserrat',sans-serif;font-size:20px;font-weight:700;color:var(--ink);margin-bottom:8px}
+.paywall-box p{font-size:14px;color:var(--ink2);line-height:1.6;margin-bottom:24px}
+.paywall-price{font-size:36px;font-weight:800;color:var(--accent);font-family:'Montserrat',sans-serif;margin-bottom:4px}
+.paywall-period{font-size:13px;color:var(--muted);margin-bottom:28px}
+.paywall-features{list-style:none;padding:0;margin:0 0 28px;text-align:left}
+.paywall-features li{font-size:13px;color:var(--ink2);padding:6px 0;border-bottom:1px solid var(--border)}
+.paywall-features li:last-child{border-bottom:none}
+.paywall-features li::before{content:'✓  ';color:var(--accent);font-weight:700}
+.paywall-btn{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;font-family:'Montserrat',sans-serif;cursor:pointer;transition:.2s}
+.paywall-btn:hover{opacity:.9}
+.paywall-btn:disabled{opacity:.6;cursor:not-allowed}
+.paywall-logout{margin-top:14px;font-size:12px;color:var(--muted);cursor:pointer;background:none;border:none;font-family:'Montserrat',sans-serif}
+.paywall-logout:hover{color:var(--ink)}
 /* ════ EXPIRED PAGE ════ */
 .expired-overlay{position:fixed;inset:0;background:#1A1814;display:flex;align-items:center;justify-content:center;z-index:9999;padding:24px}
 .expired-box{background:#F7F5F0;border-radius:24px;padding:36px 28px;max-width:360px;width:100%;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.4)}
@@ -853,6 +871,27 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
     <div class="pub-page" id="publicPage">
       <!-- filled by JS -->
     </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ PAYWALL ═══════════════════ -->
+<div id="paywall">
+  <div class="paywall-box">
+    <div class="paywall-icon">✦</div>
+    <h2>Activá tu acceso</h2>
+    <p>Para crear y compartir tu página de contacto profesional necesitás un plan activo.</p>
+    <div class="paywall-price">$380</div>
+    <div class="paywall-period">por mes · renovación manual</div>
+    <ul class="paywall-features">
+      <li>Link corto personalizado</li>
+      <li>QR listo para compartir</li>
+      <li>Página de contacto profesional</li>
+      <li>Links, servicios y más</li>
+    </ul>
+    <button class="paywall-btn" id="paywallBtn" onclick="startPayment()">
+      Activar acceso — $380/mes
+    </button>
+    <button class="paywall-logout" onclick="auth.signOut()">Cerrar sesión</button>
   </div>
 </div>
 
@@ -2394,17 +2433,88 @@ if (_sharedId) {
     });
 }
 
+/* — Helpers de suscripción — */
+async function checkUserAccess(uid) {
+  try {
+    const r = await fetch('/api/check-access', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid }),
+    });
+    return await r.json();
+  } catch (e) {
+    console.error('[access]', e);
+    return { active: false, reason: 'error' };
+  }
+}
+
+function showPaywall(user) {
+  document.getElementById('paywall').classList.add('active');
+  document.getElementById('builder').style.display = 'none';
+  document.getElementById('authView').classList.remove('active');
+  // Mostrar email del usuario en el botón si está disponible
+  const btn = document.getElementById('paywallBtn');
+  if (btn) btn.textContent = 'Activar acceso — $380/mes';
+}
+
+function hidePaywall() {
+  document.getElementById('paywall').classList.remove('active');
+}
+
+async function startPayment() {
+  if (!currentUser) return;
+  const btn = document.getElementById('paywallBtn');
+  btn.disabled = true;
+  btn.textContent = 'Generando link de pago…';
+  try {
+    const r = await fetch('/api/create-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid: currentUser.uid, email: currentUser.email }),
+    });
+    const data = await r.json();
+    if (data.checkoutUrl) {
+      window.location.href = data.checkoutUrl;
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Activar acceso — $380/mes';
+      alert('Error al generar el link de pago. Intentá de nuevo.');
+    }
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = 'Activar acceso — $380/mes';
+    alert('Error al conectar con el servidor de pagos.');
+  }
+}
+
 /* — Auth state observer — */
-auth.onAuthStateChanged(user => {
+auth.onAuthStateChanged(async user => {
   currentUser = user;
   if (_isSharedView) return; // ya mostrando mini landing — no interrumpir
   if (user) {
     document.getElementById('authView').classList.remove('active');
-    document.getElementById('builder').style.display = '';
     const lbl = document.getElementById('userEmailLabel');
     if (lbl) lbl.textContent = user.email || user.displayName || 'Usuario';
-    initBuilder();
+
+    // Verificar si volvió de MP con pago aprobado
+    const paymentResult = new URLSearchParams(window.location.search).get('payment');
+    if (paymentResult === 'success') {
+      // Dar 2s para que el webhook procese, luego re-verificar
+      await new Promise(r => setTimeout(r, 2000));
+      history.replaceState(null, '', '/'); // limpiar URL
+    }
+
+    // Verificar suscripción antes de mostrar builder
+    const access = await checkUserAccess(user.uid);
+    if (access.active) {
+      hidePaywall();
+      document.getElementById('builder').style.display = '';
+      initBuilder();
+    } else {
+      showPaywall(user);
+    }
   } else {
+    hidePaywall();
     document.getElementById('authView').classList.add('active');
     document.getElementById('builder').style.display = 'none';
   }
