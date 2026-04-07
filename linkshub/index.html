@@ -1906,11 +1906,12 @@ async function openShareModal() {
   };
 
   // Si ya hay un ID publicado → actualizar; si no → crear nuevo
+  const _uidParam = currentUser ? '&uid=' + encodeURIComponent(currentUser.uid) : '';
   if (_publishedId) {
     urlBox.textContent = 'Actualizando link…';
     document.getElementById('qrcode').innerHTML = '';
     try {
-      const res = await fetch('/api/update?id=' + encodeURIComponent(_publishedId), {
+      const res = await fetch('/api/update?id=' + encodeURIComponent(_publishedId) + _uidParam, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -1929,18 +1930,17 @@ async function openShareModal() {
     data.createdAt = Date.now();
     trackLinkGenerated(lid);
     try {
-      const res = await fetch('/api/save', {
+      const uidQ = currentUser ? '?uid=' + encodeURIComponent(currentUser.uid) : '';
+      const res = await fetch('/api/save' + uidQ, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error('error');
       const { id } = await res.json();
-      // Guardar ID publicado para futuros updates
+      // Guardar ID publicado para futuros updates (localStorage + variable)
       _publishedId = id;
-      if (currentUser) {
-        localStorage.setItem('lh_pub_' + currentUser.uid, id);
-      }
+      if (currentUser) localStorage.setItem('lh_pub_' + currentUser.uid, id);
       _showSaveBtn();
       const shortUrl = 'https://go.devynest.com/' + id;
       renderShortUrl(shortUrl);
@@ -1963,9 +1963,10 @@ async function refreshShareUrl() {
     maxUses: 0,
   };
 
+  const _rUidParam = currentUser ? '&uid=' + encodeURIComponent(currentUser.uid) : '';
   if (_publishedId) {
     try {
-      const res = await fetch('/api/update?id=' + encodeURIComponent(_publishedId), {
+      const res = await fetch('/api/update?id=' + encodeURIComponent(_publishedId) + _rUidParam, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -1984,7 +1985,8 @@ async function refreshShareUrl() {
   trackLinkGenerated(lid);
 
   try {
-    const res = await fetch('/api/save', {
+    const uidQ = currentUser ? '?uid=' + encodeURIComponent(currentUser.uid) : '';
+    const res = await fetch('/api/save' + uidQ, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -2032,7 +2034,8 @@ async function saveChanges() {
   };
 
   try {
-    const res = await fetch('/api/update?id=' + encodeURIComponent(_publishedId), {
+    const uidParam = currentUser ? '&uid=' + encodeURIComponent(currentUser.uid) : '';
+    const res = await fetch('/api/update?id=' + encodeURIComponent(_publishedId) + uidParam, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -2738,6 +2741,11 @@ auth.onAuthStateChanged(async user => {
       hidePaywall();
       document.getElementById('adminPanel').classList.remove('active');
       document.getElementById('builder').style.display = '';
+      // Restaurar _publishedId desde servidor (cross-device) si el servidor lo conoce
+      if (access.pubId && !_publishedId) {
+        _publishedId = access.pubId;
+        _showSaveBtn();
+      }
       initBuilder();
     } else {
       showPaywall(user);

@@ -17,7 +17,8 @@ export default async function handler(req, res) {
   // ── Admin bypass ──────────────────────────────────────────────────────────
   const adminEmail = process.env.ADMIN_EMAIL;
   if (adminEmail && email && email.toLowerCase() === adminEmail.toLowerCase()) {
-    return res.status(200).json({ active: true, isAdmin: true });
+    const pubId = await redis.get(`pub:${uid}`).catch(() => null);
+    return res.status(200).json({ active: true, isAdmin: true, pubId: pubId || null });
   }
 
   // ── Registrar usuario en índice (para panel admin) ────────────────────────
@@ -38,7 +39,10 @@ export default async function handler(req, res) {
 
   // ── Verificar suscripción ─────────────────────────────────────────────────
   try {
-    const raw = await redis.get(`sub:${uid}`);
+    const [raw, pubId] = await Promise.all([
+      redis.get(`sub:${uid}`),
+      redis.get(`pub:${uid}`).catch(() => null),
+    ]);
 
     if (!raw) {
       return res.status(200).json({ active: false, reason: 'no_subscription' });
@@ -55,6 +59,7 @@ export default async function handler(req, res) {
       active:    true,
       expiresAt: sub.expiresAt,
       email:     sub.email,
+      pubId:     pubId || null,
     });
   } catch (err) {
     console.error('[check-access] Error:', err.message);

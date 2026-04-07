@@ -11,6 +11,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Método no permitido. Usá GET.' });
   }
 
+  // Evitar que el navegador o CDN cacheen datos del link público
+  res.setHeader('Cache-Control', 'no-store');
+
   const { id } = req.query;
 
   if (!id) {

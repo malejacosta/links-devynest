@@ -20,6 +20,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Método no permitido. Usá POST.' });
   }
 
+  const { uid } = req.query;
   const data = req.body;
 
   if (!data || typeof data !== 'object') {
@@ -51,6 +52,8 @@ export default async function handler(req, res) {
 
   try {
     await redis.set(`lh:${id}`, JSON.stringify(entry));
+    // Asociar el ID publicado al usuario para recuperación cross-device
+    if (uid) await redis.set(`pub:${uid}`, id);
     console.log(`[save] Guardado OK — ID: ${id}`);
   } catch (err) {
     console.error('[save] Error al guardar:', err.message);
