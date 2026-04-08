@@ -681,6 +681,7 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
                 <div class="avatar-preview" id="avatarPreview" onclick="triggerAvatarUpload()">
                   <span class="upload-icon">📷</span>
                   <span class="upload-hint">Subir foto</span>
+                  <span style="font-size:10px;color:var(--muted);margin-top:2px;z-index:1">hasta 1MB</span>
                 </div>
                 <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="handleAvatarUpload(this)">
                 <div style="display:flex;flex-direction:column;gap:6px;align-items:center">
@@ -1272,7 +1273,7 @@ function clearPhoto() {
   profileData.avatarPhoto = null;
   profileData.avatar = '👤';
   const wrap = document.getElementById('avatarPreview');
-  wrap.innerHTML = '<span class="upload-icon">📷</span><span class="upload-hint">Subir foto</span>';
+  wrap.innerHTML = '<span class="upload-icon">📷</span><span class="upload-hint">Subir foto</span><span style="font-size:10px;color:var(--muted);margin-top:2px;z-index:1">hasta 1MB</span>';
   document.getElementById('clearPhotoBtn').style.display = 'none';
   document.getElementById('avatarInput').value = '';
   document.querySelectorAll('.emoji-btn').forEach(b => {
@@ -1303,7 +1304,7 @@ function selectEmoji(e) {
   profileData.avatarPhoto = null;
   document.querySelectorAll('.emoji-btn').forEach(b => b.classList.toggle('active', b.dataset.emoji === e));
   const wrap = document.getElementById('avatarPreview');
-  wrap.innerHTML = '<span class="upload-icon">↑</span><span class="upload-hint">Subir foto</span>';
+  wrap.innerHTML = '<span class="upload-icon">↑</span><span class="upload-hint">Subir foto</span><span style="font-size:10px;color:var(--muted);margin-top:2px;z-index:1">hasta 1MB</span>';
   document.getElementById('clearPhotoBtn').style.display = 'none';
   document.getElementById('avatarInput').value = '';
   updatePreview();
@@ -1505,6 +1506,7 @@ function _renderServiceItem(svc) {
       <label>Foto del servicio / producto</label>
       <div class="svc-photo-upload" id="svcPhoto-${svc.id}" onclick="if(event.target.tagName!=='BUTTON')triggerSvcPhoto(${svc.id})">${photoHtml}</div>
       <input type="file" id="svcPhotoInput-${svc.id}" accept="image/*" style="display:none" onchange="handleSvcPhoto(${svc.id},this)">
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">Imagen de hasta 1MB (opcional)</div>
     </div>
     <div class="service-grid">
       <div><label>Nombre del servicio</label><input type="text" class="fc" placeholder="Ej: Consultoría de packaging" value="${svc.name}" oninput="updateSvc(${svc.id},'name',this.value)"></div>
@@ -1525,7 +1527,7 @@ function triggerSvcPhoto(id) {
 function handleSvcPhoto(id, input) {
   const file = input.files[0];
   if (!file) return;
-  if (file.size > 3 * 1024 * 1024) { showToast('Imagen muy grande (máx 3MB)'); return; }
+  if (file.size > 1 * 1024 * 1024) { showToast('La imagen supera el límite de 1MB. Subí una versión más liviana.'); return; }
   const reader = new FileReader();
   reader.onload = e => {
     const svc = services.find(s => s.id === id);
