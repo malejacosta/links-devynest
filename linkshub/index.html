@@ -1827,9 +1827,10 @@ function showUsageBadge(remaining) {
 }
 
 function showUserView(data) {
-  // ── USAGE LIMIT (CountAPI – global, cross-device) ──
+  // ── USAGE LIMIT ──
+  // maxUses: 0 o ausente = sin límite. Solo se activa si es un número > 0 explícito.
   const linkId = data.linkId;
-  const maxUses = data.maxUses || 8;
+  const maxUses = (typeof data.maxUses === 'number' && data.maxUses > 0) ? data.maxUses : 0;
 
   function doRender() {
     // ── RENDER ──
