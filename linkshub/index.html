@@ -676,7 +676,7 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
           <div class="panel-hd"><h3>👤 Tu perfil</h3></div>
           <div class="panel-bd">
             <div class="fg">
-              <label>Foto de perfil</label>
+              <label>Foto</label>
               <div class="avatar-upload-wrap">
                 <div class="avatar-preview" id="avatarPreview" onclick="triggerAvatarUpload()">
                   <span class="upload-icon">📷</span>
@@ -689,6 +689,7 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
                 </div>
                 <div class="emoji-grid" id="emojiGrid"></div>
               </div>
+              <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5">Subí una imagen liviana de hasta 1MB. Si tu foto pesa más, reducí su tamaño antes de subirla.</div>
             </div>
 
             <div class="form-row" style="margin-top:16px">
@@ -853,8 +854,10 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
               <span class="toggle-label">Mostrar botón flotante de WhatsApp</span>
             </div>
             <div class="fg">
-              <label>Número de WhatsApp</label>
-              <input type="text" id="wafabNumber" class="fc" placeholder="5491234567890 (con código de país)" oninput="updatePreview()">
+              <label>Link de WhatsApp</label>
+              <input type="url" id="wafabNumber" class="fc" placeholder="https://wa.me/59899322046" oninput="validateWaLink(this); updatePreview()">
+              <div id="wafabNumberError" style="display:none;font-size:11px;color:var(--red);margin-top:4px">El link debe tener este formato: https://wa.me/598XXXXXXXX</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5">Pegá tu link de WhatsApp completo. Ejemplo: https://wa.me/59899322046</div>
             </div>
             <div class="fg">
               <label>Mensaje predefinido (opcional)</label>
@@ -1225,7 +1228,7 @@ function handleAvatarUpload(input) {
   const file = input.files[0];
   if (!file) return;
   if (!file.type.startsWith('image/')) { showToast('Solo imágenes (JPG, PNG, WEBP)'); return; }
-  if (file.size > 2 * 1024 * 1024) { showToast('Avatar: máximo 2MB'); return; }
+  if (file.size > 1 * 1024 * 1024) { showToast('La imagen supera el límite de 1MB. Subí una versión más liviana.'); return; }
 
   // Preview inmediato con blob URL local (no bloquea UX)
   const localUrl = URL.createObjectURL(file);
@@ -1701,9 +1704,10 @@ function buildPageHTML(forExport) {
   </div>` : '';
 
   const waFabHTML = (wafab.enabled && wafab.number) ? (() => {
-    const num = wafab.number.replace(/\D/g,'');
+    // Soporta tanto el nuevo formato (https://wa.me/...) como datos viejos (solo número)
+    const base = wafab.number.startsWith('https://') ? wafab.number : 'https://wa.me/' + wafab.number.replace(/\D/g,'');
     const msg = wafab.message ? '?text=' + encodeURIComponent(wafab.message) : '';
-    return `<a class="wa-fab" href="https://wa.me/${num}${msg}" target="_blank" rel="noopener" title="Escribir por WhatsApp">💬</a>`;
+    return `<a class="wa-fab" href="${base}${msg}" target="_blank" rel="noopener" title="Escribir por WhatsApp">💬</a>`;
   })() : '';
 
   if (!forExport && !p.name && links.every(l=>!l.url) && services.every(s=>!s.name)) {
@@ -1857,7 +1861,7 @@ function showUserView(data) {
   }
   if (wafab) {
     document.getElementById('wafabEnabled').checked = wafab.enabled;
-    document.getElementById('wafabNumber').value  = wafab.number||'';
+    document.getElementById('wafabNumber').value  = _normalizeWaLink(wafab.number||'');
     document.getElementById('wafabMessage').value = wafab.message||'';
   }
 
@@ -1907,6 +1911,31 @@ function showUserView(data) {
 /* ═══════════════════════════════════════════
    SAVE DRAFT
 ═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   WHATSAPP HELPERS
+═══════════════════════════════════════════ */
+// Convierte número antiguo (5491234...) al formato wa.me completo.
+// Si ya es una URL https://wa.me/... la devuelve tal cual.
+function _normalizeWaLink(val) {
+  if (!val) return '';
+  const v = val.trim();
+  if (v.startsWith('https://wa.me/')) return v;
+  const digits = v.replace(/\D/g, '');
+  return digits ? 'https://wa.me/' + digits : '';
+}
+
+// Valida el campo wafabNumber en tiempo real y muestra/oculta el error.
+function validateWaLink(input) {
+  const val = input.value.trim();
+  const errEl = document.getElementById('wafabNumberError');
+  if (!errEl) return;
+  if (val && !val.startsWith('https://wa.me/')) {
+    errEl.style.display = '';
+  } else {
+    errEl.style.display = 'none';
+  }
+}
+
 /* ═══════════════════════════════════════════
    UPLOAD DE IMÁGENES → VERCEL BLOB
 ═══════════════════════════════════════════ */
@@ -2292,7 +2321,7 @@ if(svcItems){html+='<div class="sec"><div class="sec-lbl">Servicios</div><div cl
 var lnkItems=ls.filter(function(l){return l.url}).map(function(l){if(l.platform==='youtube_embed'){var vid=eytid(l.url);if(!vid)return'';return'<div style="padding:0 0 8px"><iframe src="https://www.youtube.com/embed/'+vid+'" frameborder="0" allowfullscreen style="width:100%;aspect-ratio:16/9;border-radius:10px;display:block"></iframe></div>';}return'<a class="lnk" href="'+fu(l.platform,l.url)+'" target="_blank" rel="noopener"><div class="lnk-ico" style="background:'+l._color+'"><i class="'+(l._fa||'fa-solid fa-link')+'"></i></div><div class="lnk-body"><span class="lnk-txt">'+(l.text||l.platform)+'</span></div><div class="lnk-arr"><i class="fa-solid fa-chevron-right"></i></div></a>';}).join('');
 if(lnkItems){html+='<div class="sec"><div class="sec-lbl">Contacto y redes</div><div class="links">'+lnkItems+'</div></div>';}
 html+='<div class="footer">DEVYNEST Links</div>';
-if(wf.enabled&&wf.number){var _wn=wf.number.replace(/\\D/g,'');var _wm=wf.message?'?text='+encodeURIComponent(wf.message):'';html+='<a class="wa-fab" href="https://wa.me/'+_wn+_wm+'" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i></a>';}
+if(wf.enabled&&wf.number){var _wb=wf.number.startsWith('https://')?wf.number:'https://wa.me/'+wf.number.replace(/\\D/g,'');var _wm=wf.message?'?text='+encodeURIComponent(wf.message):'';html+='<a class="wa-fab" href="'+_wb+_wm+'" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i></a>';}
 pg.innerHTML=html;
 document.title=(p.name||'DEVYNEST Links')+' — DEVYNEST Links';
 <\/script>
@@ -2405,7 +2434,7 @@ function selectOnbContact(val, btn) {
   const label = document.getElementById('onbContactLabel');
   if (!wrap || !input) return;
   wrap.style.display = '';
-  if (val === 'whatsapp') { label.textContent = 'Tu número de WhatsApp'; input.placeholder = '5491234567890 (con código de país)'; input.type = 'tel'; }
+  if (val === 'whatsapp') { label.textContent = 'Link de WhatsApp'; input.placeholder = 'https://wa.me/59899322046'; input.type = 'url'; }
   else if (val === 'email') { label.textContent = 'Tu email'; input.placeholder = 'tu@email.com'; input.type = 'email'; }
   else { label.textContent = 'Tu link externo'; input.placeholder = 'https://mi-link.com'; input.type = 'url'; }
 }
@@ -2518,7 +2547,7 @@ function applyGeneratedProfile(gen) {
     const num = document.getElementById('wafabNumber');
     const msg = document.getElementById('wafabMessage');
     if (el) el.checked = true;
-    if (num) num.value = gen.contactoValue;
+    if (num) num.value = _normalizeWaLink(gen.contactoValue);
     if (msg) msg.value = `Hola! Vi tu página y quiero consultar sobre ${gen.services[0]?.name || 'tus servicios'}`;
   }
 
@@ -3001,7 +3030,7 @@ function _initBuilderFallback() {
       }
       if (d.wafab) {
         document.getElementById('wafabEnabled').checked = d.wafab.enabled || false;
-        document.getElementById('wafabNumber').value    = d.wafab.number || '';
+        document.getElementById('wafabNumber').value    = _normalizeWaLink(d.wafab.number || '');
         document.getElementById('wafabMessage').value   = d.wafab.message || '';
       }
       if (profileData.avatarPhoto) setAvatarImage(profileData.avatarPhoto);
