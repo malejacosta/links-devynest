@@ -1,19 +1,21 @@
 import { redis } from './_redis.js';
 
-// Las imágenes base64 pueden pesar 200KB+ cada una y agotan la memoria Redis.
-// Si el valor empieza con "data:", se descarta antes de guardar.
-// El link público mostrará el avatar/fondo solo si el usuario usa una URL externa.
+// Las imágenes base64/blob: pueden pesar mucho y agotan la memoria Redis.
+// Se descartan data: (base64) y blob: (URL temporal de objeto local) antes de guardar.
+// El link público mostrará el avatar/fondo solo si llegó una URL https:// permanente.
 function stripBase64Images(data) {
   if (!data || typeof data !== 'object') return data;
   const clean = { ...data };
   if (clean.profile) {
     clean.profile = { ...clean.profile };
-    if (typeof clean.profile.avatarPhoto === 'string' && clean.profile.avatarPhoto.startsWith('data:')) {
-      console.log('[SAVE] avatarPhoto base64 eliminado para ahorrar memoria Redis');
+    if (typeof clean.profile.avatarPhoto === 'string' &&
+        (clean.profile.avatarPhoto.startsWith('data:') || clean.profile.avatarPhoto.startsWith('blob:'))) {
+      console.log('[SAVE] avatarPhoto temporal eliminado (data:/blob:) para ahorrar memoria Redis');
       clean.profile.avatarPhoto = null;
     }
-    if (typeof clean.profile.bgImage === 'string' && clean.profile.bgImage.startsWith('data:')) {
-      console.log('[SAVE] bgImage base64 eliminado para ahorrar memoria Redis');
+    if (typeof clean.profile.bgImage === 'string' &&
+        (clean.profile.bgImage.startsWith('data:') || clean.profile.bgImage.startsWith('blob:'))) {
+      console.log('[SAVE] bgImage temporal eliminado (data:/blob:) para ahorrar memoria Redis');
       clean.profile.bgImage = null;
     }
   }

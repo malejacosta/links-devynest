@@ -8,12 +8,14 @@ function stripBase64Images(data) {
   const clean = { ...data };
   if (clean.profile) {
     clean.profile = { ...clean.profile };
-    if (typeof clean.profile.avatarPhoto === 'string' && clean.profile.avatarPhoto.startsWith('data:')) {
-      console.log('[UPDATE] avatarPhoto base64 eliminado para ahorrar memoria Redis');
+    if (typeof clean.profile.avatarPhoto === 'string' &&
+        (clean.profile.avatarPhoto.startsWith('data:') || clean.profile.avatarPhoto.startsWith('blob:'))) {
+      console.log('[UPDATE] avatarPhoto temporal eliminado (data:/blob:) para ahorrar memoria Redis');
       clean.profile.avatarPhoto = null;
     }
-    if (typeof clean.profile.bgImage === 'string' && clean.profile.bgImage.startsWith('data:')) {
-      console.log('[UPDATE] bgImage base64 eliminado para ahorrar memoria Redis');
+    if (typeof clean.profile.bgImage === 'string' &&
+        (clean.profile.bgImage.startsWith('data:') || clean.profile.bgImage.startsWith('blob:'))) {
+      console.log('[UPDATE] bgImage temporal eliminado (data:/blob:) para ahorrar memoria Redis');
       clean.profile.bgImage = null;
     }
   }

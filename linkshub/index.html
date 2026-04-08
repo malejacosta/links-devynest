@@ -1236,13 +1236,16 @@ function handleAvatarUpload(input) {
   updatePreview();
 
   // Subir al storage en background
+  _uploadInProgress++;
   _uploadImage(file, 'avatar').then(url => {
+    _uploadInProgress--;
     URL.revokeObjectURL(localUrl);
     profileData.avatarPhoto = url;
     setAvatarImage(url);
     updatePreview();
     saveDraft();
   }).catch(() => {
+    _uploadInProgress--;
     // Fallback: guardar base64 para el draft local
     const reader = new FileReader();
     reader.onload = e => {
@@ -1373,13 +1376,16 @@ function processBgFile(file) {
   updatePreview();
 
   // Subir al storage en background
+  _uploadInProgress++;
   _uploadImage(file, 'bg').then(url => {
+    _uploadInProgress--;
     URL.revokeObjectURL(localUrl);
     profileData.bgImage = url;
     document.getElementById('bgImgThumb').src = url;
     updatePreview();
     saveDraft();
   }).catch(() => {
+    _uploadInProgress--;
     const reader = new FileReader();
     reader.onload = e => {
       profileData.bgImage = e.target.result;
@@ -1950,6 +1956,9 @@ async function openShareModal() {
   if (!profileData.name) {
     showToast('Ingresá tu nombre primero'); return;
   }
+  if (_uploadInProgress > 0) {
+    showToast('⏳ Esperá a que termine la subida de imagen'); return;
+  }
 
   const urlBox = document.getElementById('generatedUrl');
   document.getElementById('shareModal').classList.add('active');
@@ -1963,7 +1972,7 @@ async function openShareModal() {
     maxUses: 0,
   };
 
-  // Si ya hay un ID publicado → actualizar; si no → crear nuevo
+  // Si ya hay un ID publicado → intentar actualizar
   const _uidParam = currentUser ? '&uid=' + encodeURIComponent(currentUser.uid) : '';
   if (_publishedId) {
     urlBox.textContent = 'Actualizando link…';
@@ -1974,37 +1983,48 @@ async function openShareModal() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error('error');
-      const shortUrl = 'https://go.devynest.com/' + _publishedId;
-      renderShortUrl(shortUrl);
+      if (res.status === 404) {
+        // El ID ya no existe en Redis (fue limpiado) → resetear y crear nuevo abajo
+        console.warn('[openShareModal] 404 en update → reseteando _publishedId para crear nuevo');
+        _publishedId = null;
+        if (currentUser) localStorage.removeItem('lh_pub_' + currentUser.uid);
+        // continúa al bloque create a continuación (sin return)
+      } else if (!res.ok) {
+        urlBox.textContent = 'Error al actualizar el link. Intentá de nuevo.';
+        return;
+      } else {
+        renderShortUrl('https://go.devynest.com/' + _publishedId);
+        return;
+      }
     } catch (e) {
       urlBox.textContent = 'Error al actualizar el link. Intentá de nuevo.';
+      return;
     }
-  } else {
-    urlBox.textContent = 'Generando link…';
-    document.getElementById('qrcode').innerHTML = '';
-    const lid = 'lh_' + Math.random().toString(36).slice(2,10) + '_' + Date.now().toString(36);
-    data.linkId = lid;
-    data.createdAt = Date.now();
-    trackLinkGenerated(lid);
-    try {
-      const uidQ = currentUser ? '?uid=' + encodeURIComponent(currentUser.uid) : '';
-      const res = await fetch('/api/save' + uidQ, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) throw new Error('error');
-      const { id } = await res.json();
-      // Guardar ID publicado para futuros updates (localStorage + variable)
-      _publishedId = id;
-      if (currentUser) localStorage.setItem('lh_pub_' + currentUser.uid, id);
-      _showSaveBtn();
-      const shortUrl = 'https://go.devynest.com/' + id;
-      renderShortUrl(shortUrl);
-    } catch (e) {
-      urlBox.textContent = 'Error al generar el link. Intentá de nuevo.';
-    }
+  }
+
+  // Crear nuevo link (también alcanzado si update devolvió 404)
+  urlBox.textContent = 'Generando link…';
+  document.getElementById('qrcode').innerHTML = '';
+  const lid = 'lh_' + Math.random().toString(36).slice(2,10) + '_' + Date.now().toString(36);
+  data.linkId = lid;
+  data.createdAt = Date.now();
+  trackLinkGenerated(lid);
+  try {
+    const uidQ = currentUser ? '?uid=' + encodeURIComponent(currentUser.uid) : '';
+    const res = await fetch('/api/save' + uidQ, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error('error');
+    const { id } = await res.json();
+    // Guardar ID publicado para futuros updates (localStorage + variable)
+    _publishedId = id;
+    if (currentUser) localStorage.setItem('lh_pub_' + currentUser.uid, id);
+    _showSaveBtn();
+    renderShortUrl('https://go.devynest.com/' + id);
+  } catch (e) {
+    urlBox.textContent = 'Error al generar el link. Intentá de nuevo.';
   }
 }
 
@@ -2076,6 +2096,7 @@ function _showSaveBtn() {
 async function saveChanges() {
   if (!_publishedId) { openShareModal(); return; }
   if (!profileData.name) { showToast('Ingresá tu nombre primero'); return; }
+  if (_uploadInProgress > 0) { showToast('⏳ Esperá a que termine la subida de imagen'); return; }
 
   const btn = document.getElementById('saveChangesBtn');
   btn.disabled = true;
@@ -2098,7 +2119,26 @@ async function saveChanges() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
+
+    if (res.status === 404) {
+      // El ID fue borrado de Redis → crear nuevo link automáticamente
+      console.warn('[saveChanges] 404 en update → creando nuevo link');
+      _publishedId = null;
+      if (currentUser) localStorage.removeItem('lh_pub_' + currentUser.uid);
+      btn.disabled = false;
+      btn.classList.remove('saving');
+      btn.textContent = '💾 Guardar cambios';
+      // Abrir modal de generación para crear el nuevo link
+      openShareModal();
+      return;
+    }
+
     if (!res.ok) throw new Error('error');
+
+    // Persistir en localStorage (cross-device)
+    if (currentUser) localStorage.setItem('lh_pub_' + currentUser.uid, _publishedId);
+    saveDraft();
+
     btn.classList.remove('saving');
     btn.classList.add('saved');
     btn.textContent = '✓ Cambios guardados';
@@ -2620,6 +2660,7 @@ let currentUser = null;
 let _authMode = 'login'; // 'login' | 'register'
 let _isSharedView = false; // true cuando la página se abrió con /ID
 let _publishedId = null;  // ID del registro publicado en Redis (para updates)
+let _uploadInProgress = 0; // Contador de uploads activos — bloquea guardado hasta llegar a 0
 
 /* — Carga directa por /ID (sin necesidad de login) — */
 const _sharedId = (location.pathname.length > 1 && !location.pathname.startsWith('/api'))
