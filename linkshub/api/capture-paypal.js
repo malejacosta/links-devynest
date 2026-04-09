@@ -37,6 +37,18 @@ export default async function handler(req, res) {
   const { token: orderId, uid } = req.body || {};
   if (!orderId || !uid) return res.status(400).json({ error: 'orderId y uid requeridos' });
 
+  // ── Verificar que la orden pertenece al uid que la reclama ────────────────
+  // pp_order:{orderId} fue guardado en Redis por create-payment-paypal con TTL 1h
+  const storedUid = await redis.get(`pp_order:${orderId}`).catch(() => null);
+  if (!storedUid) {
+    console.warn(`[capture-paypal] Orden no encontrada en Redis: ${orderId}`);
+    return res.status(400).json({ error: 'Orden no encontrada o expirada.' });
+  }
+  if (storedUid !== uid) {
+    console.warn(`[capture-paypal] uid mismatch: orden=${orderId}, esperado=${storedUid}, recibido=${uid}`);
+    return res.status(403).json({ error: 'Esta orden no pertenece a este usuario.' });
+  }
+
   try {
     const accessToken = await getPayPalToken();
 

@@ -2,11 +2,43 @@
 // Recibe notificaciones de pago, valida el estado y activa la suscripción en Redis.
 // También registra el afiliado (ref) si corresponde.
 // MP SIEMPRE debe recibir HTTP 200 — nunca retries si falla lógica interna.
+// Requiere env var: MP_WEBHOOK_SECRET (Dashboard MP → Webhooks → Clave secreta)
 
+import crypto from 'crypto';
 import { redis } from './_redis.js';
 import { getAffiliate } from './_config.js';
 
 const PLAN_SECONDS = 30 * 24 * 60 * 60; // 30 días
+
+// Valida la firma HMAC-SHA256 que Mercado Pago adjunta a cada notificación.
+// String firmado: "id:{paymentId};request-id:{x-request-id};ts:{ts};"
+// Ref: https://www.mercadopago.com.ar/developers/es/docs/your-integrations/notifications/webhooks
+function validateMPSignature(req, paymentId) {
+  const secret = process.env.MP_WEBHOOK_SECRET;
+  if (!secret) {
+    console.error('[webhook-mp] MP_WEBHOOK_SECRET no configurado — rechazando request');
+    return false;
+  }
+  const sig   = req.headers['x-signature']   || '';
+  const reqId = req.headers['x-request-id']  || '';
+  const ts    = sig.match(/ts=([^,]+)/)?.[1];
+  const v1    = sig.match(/v1=([^,]+)/)?.[1];
+
+  if (!ts || !v1) {
+    console.warn('[webhook-mp] Header x-signature ausente o malformado');
+    return false;
+  }
+
+  // paymentId viene de req.body.data.id — es el valor usado en el string firmado
+  const signed = `id:${paymentId};request-id:${reqId};ts:${ts};`;
+  const hash   = crypto.createHmac('sha256', secret).update(signed).digest('hex');
+
+  if (hash !== v1) {
+    console.warn('[webhook-mp] Firma inválida — request rechazado');
+    return false;
+  }
+  return true;
+}
 
 export default async function handler(req, res) {
   // MP envía GET para validar el endpoint (no fallar)
@@ -18,8 +50,14 @@ export default async function handler(req, res) {
   // Solo procesar notificaciones de tipo "payment"
   if (type !== 'payment') return res.status(200).end();
 
+  // paymentId = req.body.data.id — usado también en la validación de firma
   const paymentId = data?.id;
   if (!paymentId) return res.status(200).end();
+
+  // ── Validar firma antes de procesar cualquier lógica ─────────────────────
+  if (!validateMPSignature(req, paymentId)) {
+    return res.status(401).end();
+  }
 
   try {
     // Consultar el pago en la API de MP para obtener datos reales (no confiar solo en el webhook)

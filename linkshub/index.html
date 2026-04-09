@@ -2819,7 +2819,10 @@ async function adminRefresh() {
   wrap.innerHTML = '<div class="admin-empty">Cargando…</div>';
 
   try {
-    const r = await fetch(`/api/admin?email=${encodeURIComponent(currentUser.email)}`);
+    const token = await currentUser.getIdToken();
+    const r = await fetch('/api/admin', {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
     const { users, error } = await r.json();
     if (error) { wrap.innerHTML = `<div class="admin-empty">Error: ${error}</div>`; return; }
 
@@ -2863,10 +2866,11 @@ async function adminAction(action, targetUid, btn) {
   if (!currentUser) return;
   btn.disabled = true;
   try {
+    const token = await currentUser.getIdToken();
     const r = await fetch('/api/admin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: currentUser.email, action, targetUid }),
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body:    JSON.stringify({ action, targetUid }),
     });
     const data = await r.json();
     if (data.ok) adminRefresh();
