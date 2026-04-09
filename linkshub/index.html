@@ -473,8 +473,8 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
 .paywall-features li{font-size:13px;color:var(--ink2);padding:6px 0;border-bottom:1px solid var(--border)}
 .paywall-features li:last-child{border-bottom:none}
 .paywall-features li::before{content:'✓  ';color:var(--accent);font-weight:700}
-.paywall-btn{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;font-family:'Montserrat',sans-serif;cursor:pointer;transition:.2s}
-.paywall-btn:hover{opacity:.9}
+.paywall-btn{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;font-family:'Montserrat',sans-serif;cursor:pointer;transition:.2s;display:block;text-align:center;text-decoration:none;margin-top:24px}
+.paywall-btn:hover{opacity:.9;color:#fff}
 .paywall-btn:disabled{opacity:.6;cursor:not-allowed}
 .paywall-logout{margin-top:14px;font-size:12px;color:var(--muted);cursor:pointer;background:none;border:none;font-family:'Montserrat',sans-serif}
 .paywall-logout:hover{color:var(--ink)}
@@ -961,19 +961,14 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
 <div id="paywall">
   <div class="paywall-box">
     <div class="paywall-icon">✦</div>
-    <h2 id="paywallTitle">Activá tu acceso</h2>
-    <p id="paywallSub">Para crear y compartir tu página de contacto profesional necesitás un plan activo.</p>
-    <div class="paywall-price" id="paywallPrice">$390</div>
-    <div class="paywall-period" id="paywallPeriod">por mes · renovación manual</div>
-    <ul class="paywall-features" id="paywallFeatures">
-      <li>Link corto personalizado</li>
-      <li>QR listo para compartir</li>
-      <li>Página de contacto profesional</li>
-      <li>Links, servicios y más</li>
-    </ul>
-    <button class="paywall-btn" id="paywallBtn" onclick="startPayment()">
-      Pagar con MercadoPago — $390/mes
-    </button>
+    <h2 id="paywallTitle">Activá tu página</h2>
+    <p id="paywallSub">Para empezar a usar DEVYNEST Links, completá tu compra en:</p>
+    <a href="https://devynest.com/mini-web" target="_blank" rel="noopener" class="paywall-btn" id="paywallLink">
+      devynest.com/mini-web →
+    </a>
+    <p id="paywallHint" style="font-size:12px;color:var(--muted);margin-top:16px;line-height:1.6">
+      Después de pagar, volvé aquí y tu acceso se activará automáticamente.
+    </p>
     <button class="paywall-logout" id="paywallLogout" onclick="auth.signOut()">Cerrar sesión</button>
   </div>
 </div>
@@ -2760,19 +2755,11 @@ const LANG = {
     createAccount:     'Crear cuenta',
     forgotPassword:    '¿Olvidaste tu contraseña?',
     continueGoogle:    'Continuar con Google',
-    // Paywall
-    paywallTitle:      'Activá tu acceso',
-    paywallSub:        'Para crear y compartir tu página de contacto profesional necesitás un plan activo.',
-    paywallPrice:      '$390',
-    paywallPeriod:     'por mes · renovación manual',
-    paywallF1:         'Link corto personalizado',
-    paywallF2:         'QR listo para compartir',
-    paywallF3:         'Página de contacto profesional',
-    paywallF4:         'Links, servicios y más',
-    paywallBtn:        'Pagar con MercadoPago — $390/mes',
-    paywallBtnLoading: 'Generando link de pago…',
-    paywallLogout:     'Cerrar sesión',
-    paywallError:      'Error al generar el pago. Intentá de nuevo.',
+    // Paywall (flujo externo — la venta ocurre en devynest.com/mini-web)
+    paywallTitle:   'Activá tu página',
+    paywallSub:     'Para empezar a usar DEVYNEST Links, completá tu compra en:',
+    paywallHint:    'Después de pagar, volvé aquí y tu acceso se activará automáticamente.',
+    paywallLogout:  'Cerrar sesión',
     // Validaciones
     imgTooBig:         'La imagen supera el límite de 1MB. Subí una versión más liviana.',
     waInvalid:         'El link debe tener este formato: https://wa.me/598XXXXXXXX',
@@ -2793,19 +2780,11 @@ const LANG = {
     createAccount:     'Criar conta',
     forgotPassword:    'Esqueceu sua senha?',
     continueGoogle:    'Continuar com Google',
-    // Paywall
-    paywallTitle:      'Ative seu acesso',
-    paywallSub:        'Para criar e compartilhar sua página de contato profissional você precisa de um plano ativo.',
-    paywallPrice:      'R$49',
-    paywallPeriod:     'por mês · renovação manual',
-    paywallF1:         'Link curto personalizado',
-    paywallF2:         'QR pronto para compartilhar',
-    paywallF3:         'Página de contato profissional',
-    paywallF4:         'Links, serviços e mais',
-    paywallBtn:        'Pagamento seguro com cartão — R$49/mês',
-    paywallBtnLoading: 'Gerando link de pagamento…',
-    paywallLogout:     'Sair',
-    paywallError:      'Erro ao gerar o pagamento. Tente novamente.',
+    // Paywall (fluxo externo — a venda ocorre em devynest.com/mini-web)
+    paywallTitle:   'Ative sua página',
+    paywallSub:     'Para começar a usar o DEVYNEST Links, complete sua compra em:',
+    paywallHint:    'Após o pagamento, volte aqui e seu acesso será ativado automaticamente.',
+    paywallLogout:  'Sair',
     // Validaciones
     imgTooBig:         'A imagem ultrapassa o limite de 1MB. Envie uma versão menor.',
     waInvalid:         'O link deve ter este formato: https://wa.me/55XXXXXXXXXXX',
@@ -2989,18 +2968,11 @@ function _applyAuthLang() {
 }
 
 function _applyPaywallLang() {
-  const isBR = _country === 'BR';
   const el = (id) => document.getElementById(id);
-  if (el('paywallTitle'))    el('paywallTitle').textContent    = t('paywallTitle');
-  if (el('paywallSub'))      el('paywallSub').textContent      = t('paywallSub');
-  if (el('paywallPrice'))    el('paywallPrice').textContent    = isBR ? 'R$49' : '$390 UYU';
-  if (el('paywallPeriod'))   el('paywallPeriod').textContent   = t('paywallPeriod');
-  if (el('paywallLogout'))   el('paywallLogout').textContent   = t('paywallLogout');
-  if (el('paywallFeatures')) el('paywallFeatures').innerHTML   =
-    [t('paywallF1'), t('paywallF2'), t('paywallF3'), t('paywallF4')]
-      .map(f => `<li>${f}</li>`).join('');
-  if (el('paywallBtn') && !el('paywallBtn').disabled)
-    el('paywallBtn').textContent = t('paywallBtn');
+  if (el('paywallTitle'))  el('paywallTitle').textContent  = t('paywallTitle');
+  if (el('paywallSub'))    el('paywallSub').textContent    = t('paywallSub');
+  if (el('paywallHint'))   el('paywallHint').textContent   = t('paywallHint');
+  if (el('paywallLogout')) el('paywallLogout').textContent = t('paywallLogout');
 }
 
 function showPaywall(user) {
@@ -3014,40 +2986,7 @@ function hidePaywall() {
   document.getElementById('paywall').classList.remove('active');
 }
 
-async function startPayment() {
-  if (!currentUser) return;
-  const btn = document.getElementById('paywallBtn');
-  btn.disabled = true;
-  btn.textContent = t('paywallBtnLoading');
-
-  const isBR     = _country === 'BR';
-  const endpoint = isBR ? '/api/create-payment-paypal' : '/api/create-payment';
-
-  try {
-    const r = await fetch(endpoint, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        uid:     currentUser.uid,
-        email:   currentUser.email,
-        country: _country || 'UY',
-        ref:     _ref || undefined,
-      }),
-    });
-    const data = await r.json();
-    if (data.checkoutUrl) {
-      window.location.href = data.checkoutUrl;
-    } else {
-      btn.disabled = false;
-      btn.textContent = t('paywallBtn');
-      alert(t('paywallError'));
-    }
-  } catch (e) {
-    btn.disabled = false;
-    btn.textContent = t('paywallBtn');
-    alert(t('paywallError'));
-  }
-}
+// startPayment() removida — el pago ocurre en devynest.com/mini-web
 
 /* — Auth state observer — */
 auth.onAuthStateChanged(async user => {
