@@ -434,6 +434,32 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
 .uv-inner .wa-fab{position:fixed;bottom:24px;right:24px;z-index:100}
 @media(min-width:500px){.uv-inner .pub-page{border-radius:0;min-height:100vh}}
 
+/* ════ COUNTRY SELECTOR ════ */
+#countrySelector{
+  display:none;position:fixed;inset:0;z-index:9999;
+  background:var(--paper);align-items:center;justify-content:center;padding:24px;
+}
+#countrySelector.active{display:flex}
+.country-card{
+  background:var(--white);border:1px solid var(--border);border-radius:24px;
+  padding:40px 32px;max-width:400px;width:100%;text-align:center;
+  box-shadow:var(--shadow-lg);
+}
+.country-card h1{font-family:'Montserrat',sans-serif;font-size:20px;font-weight:700;
+  color:var(--ink);margin:16px 0 8px;letter-spacing:-.4px}
+.country-card p{font-size:13px;color:var(--muted);margin-bottom:28px;line-height:1.5}
+.country-opts{display:flex;flex-direction:column;gap:12px}
+.country-opt{
+  width:100%;padding:18px 20px;
+  border:2px solid var(--border);border-radius:14px;
+  background:var(--white);cursor:pointer;font-family:'Montserrat',sans-serif;
+  display:flex;align-items:center;gap:14px;transition:var(--transition);text-align:left;
+}
+.country-opt:hover{border-color:var(--accent);background:var(--accent-lt)}
+.country-opt-flag{font-size:28px;flex-shrink:0}
+.country-opt-info strong{display:block;font-size:16px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.country-opt-info span{font-size:12px;color:var(--muted)}
+
 /* ════ PAYWALL ════ */
 #paywall{display:none;min-height:100vh;background:var(--paper);align-items:center;justify-content:center;padding:32px 16px}
 #paywall.active{display:flex}
@@ -585,6 +611,31 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
 </script>
 </head>
 <body>
+
+<!-- ═══════════════════ COUNTRY SELECTOR ═══════════════════ -->
+<div id="countrySelector">
+  <div class="country-card">
+    <div style="font-size:36px">🌎</div>
+    <h1>Elegí tu país<br><span style="font-size:16px;font-weight:400;opacity:.7">Escolha seu país</span></h1>
+    <p>Define el idioma y el método de pago.<br>Define o idioma e a forma de pagamento.</p>
+    <div class="country-opts">
+      <button class="country-opt" onclick="selectCountry('UY')">
+        <span class="country-opt-flag">🇺🇾</span>
+        <div class="country-opt-info">
+          <strong>Uruguay</strong>
+          <span>Español · MercadoPago · $390/mes</span>
+        </div>
+      </button>
+      <button class="country-opt" onclick="selectCountry('BR')">
+        <span class="country-opt-flag">🇧🇷</span>
+        <div class="country-opt-info">
+          <strong>Brasil</strong>
+          <span>Português · Cartão · R$49/mês</span>
+        </div>
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- ═══════════════════ AUTH ═══════════════════ -->
 <div id="authView" class="active">
@@ -910,20 +961,20 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
 <div id="paywall">
   <div class="paywall-box">
     <div class="paywall-icon">✦</div>
-    <h2>Activá tu acceso</h2>
-    <p>Para crear y compartir tu página de contacto profesional necesitás un plan activo.</p>
-    <div class="paywall-price">$380</div>
-    <div class="paywall-period">por mes · renovación manual</div>
-    <ul class="paywall-features">
+    <h2 id="paywallTitle">Activá tu acceso</h2>
+    <p id="paywallSub">Para crear y compartir tu página de contacto profesional necesitás un plan activo.</p>
+    <div class="paywall-price" id="paywallPrice">$390</div>
+    <div class="paywall-period" id="paywallPeriod">por mes · renovación manual</div>
+    <ul class="paywall-features" id="paywallFeatures">
       <li>Link corto personalizado</li>
       <li>QR listo para compartir</li>
       <li>Página de contacto profesional</li>
       <li>Links, servicios y más</li>
     </ul>
     <button class="paywall-btn" id="paywallBtn" onclick="startPayment()">
-      Activar acceso — $380/mes
+      Pagar con MercadoPago — $390/mes
     </button>
-    <button class="paywall-logout" onclick="auth.signOut()">Cerrar sesión</button>
+    <button class="paywall-logout" id="paywallLogout" onclick="auth.signOut()">Cerrar sesión</button>
   </div>
 </div>
 
@@ -2693,6 +2744,86 @@ let _authMode = 'login'; // 'login' | 'register'
 let _isSharedView = false; // true cuando la página se abrió con /ID
 let _publishedId = null;  // ID del registro publicado en Redis (para updates)
 let _uploadInProgress = 0; // Contador de uploads activos — bloquea guardado hasta llegar a 0
+let _country = localStorage.getItem('lh_country') || null;  // 'UY' | 'BR'
+let _ref = null; // código de afiliado capturado de ?ref=
+
+/* ═══════════════════════════════════════════
+   INTERNACIONALIZACIÓN (i18n)
+   Strings por idioma — agregar claves acá para nuevos textos.
+═══════════════════════════════════════════ */
+const LANG = {
+  es: {
+    // Auth
+    heroTitle:         'Creá tu página de contacto en minutos.',
+    heroSub:           'Completá cómo te presentás, dónde te contactan y qué ofrecés. Vas a obtener un link y un QR listos para compartir.',
+    signIn:            'Iniciar sesión',
+    createAccount:     'Crear cuenta',
+    forgotPassword:    '¿Olvidaste tu contraseña?',
+    continueGoogle:    'Continuar con Google',
+    // Paywall
+    paywallTitle:      'Activá tu acceso',
+    paywallSub:        'Para crear y compartir tu página de contacto profesional necesitás un plan activo.',
+    paywallPrice:      '$390',
+    paywallPeriod:     'por mes · renovación manual',
+    paywallF1:         'Link corto personalizado',
+    paywallF2:         'QR listo para compartir',
+    paywallF3:         'Página de contacto profesional',
+    paywallF4:         'Links, servicios y más',
+    paywallBtn:        'Pagar con MercadoPago — $390/mes',
+    paywallBtnLoading: 'Generando link de pago…',
+    paywallLogout:     'Cerrar sesión',
+    paywallError:      'Error al generar el pago. Intentá de nuevo.',
+    // Validaciones
+    imgTooBig:         'La imagen supera el límite de 1MB. Subí una versión más liviana.',
+    waInvalid:         'El link debe tener este formato: https://wa.me/598XXXXXXXX',
+    // Auth errors
+    errUserNotFound:   'No existe una cuenta con ese email.',
+    errWrongPassword:  'Contraseña incorrecta.',
+    errEmailInUse:     'Ya existe una cuenta con ese email. Iniciá sesión.',
+    errWeakPassword:   'La contraseña debe tener al menos 6 caracteres.',
+    errInvalidEmail:   'Email inválido.',
+    errInvalidCred:    'Email o contraseña incorrectos.',
+    errTooMany:        'Demasiados intentos. Intentá más tarde.',
+  },
+  pt: {
+    // Auth
+    heroTitle:         'Crie sua página de contato em minutos.',
+    heroSub:           'Preencha como você se apresenta, onde te contactam e o que você oferece. Você terá um link e um QR prontos para compartilhar.',
+    signIn:            'Entrar',
+    createAccount:     'Criar conta',
+    forgotPassword:    'Esqueceu sua senha?',
+    continueGoogle:    'Continuar com Google',
+    // Paywall
+    paywallTitle:      'Ative seu acesso',
+    paywallSub:        'Para criar e compartilhar sua página de contato profissional você precisa de um plano ativo.',
+    paywallPrice:      'R$49',
+    paywallPeriod:     'por mês · renovação manual',
+    paywallF1:         'Link curto personalizado',
+    paywallF2:         'QR pronto para compartilhar',
+    paywallF3:         'Página de contato profissional',
+    paywallF4:         'Links, serviços e mais',
+    paywallBtn:        'Pagamento seguro com cartão — R$49/mês',
+    paywallBtnLoading: 'Gerando link de pagamento…',
+    paywallLogout:     'Sair',
+    paywallError:      'Erro ao gerar o pagamento. Tente novamente.',
+    // Validaciones
+    imgTooBig:         'A imagem ultrapassa o limite de 1MB. Envie uma versão menor.',
+    waInvalid:         'O link deve ter este formato: https://wa.me/55XXXXXXXXXXX',
+    // Auth errors
+    errUserNotFound:   'Não existe uma conta com esse e-mail.',
+    errWrongPassword:  'Senha incorreta.',
+    errEmailInUse:     'Já existe uma conta com esse e-mail. Faça login.',
+    errWeakPassword:   'A senha deve ter pelo menos 6 caracteres.',
+    errInvalidEmail:   'E-mail inválido.',
+    errInvalidCred:    'E-mail ou senha incorretos.',
+    errTooMany:        'Muitas tentativas. Tente mais tarde.',
+  },
+};
+
+function t(key) {
+  const lang = _country === 'BR' ? 'pt' : 'es';
+  return (LANG[lang] && LANG[lang][key]) || (LANG.es[key]) || key;
+}
 
 /* — Carga directa por /ID (sin necesidad de login) — */
 const _sharedId = (location.pathname.length > 1 && !location.pathname.startsWith('/api'))
@@ -2706,6 +2837,9 @@ if (_sharedId) {
     .catch(() => {
       _isSharedView = false; // ID inválido: volver al flujo normal de auth
     });
+} else {
+  // Inicializar selector de país (muestra overlay si no hay país guardado)
+  initCountrySelector();
 }
 
 /* — Helpers de suscripción y admin — */
@@ -2714,7 +2848,12 @@ async function checkUserAccess(uid, email) {
     const r = await fetch('/api/check-access', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid, email }),
+      body: JSON.stringify({
+        uid,
+        email,
+        country: _country || undefined,
+        ref:     _ref     || undefined,
+      }),
     });
     return await r.json();
   } catch (e) {
@@ -2798,13 +2937,77 @@ function showAdminPanel() {
   adminRefresh();
 }
 
+/* ═══════════════════════════════════════════
+   PAÍS, IDIOMA Y AFILIADOS
+═══════════════════════════════════════════ */
+
+// Captura ?ref= de la URL y lo persiste en localStorage (solo una vez por sesión)
+;(function detectRef() {
+  const params = new URLSearchParams(window.location.search);
+  const refParam = params.get('ref');
+  if (refParam) localStorage.setItem('lh_ref', refParam.toLowerCase());
+  _ref = localStorage.getItem('lh_ref') || null;
+})();
+
+function initCountrySelector() {
+  if (_isSharedView) return;
+  const sel = document.getElementById('countrySelector');
+  if (!sel) return;
+  if (!_country) {
+    // Primera visita: mostrar selector encima de todo
+    sel.classList.add('active');
+  } else {
+    sel.style.display = 'none';
+    _applyPaywallLang();
+  }
+}
+
+function selectCountry(code) {
+  _country = code;
+  localStorage.setItem('lh_country', code);
+  const sel = document.getElementById('countrySelector');
+  if (sel) { sel.classList.remove('active'); sel.style.display = 'none'; }
+  _applyPaywallLang();
+  // Reaplicar idioma a textos estáticos del auth si está visible
+  _applyAuthLang();
+}
+
+function _applyAuthLang() {
+  const heroH1 = document.querySelector('.auth-hero h1');
+  const heroP  = document.querySelector('.auth-hero p');
+  if (heroH1) heroH1.textContent = t('heroTitle');
+  if (heroP)  heroP.textContent  = t('heroSub');
+  const tabLogin    = document.getElementById('tabLogin');
+  const tabRegister = document.getElementById('tabRegister');
+  const submitBtn   = document.getElementById('authSubmitBtn');
+  const forgotLnk   = document.getElementById('forgotLink');
+  if (tabLogin)    tabLogin.textContent    = t('signIn');
+  if (tabRegister) tabRegister.textContent = t('createAccount');
+  if (submitBtn && submitBtn.textContent !== '...')
+    submitBtn.textContent = _authMode === 'login' ? t('signIn') : t('createAccount');
+  if (forgotLnk)   forgotLnk.textContent  = t('forgotPassword');
+}
+
+function _applyPaywallLang() {
+  const isBR = _country === 'BR';
+  const el = (id) => document.getElementById(id);
+  if (el('paywallTitle'))    el('paywallTitle').textContent    = t('paywallTitle');
+  if (el('paywallSub'))      el('paywallSub').textContent      = t('paywallSub');
+  if (el('paywallPrice'))    el('paywallPrice').textContent    = isBR ? 'R$49' : '$390 UYU';
+  if (el('paywallPeriod'))   el('paywallPeriod').textContent   = t('paywallPeriod');
+  if (el('paywallLogout'))   el('paywallLogout').textContent   = t('paywallLogout');
+  if (el('paywallFeatures')) el('paywallFeatures').innerHTML   =
+    [t('paywallF1'), t('paywallF2'), t('paywallF3'), t('paywallF4')]
+      .map(f => `<li>${f}</li>`).join('');
+  if (el('paywallBtn') && !el('paywallBtn').disabled)
+    el('paywallBtn').textContent = t('paywallBtn');
+}
+
 function showPaywall(user) {
   document.getElementById('paywall').classList.add('active');
   document.getElementById('builder').style.display = 'none';
   document.getElementById('authView').classList.remove('active');
-  // Mostrar email del usuario en el botón si está disponible
-  const btn = document.getElementById('paywallBtn');
-  if (btn) btn.textContent = 'Activar acceso — $380/mes';
+  _applyPaywallLang();
 }
 
 function hidePaywall() {
@@ -2815,25 +3018,34 @@ async function startPayment() {
   if (!currentUser) return;
   const btn = document.getElementById('paywallBtn');
   btn.disabled = true;
-  btn.textContent = 'Generando link de pago…';
+  btn.textContent = t('paywallBtnLoading');
+
+  const isBR     = _country === 'BR';
+  const endpoint = isBR ? '/api/create-payment-paypal' : '/api/create-payment';
+
   try {
-    const r = await fetch('/api/create-payment', {
-      method: 'POST',
+    const r = await fetch(endpoint, {
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid: currentUser.uid, email: currentUser.email }),
+      body: JSON.stringify({
+        uid:     currentUser.uid,
+        email:   currentUser.email,
+        country: _country || 'UY',
+        ref:     _ref || undefined,
+      }),
     });
     const data = await r.json();
     if (data.checkoutUrl) {
       window.location.href = data.checkoutUrl;
     } else {
       btn.disabled = false;
-      btn.textContent = 'Activar acceso — $380/mes';
-      alert('Error al generar el link de pago. Intentá de nuevo.');
+      btn.textContent = t('paywallBtn');
+      alert(t('paywallError'));
     }
   } catch (e) {
     btn.disabled = false;
-    btn.textContent = 'Activar acceso — $380/mes';
-    alert('Error al conectar con el servidor de pagos.');
+    btn.textContent = t('paywallBtn');
+    alert(t('paywallError'));
   }
 }
 
@@ -2846,15 +3058,29 @@ auth.onAuthStateChanged(async user => {
     const lbl = document.getElementById('userEmailLabel');
     if (lbl) lbl.textContent = user.email || user.displayName || 'Usuario';
 
-    // Verificar si volvió de MP con pago aprobado
-    const paymentResult = new URLSearchParams(window.location.search).get('payment');
-    if (paymentResult === 'success') {
-      // Dar 2s para que el webhook procese, luego re-verificar
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentResult = urlParams.get('payment');
+    const paypalToken   = urlParams.get('token'); // PayPal adjunta token al return_url
+
+    if (paypalToken && paymentResult === 'success') {
+      // Flujo PayPal: capturar la orden antes de verificar acceso
+      try {
+        await fetch('/api/capture-paypal', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: paypalToken, uid: user.uid }),
+        });
+      } catch (e) {
+        console.warn('[capture-paypal] Error en frontend:', e.message);
+      }
+      history.replaceState(null, '', '/');
+    } else if (paymentResult === 'success') {
+      // Flujo MercadoPago: dar 2s para que el webhook procese
       await new Promise(r => setTimeout(r, 2000));
-      history.replaceState(null, '', '/'); // limpiar URL
+      history.replaceState(null, '', '/');
     }
 
-    // Verificar suscripción (envía email para admin bypass)
+    // Verificar suscripción (envía email para admin bypass, país y ref para tracking)
     const access = await checkUserAccess(user.uid, user.email);
 
     if (access.isAdmin) {
@@ -2892,7 +3118,7 @@ function switchAuthTab(mode) {
   _authMode = mode;
   document.getElementById('tabLogin').classList.toggle('active', mode === 'login');
   document.getElementById('tabRegister').classList.toggle('active', mode === 'register');
-  document.getElementById('authSubmitBtn').textContent = mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta';
+  document.getElementById('authSubmitBtn').textContent = mode === 'login' ? t('signIn') : t('createAccount');
   document.getElementById('authError').classList.remove('show');
   document.getElementById('authPassword').placeholder = mode === 'login' ? 'Tu contraseña' : 'Mínimo 6 caracteres';
   document.getElementById('forgotLink').style.display = mode === 'login' ? 'block' : 'none';
@@ -2918,15 +3144,15 @@ function handleAuth() {
 
   promise.catch(err => {
     btn.disabled = false;
-    btn.textContent = _authMode === 'login' ? 'Iniciar sesión' : 'Crear cuenta';
+    btn.textContent = _authMode === 'login' ? t('signIn') : t('createAccount');
     const msgs = {
-      'auth/user-not-found':   'No existe una cuenta con ese email.',
-      'auth/wrong-password':   'Contraseña incorrecta.',
-      'auth/email-already-in-use': 'Ya existe una cuenta con ese email. Iniciá sesión.',
-      'auth/weak-password':    'La contraseña debe tener al menos 6 caracteres.',
-      'auth/invalid-email':    'Email inválido.',
-      'auth/invalid-credential': 'Email o contraseña incorrectos.',
-      'auth/too-many-requests': 'Demasiados intentos. Intentá más tarde.',
+      'auth/user-not-found':        t('errUserNotFound'),
+      'auth/wrong-password':        t('errWrongPassword'),
+      'auth/email-already-in-use':  t('errEmailInUse'),
+      'auth/weak-password':         t('errWeakPassword'),
+      'auth/invalid-email':         t('errInvalidEmail'),
+      'auth/invalid-credential':    t('errInvalidCred'),
+      'auth/too-many-requests':     t('errTooMany'),
       'auth/api-key-not-valid.-please-pass-a-valid-api-key.': '⚠ Configurá las credenciales de Firebase en el código.',
     };
     showAuthError(msgs[err.code] || (err.code?.includes('api-key') ? '⚠ Configurá las credenciales de Firebase.' : err.message));

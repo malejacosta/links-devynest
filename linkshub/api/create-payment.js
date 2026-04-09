@@ -1,5 +1,9 @@
-// Crea una preferencia de pago en Mercado Pago.
-// Devuelve la URL de checkout para redirigir al usuario.
+// Crea una preferencia de pago en Mercado Pago (Uruguay).
+// Lee la moneda y el precio desde _config.js — no está hardcodeado.
+// También registra el afiliado (ref) si es válido.
+
+import { redis } from './_redis.js';
+import { getCountry, getAffiliate } from './_config.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -8,8 +12,24 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { uid, email } = req.body || {};
+  const { uid, email, country = 'UY', ref } = req.body || {};
   if (!uid) return res.status(400).json({ error: 'uid requerido' });
+
+  const cfg = getCountry(country);
+
+  if (cfg.payment !== 'mercadopago') {
+    return res.status(400).json({ error: 'Este endpoint solo procesa MercadoPago. Usá /api/create-payment-paypal para Brasil.' });
+  }
+
+  // Registrar ref del afiliado si es válido
+  if (ref && getAffiliate(ref)) {
+    try {
+      await redis.set(`ref:${uid}`, ref.toLowerCase());
+      console.log(`[create-payment] Afiliado registrado: uid=${uid}, ref=${ref}`);
+    } catch (e) {
+      console.warn('[create-payment] No se pudo guardar ref:', e.message);
+    }
+  }
 
   try {
     const body = {
@@ -17,10 +37,11 @@ export default async function handler(req, res) {
         title:       'DEVYNEST Links — Plan Mensual',
         description: 'Acceso mensual a tu página de contacto profesional',
         quantity:    1,
-        unit_price:  380,
-        currency_id: 'ARS',
+        unit_price:  cfg.price,
+        currency_id: cfg.currency,
       }],
-      external_reference: uid,           // clave para identificar al usuario en el webhook
+      external_reference: uid,
+      metadata: { country, ref: ref || null },
       back_urls: {
         success: 'https://go.devynest.com/?payment=success',
         failure: 'https://go.devynest.com/?payment=failure',
@@ -49,10 +70,10 @@ export default async function handler(req, res) {
     }
 
     const pref = await mpRes.json();
-    console.log(`[create-payment] Preferencia creada — id: ${pref.id}, uid: ${uid}`);
+    console.log(`[create-payment] Preferencia creada — id: ${pref.id}, uid: ${uid}, country: ${country}, currency: ${cfg.currency}, price: ${cfg.price}`);
 
     return res.status(200).json({
-      checkoutUrl:  pref.init_point,   // URL de producción
+      checkoutUrl:  pref.init_point,
       preferenceId: pref.id,
     });
   } catch (err) {

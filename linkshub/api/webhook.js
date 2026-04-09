@@ -1,8 +1,10 @@
-// Webhook de Mercado Pago
+// Webhook de Mercado Pago (Uruguay).
 // Recibe notificaciones de pago, valida el estado y activa la suscripción en Redis.
+// También registra el afiliado (ref) si corresponde.
 // MP SIEMPRE debe recibir HTTP 200 — nunca retries si falla lógica interna.
 
 import { redis } from './_redis.js';
+import { getAffiliate } from './_config.js';
 
 const PLAN_SECONDS = 30 * 24 * 60 * 60; // 30 días
 
@@ -27,7 +29,7 @@ export default async function handler(req, res) {
 
     if (!mpRes.ok) {
       console.error(`[webhook] Error al consultar pago ${paymentId}: HTTP ${mpRes.status}`);
-      return res.status(200).end(); // Igual 200 para que MP no reintente
+      return res.status(200).end();
     }
 
     const payment = await mpRes.json();
@@ -41,18 +43,33 @@ export default async function handler(req, res) {
         return res.status(200).end();
       }
 
+      // Leer afiliado registrado en el momento del pago
+      const ref = await redis.get(`ref:${uid}`).catch(() => null);
+      const affiliate = getAffiliate(ref);
+
       const sub = {
-        status:      'active',
+        status:          'active',
         uid,
-        email:       payment.payer?.email || null,
-        paymentId:   payment.id,
-        amount:      payment.transaction_amount,
-        activatedAt: new Date().toISOString(),
-        expiresAt:   new Date(Date.now() + PLAN_SECONDS * 1000).toISOString(),
+        paymentProvider: 'mercadopago',
+        email:           payment.payer?.email || null,
+        paymentId:       payment.id,
+        amount:          payment.transaction_amount,
+        currency:        payment.currency_id,
+        country:         payment.metadata?.country || 'UY',
+        ref:             ref || null,
+        affiliateType:   affiliate?.type || null,
+        activatedAt:     new Date().toISOString(),
+        expiresAt:       new Date(Date.now() + PLAN_SECONDS * 1000).toISOString(),
       };
 
       await redis.setex(`sub:${uid}`, PLAN_SECONDS, JSON.stringify(sub));
-      console.log(`[webhook] ✅ Suscripción activada — uid: ${uid}, expira: ${sub.expiresAt}`);
+
+      // Registrar en tracking de afiliado
+      if (ref) {
+        await redis.sadd(`aff:${ref}:users`, uid).catch(() => null);
+      }
+
+      console.log(`[webhook] ✅ Suscripción activada — uid: ${uid}, ref: ${ref || 'none'}, expira: ${sub.expiresAt}`);
     }
   } catch (err) {
     console.error('[webhook] Error interno:', err.message);

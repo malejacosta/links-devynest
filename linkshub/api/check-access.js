@@ -1,6 +1,7 @@
 // Verifica si un usuario tiene suscripción activa.
 // Admins bypasean el check de pago.
 // Registra cada usuario en el índice para el panel admin.
+// También almacena país y ref de afiliado para cross-device.
 
 import { redis } from './_redis.js';
 
@@ -11,7 +12,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { uid, email } = req.body || {};
+  const { uid, email, country, ref } = req.body || {};
   if (!uid) return res.status(400).json({ error: 'uid requerido' });
 
   // ── Admin bypass ──────────────────────────────────────────────────────────
@@ -25,15 +26,27 @@ export default async function handler(req, res) {
   if (uid && email) {
     try {
       await redis.sadd('users:index', uid);
-      // Solo actualizar si no existe o para refrescar lastSeen
       await redis.set(`user:${uid}`, JSON.stringify({
         uid,
         email,
+        country:  country || null,
         lastSeen: new Date().toISOString(),
       }));
     } catch (e) {
-      // No bloquear el flujo si falla el registro
       console.warn('[check-access] No se pudo registrar usuario:', e.message);
+    }
+  }
+
+  // ── Guardar ref de afiliado si se envía y no existe uno previo ────────────
+  if (uid && ref) {
+    try {
+      const existing = await redis.get(`ref:${uid}`).catch(() => null);
+      if (!existing) {
+        await redis.set(`ref:${uid}`, ref.toLowerCase());
+        console.log(`[check-access] Ref guardado: uid=${uid}, ref=${ref}`);
+      }
+    } catch (e) {
+      console.warn('[check-access] No se pudo guardar ref:', e.message);
     }
   }
 
@@ -60,6 +73,7 @@ export default async function handler(req, res) {
       expiresAt: sub.expiresAt,
       email:     sub.email,
       pubId:     pubId || null,
+      country:   sub.country || country || null,
     });
   } catch (err) {
     console.error('[check-access] Error:', err.message);
