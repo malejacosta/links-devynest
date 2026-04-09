@@ -613,29 +613,7 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
 <body>
 
 <!-- ═══════════════════ COUNTRY SELECTOR ═══════════════════ -->
-<div id="countrySelector">
-  <div class="country-card">
-    <div style="font-size:36px">🌎</div>
-    <h1>Elegí tu país<br><span style="font-size:16px;font-weight:400;opacity:.7">Escolha seu país</span></h1>
-    <p>Define el idioma y el método de pago.<br>Define o idioma e a forma de pagamento.</p>
-    <div class="country-opts">
-      <button class="country-opt" onclick="selectCountry('UY')">
-        <span class="country-opt-flag">🇺🇾</span>
-        <div class="country-opt-info">
-          <strong>Uruguay</strong>
-          <span>Español · MercadoPago · $390/mes</span>
-        </div>
-      </button>
-      <button class="country-opt" onclick="selectCountry('BR')">
-        <span class="country-opt-flag">🇧🇷</span>
-        <div class="country-opt-info">
-          <strong>Brasil</strong>
-          <span>Português · Cartão · R$49/mês</span>
-        </div>
-      </button>
-    </div>
-  </div>
-</div>
+<!-- country selector removido — país/idioma lo maneja devynest.com -->
 
 <!-- ═══════════════════ AUTH ═══════════════════ -->
 <div id="authView" class="active">
@@ -961,14 +939,8 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
 <div id="paywall">
   <div class="paywall-box">
     <div class="paywall-icon">✦</div>
-    <h2 id="paywallTitle">Activá tu página</h2>
-    <p id="paywallSub">Para empezar a usar DEVYNEST Links, completá tu compra en:</p>
-    <a href="https://devynest.com/mini-web" target="_blank" rel="noopener" class="paywall-btn" id="paywallLink">
-      devynest.com/mini-web →
-    </a>
-    <p id="paywallHint" style="font-size:12px;color:var(--muted);margin-top:16px;line-height:1.6">
-      Después de pagar, volvé aquí y tu acceso se activará automáticamente.
-    </p>
+    <h2 id="paywallTitle">Acceso no activo</h2>
+    <p id="paywallSub">Tu acceso no está activo. Activá tu página desde devynest.com</p>
     <button class="paywall-logout" id="paywallLogout" onclick="auth.signOut()">Cerrar sesión</button>
   </div>
 </div>
@@ -2755,10 +2727,9 @@ const LANG = {
     createAccount:     'Crear cuenta',
     forgotPassword:    '¿Olvidaste tu contraseña?',
     continueGoogle:    'Continuar con Google',
-    // Paywall (flujo externo — la venta ocurre en devynest.com/mini-web)
-    paywallTitle:   'Activá tu página',
-    paywallSub:     'Para empezar a usar DEVYNEST Links, completá tu compra en:',
-    paywallHint:    'Después de pagar, volvé aquí y tu acceso se activará automáticamente.',
+    // Paywall
+    paywallTitle:   'Acceso no activo',
+    paywallSub:     'Tu acceso no está activo. Activá tu página desde devynest.com',
     paywallLogout:  'Cerrar sesión',
     // Validaciones
     imgTooBig:         'La imagen supera el límite de 1MB. Subí una versión más liviana.',
@@ -2780,10 +2751,9 @@ const LANG = {
     createAccount:     'Criar conta',
     forgotPassword:    'Esqueceu sua senha?',
     continueGoogle:    'Continuar com Google',
-    // Paywall (fluxo externo — a venda ocorre em devynest.com/mini-web)
-    paywallTitle:   'Ative sua página',
-    paywallSub:     'Para começar a usar o DEVYNEST Links, complete sua compra em:',
-    paywallHint:    'Após o pagamento, volte aqui e seu acesso será ativado automaticamente.',
+    // Paywall
+    paywallTitle:   'Acesso não ativo',
+    paywallSub:     'Seu acesso não está ativo. Ative sua página em devynest.com',
     paywallLogout:  'Sair',
     // Validaciones
     imgTooBig:         'A imagem ultrapassa o limite de 1MB. Envie uma versão menor.',
@@ -2817,8 +2787,7 @@ if (_sharedId) {
       _isSharedView = false; // ID inválido: volver al flujo normal de auth
     });
 } else {
-  // Inicializar selector de país (muestra overlay si no hay país guardado)
-  initCountrySelector();
+  _applyPaywallLang();
 }
 
 /* — Helpers de suscripción y admin — */
@@ -2928,28 +2897,7 @@ function showAdminPanel() {
   _ref = localStorage.getItem('lh_ref') || null;
 })();
 
-function initCountrySelector() {
-  if (_isSharedView) return;
-  const sel = document.getElementById('countrySelector');
-  if (!sel) return;
-  if (!_country) {
-    // Primera visita: mostrar selector encima de todo
-    sel.classList.add('active');
-  } else {
-    sel.style.display = 'none';
-    _applyPaywallLang();
-  }
-}
-
-function selectCountry(code) {
-  _country = code;
-  localStorage.setItem('lh_country', code);
-  const sel = document.getElementById('countrySelector');
-  if (sel) { sel.classList.remove('active'); sel.style.display = 'none'; }
-  _applyPaywallLang();
-  // Reaplicar idioma a textos estáticos del auth si está visible
-  _applyAuthLang();
-}
+// initCountrySelector() / selectCountry() removidas — país lo maneja devynest.com
 
 function _applyAuthLang() {
   const heroH1 = document.querySelector('.auth-hero h1');
@@ -2971,7 +2919,6 @@ function _applyPaywallLang() {
   const el = (id) => document.getElementById(id);
   if (el('paywallTitle'))  el('paywallTitle').textContent  = t('paywallTitle');
   if (el('paywallSub'))    el('paywallSub').textContent    = t('paywallSub');
-  if (el('paywallHint'))   el('paywallHint').textContent   = t('paywallHint');
   if (el('paywallLogout')) el('paywallLogout').textContent = t('paywallLogout');
 }
 
