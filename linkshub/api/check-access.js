@@ -12,7 +12,7 @@ function isAdminEmail(email) {
 }
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', 'https://go.devynest.com');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -22,12 +22,12 @@ export default async function handler(req, res) {
   if (!uid) return res.status(400).json({ error: 'uid requerido' });
 
   // ── Admin bypass — solo via Firebase token verificado ────────────────────
-  // El email del body YA NO otorga privilegios admin (eliminado el bypass sin credenciales).
+  let verifiedUser = null;
   const idToken = extractBearerToken(req);
   if (idToken) {
     try {
-      const firebaseUser = await verifyFirebaseToken(idToken);
-      if (isAdminEmail(firebaseUser?.email)) {
+      verifiedUser = await verifyFirebaseToken(idToken);
+      if (isAdminEmail(verifiedUser?.email)) {
         const pubId = await redis.get(`pub:${uid}`).catch(() => null);
         return res.status(200).json({ active: true, isAdmin: true, pubId: pubId || null });
       }
@@ -37,12 +37,14 @@ export default async function handler(req, res) {
   }
 
   // ── Registrar usuario en índice (para panel admin) ────────────────────────
-  if (uid && email) {
+  // Email preferido del token verificado; fallback al body para compatibilidad
+  const resolvedEmail = verifiedUser?.email || email || null;
+  if (uid && resolvedEmail) {
     try {
       await redis.sadd('users:index', uid);
       await redis.set(`user:${uid}`, JSON.stringify({
         uid,
-        email,
+        email:    resolvedEmail,
         country:  country || null,
         lastSeen: new Date().toISOString(),
       }));

@@ -5,6 +5,9 @@
 
 import { redis } from './_redis.js';
 import { getCountry, getAffiliate } from './_config.js';
+import { verifyFirebaseToken, extractBearerToken } from './_auth.js';
+
+const ALLOWED_ORIGINS = ['https://go.devynest.com', 'https://devynest.com', 'https://www.devynest.com'];
 
 const PAYPAL_BASE = process.env.PAYPAL_ENV === 'sandbox'
   ? 'https://api-m.sandbox.paypal.com'
@@ -28,22 +31,41 @@ async function getPayPalToken() {
 }
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origin = req.headers['origin'] || '';
+  const corsOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  res.setHeader('Access-Control-Allow-Origin', corsOrigin);
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { uid, email, ref } = req.body || {};
+  const { uid: bodyUid, email, ref } = req.body || {};
+
+  // Si hay token Firebase, uid viene del token (más seguro que confiar en el body)
+  let uid = bodyUid;
+  const idToken = extractBearerToken(req);
+  if (idToken) {
+    try {
+      const firebaseUser = await verifyFirebaseToken(idToken);
+      uid = firebaseUser.localId;
+    } catch (_) { /* token inválido — usar uid del body */ }
+  }
+
   if (!uid) return res.status(400).json({ error: 'uid requerido' });
 
   const cfg = getCountry('BR');
 
-  // Registrar ref del afiliado si es válido
+  // Registrar ref del afiliado solo si no hay uno existente (evita envenenamiento)
   if (ref && getAffiliate(ref)) {
     try {
-      await redis.set(`ref:${uid}`, ref.toLowerCase());
-      console.log(`[create-payment-paypal] Afiliado registrado: uid=${uid}, ref=${ref}`);
+      const existing = await redis.get(`ref:${uid}`).catch(() => null);
+      if (!existing) {
+        await redis.set(`ref:${uid}`, ref.toLowerCase());
+        console.log(`[create-payment-paypal] Afiliado registrado: uid=${uid}, ref=${ref}`);
+      } else {
+        console.log(`[create-payment-paypal] Ref ya existe para uid=${uid} (${existing}) — no sobreescrito`);
+      }
     } catch (e) {
       console.warn('[create-payment-paypal] No se pudo guardar ref:', e.message);
     }

@@ -31,10 +31,18 @@ function validateMPSignature(req, paymentId) {
 
   // paymentId viene de req.body.data.id — es el valor usado en el string firmado
   const signed = `id:${paymentId};request-id:${reqId};ts:${ts};`;
-  const hash   = crypto.createHmac('sha256', secret).update(signed).digest('hex');
+  const hash = crypto.createHmac('sha256', secret).update(signed).digest('hex');
 
-  if (hash !== v1) {
-    console.warn('[webhook-mp] Firma inválida — request rechazado');
+  // Comparación en tiempo constante — previene timing attacks
+  try {
+    const hashBuf = Buffer.from(hash, 'hex');
+    const v1Buf   = Buffer.from(v1,   'hex');
+    if (hashBuf.length !== v1Buf.length || !crypto.timingSafeEqual(hashBuf, v1Buf)) {
+      console.warn('[webhook-mp] Firma inválida — request rechazado');
+      return false;
+    }
+  } catch (_) {
+    console.warn('[webhook-mp] Firma inválida — error al comparar');
     return false;
   }
   return true;
