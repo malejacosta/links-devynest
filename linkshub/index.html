@@ -1662,21 +1662,21 @@ function buildPageHTML(forExport) {
   // Solo usar avatarPhoto si es una URL real (http/https) — no base64 ni blob: URLs
   const _avatarSrc = p.avatarPhoto && p.avatarPhoto.startsWith('http') ? p.avatarPhoto : null;
   if (_avatarSrc) {
-    avatarHTML = `<div class="pub-avatar"><img src="${_avatarSrc}" alt="${p.name}" onerror="this.parentElement.innerHTML='${p.avatar || '👤'}'"></div>`;
+    avatarHTML = `<div class="pub-avatar"><img src="${safeUrl(_avatarSrc)}" alt="${esc(p.name)}" onerror="this.style.display='none'"></div>`;
   } else {
     avatarHTML = `<div class="pub-avatar">${p.avatar || '👤'}</div>`;
   }
 
-  const badgeHTML = p.tag ? `<div class="pub-badge">✦ ${p.tag}</div>` : '';
-  const locationHTML = p.location ? `<div class="pub-location">📍 ${p.location}</div>` : '';
+  const badgeHTML = p.tag ? `<div class="pub-badge">✦ ${esc(p.tag)}</div>` : '';
+  const locationHTML = p.location ? `<div class="pub-location">📍 ${esc(p.location)}</div>` : '';
 
   let featHTML = '';
   if (featured.enabled && featured.title) {
     featHTML = `<div class="pub-featured">
-      ${featured.tag ? `<div class="pub-feat-tag">✦ ${featured.tag}</div>` : ''}
-      <div class="pub-feat-title">${featured.title}</div>
-      ${featured.desc ? `<div class="pub-feat-desc">${featured.desc}</div>` : ''}
-      ${featured.btnText && featured.btnUrl ? `<a class="pub-feat-btn" href="${featured.btnUrl}" target="_blank" rel="noopener">${featured.btnText} →</a>` : ''}
+      ${featured.tag ? `<div class="pub-feat-tag">✦ ${esc(featured.tag)}</div>` : ''}
+      <div class="pub-feat-title">${esc(featured.title)}</div>
+      ${featured.desc ? `<div class="pub-feat-desc">${esc(featured.desc)}</div>` : ''}
+      ${featured.btnText && featured.btnUrl ? `<a class="pub-feat-btn" href="${safeUrl(featured.btnUrl)}" target="_blank" rel="noopener">${esc(featured.btnText)} →</a>` : ''}
     </div>`;
   }
 
@@ -1684,13 +1684,13 @@ function buildPageHTML(forExport) {
     const ctaUrl = formatCtaUrl(s.ctaType, s.ctaValue);
     const ctaIcon = ctaIconLabel(s.ctaType);
     return `<div class="pub-service-card" style="${s.photo ? 'padding-top:0;overflow:hidden' : ''}">
-      ${s.photo ? `<img src="${s.photo}" alt="${s.name}" class="pub-svc-img">` : ''}
+      ${s.photo ? `<img src="${safeUrl(s.photo)}" alt="${esc(s.name)}" class="pub-svc-img">` : ''}
       <div class="svc-top">
-        <div class="svc-name">${s.name}</div>
-        ${s.price ? `<div class="svc-price">${s.price}</div>` : ''}
+        <div class="svc-name">${esc(s.name)}</div>
+        ${s.price ? `<div class="svc-price">${esc(s.price)}</div>` : ''}
       </div>
-      ${s.desc ? `<div class="svc-desc">${s.desc}</div>` : ''}
-      ${ctaUrl !== '#' ? `<a class="svc-cta" href="${ctaUrl}" target="_blank" rel="noopener">${ctaIcon} Consultar</a>` : ''}
+      ${s.desc ? `<div class="svc-desc">${esc(s.desc)}</div>` : ''}
+      ${ctaUrl !== '#' ? `<a class="svc-cta" href="${safeUrl(ctaUrl)}" target="_blank" rel="noopener">${ctaIcon} Consultar</a>` : ''}
     </div>`;
   }).join('');
 
@@ -1713,7 +1713,7 @@ function buildPageHTML(forExport) {
     const faIcon = platformFaIcons[l.platform] || 'fa-solid fa-link';
     return `<a class="pub-link" href="${href}" target="_blank" rel="noopener" ${!forExport?'onclick="return false"':''}>
       <div class="pub-link-icon" style="background:${plat.color}"><i class="${faIcon}"></i></div>
-      <div class="pub-link-body"><span class="pub-link-text">${l.text||plat.name}</span></div>
+      <div class="pub-link-body"><span class="pub-link-text">${esc(l.text||plat.name)}</span></div>
       <div class="pub-link-arrow"><i class="fa-solid fa-chevron-right" style="font-size:9px"></i></div>
     </a>`;
   }).join('');
@@ -1741,8 +1741,8 @@ function buildPageHTML(forExport) {
     <div class="pub-hero">
       ${avatarHTML}
       ${badgeHTML}
-      <div class="pub-name">${p.name || 'Tu Nombre'}</div>
-      <div class="pub-bio">${p.bio || ''}</div>
+      <div class="pub-name">${esc(p.name || 'Tu Nombre')}</div>
+      <div class="pub-bio">${esc(p.bio || '')}</div>
       ${locationHTML}
     </div>
     ${featHTML}
@@ -1961,10 +1961,17 @@ function validateWaLink(input) {
 ═══════════════════════════════════════════ */
 // Sube un File al endpoint /api/upload-image y devuelve la URL pública permanente.
 // Usa body binario (Content-Type: image/*) — sin base64, sin overhead.
+async function _getAuthHeader() {
+  if (!currentUser) return {};
+  try { return { 'Authorization': 'Bearer ' + await currentUser.getIdToken() }; }
+  catch(_) { return {}; }
+}
+
 async function _uploadImage(file, type = 'img') {
+  const authHeader = await _getAuthHeader();
   const res = await fetch(`/api/upload-image?type=${encodeURIComponent(type)}`, {
     method: 'POST',
-    headers: { 'Content-Type': file.type },
+    headers: { 'Content-Type': file.type, ...authHeader },
     body: file,
   });
   if (!res.ok) {
@@ -2023,14 +2030,14 @@ async function openShareModal() {
   };
 
   // Si ya hay un ID publicado → intentar actualizar
-  const _uidParam = currentUser ? '&uid=' + encodeURIComponent(currentUser.uid) : '';
   if (_publishedId) {
     urlBox.textContent = 'Actualizando link…';
     document.getElementById('qrcode').innerHTML = '';
     try {
-      const res = await fetch('/api/update?id=' + encodeURIComponent(_publishedId) + _uidParam, {
+      const authHeader = await _getAuthHeader();
+      const res = await fetch('/api/update?id=' + encodeURIComponent(_publishedId), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeader },
         body: JSON.stringify(data),
       });
       if (res.status === 404) {
@@ -2060,10 +2067,10 @@ async function openShareModal() {
   data.createdAt = Date.now();
   trackLinkGenerated(lid);
   try {
-    const uidQ = currentUser ? '?uid=' + encodeURIComponent(currentUser.uid) : '';
-    const res = await fetch('/api/save' + uidQ, {
+    const authHeader = await _getAuthHeader();
+    const res = await fetch('/api/save', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeader },
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error('error');
@@ -2091,12 +2098,12 @@ async function refreshShareUrl() {
     maxUses: 0,
   };
 
-  const _rUidParam = currentUser ? '&uid=' + encodeURIComponent(currentUser.uid) : '';
   if (_publishedId) {
     try {
-      const res = await fetch('/api/update?id=' + encodeURIComponent(_publishedId) + _rUidParam, {
+      const authHeader = await _getAuthHeader();
+      const res = await fetch('/api/update?id=' + encodeURIComponent(_publishedId), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeader },
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error('error');
@@ -2113,10 +2120,10 @@ async function refreshShareUrl() {
   trackLinkGenerated(lid);
 
   try {
-    const uidQ = currentUser ? '?uid=' + encodeURIComponent(currentUser.uid) : '';
-    const res = await fetch('/api/save' + uidQ, {
+    const authHeader = await _getAuthHeader();
+    const res = await fetch('/api/save', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeader },
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error('error');
@@ -2163,10 +2170,10 @@ async function saveChanges() {
   };
 
   try {
-    const uidParam = currentUser ? '&uid=' + encodeURIComponent(currentUser.uid) : '';
-    const res = await fetch('/api/update?id=' + encodeURIComponent(_publishedId) + uidParam, {
+    const authHeader = await _getAuthHeader();
+    const res = await fetch('/api/update?id=' + encodeURIComponent(_publishedId), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeader },
       body: JSON.stringify(data),
     });
 
@@ -2325,23 +2332,26 @@ ${isLight ? `
 <div class="page" style="background:${bg}" id="pg"></div>
 </div>
 <script>
-var d=${JSON.stringify(data)};
+var d=${JSON.stringify(data).replace(/<\//g,'<\\/')};
 var p=d.profile,ls=d.links||[],svcs=d.services||[],feat=d.featured||{},wf=d.wafab||{};
+function e(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function su(u){if(!u||typeof u!=='string')return'';var s=u.trim().toLowerCase();if(s.startsWith('javascript:')||s.startsWith('data:')||s.startsWith('vbscript:'))return'';return u;}
 function fu(pl,u){if(!u)return'#';var t=u.trim();switch(pl){case'whatsapp':return'https://wa.me/'+t.replace(/\\D/g,'');case'instagram':return'https://instagram.com/'+t.replace('@','');case'facebook':return t.includes('facebook.com')?t:'https://facebook.com/'+t;case'tiktok':return'https://tiktok.com/@'+t.replace('@','');case'linkedin':return'https://linkedin.com/in/'+t;case'youtube':return t.includes('youtube.com')?t:'https://youtube.com/@'+t.replace('@','');case'youtube_embed':return t.startsWith('http')?t:'https://'+t;case'twitter':return'https://x.com/'+t.replace('@','');case'telegram':return'https://t.me/'+t.replace('@','');case'email':return'mailto:'+t;case'github':return'https://github.com/'+t;case'behance':return'https://behance.net/'+t;case'pinterest':return'https://pinterest.com/'+t;case'spotify':return t.includes('spotify.com')?t:'https://open.spotify.com/user/'+t;case'threads':return'https://threads.net/@'+t.replace('@','');case'substack':return t.includes('.')?t.startsWith('http')?t:'https://'+t:'https://'+t+'.substack.com';case'patreon':return'https://patreon.com/'+t;case'twitch':return'https://twitch.tv/'+t;case'snapchat':return'https://snapchat.com/add/'+t;default:return t.startsWith('http')?t:'https://'+t;}}
 function eytid(u){if(!u)return null;var m=u.match(/(?:youtu\\.be\\/|[?&]v=|\\/embed\\/)([A-Za-z0-9_-]{11})/);return m?m[1]:null;}
 function fcu(type,v){if(!v)return'#';var t=v.trim();switch(type){case'wa':return'https://wa.me/'+t.replace(/\\D/g,'');case'email':return'mailto:'+t;default:return t.startsWith('http')?t:'https://'+t;}}
 function cci(type){var m={wa:'💬',email:'✉️',link:'🔗',calendar:'📅'};return m[type]||'→'}
 var pg=document.getElementById('pg');
 var ava='';
-if(p.avatarPhoto){ava='<div class="ava"><img src="'+p.avatarPhoto+'" alt=""></div>';}else{ava='<div class="ava">'+(p.avatar||'👤')+'</div>';}
-var html='<div class="hero">'+ava+(p.tag?'<div class="badge">✦ '+p.tag+'</div>':'')+'<div class="name">'+(p.name||'')+'</div>'+(p.bio?'<div class="bio">'+p.bio+'</div>':'')+(p.location?'<div class="loc">📍 '+p.location+'</div>':'')+'</div>';
-if(feat.enabled&&feat.title){html+='<div class="feat">'+(feat.tag?'<div class="feat-tag">✦ '+feat.tag+'</div>':'')+'<div class="feat-title">'+feat.title+'</div>'+(feat.desc?'<div class="feat-desc">'+feat.desc+'</div>':'')+(feat.btnText&&feat.btnUrl?'<a class="feat-btn" href="'+feat.btnUrl+'" target="_blank" rel="noopener">'+feat.btnText+' →</a>':'')+'</div>';}
-var svcItems=svcs.filter(function(s){return s.name}).map(function(s){var cu=fcu(s.ctaType,s.ctaValue);var st=s.photo?'padding-top:0;overflow:hidden':'';return'<div class="svc" style="'+st+'">'+(s.photo?'<img src="'+s.photo+'" alt="'+s.name+'" class="svc-img">':'')+'<div class="svc-top"><div class="svc-nm">'+s.name+'</div>'+(s.price?'<div class="svc-pr">'+s.price+'</div>':'')+'</div>'+(s.desc?'<div class="svc-ds">'+s.desc+'</div>':'')+(cu!=='#'?'<a class="svc-ct" href="'+cu+'" target="_blank" rel="noopener">'+cci(s.ctaType)+' Consultar</a>':'')+'</div>';}).join('');
+var _avaSrc=(p.avatarPhoto&&/^https?:/.test(p.avatarPhoto))?p.avatarPhoto:'';
+if(_avaSrc){ava='<div class="ava"><img src="'+e(_avaSrc)+'" alt="" onerror="this.style.display=\'none\'"></div>';}else{ava='<div class="ava">'+(p.avatar||'👤')+'</div>';}
+var html='<div class="hero">'+ava+(p.tag?'<div class="badge">✦ '+e(p.tag)+'</div>':'')+'<div class="name">'+e(p.name||'')+'</div>'+(p.bio?'<div class="bio">'+e(p.bio)+'</div>':'')+(p.location?'<div class="loc">📍 '+e(p.location)+'</div>':'')+'</div>';
+if(feat.enabled&&feat.title){var _fbu=su(feat.btnUrl||'');html+='<div class="feat">'+(feat.tag?'<div class="feat-tag">✦ '+e(feat.tag)+'</div>':'')+'<div class="feat-title">'+e(feat.title)+'</div>'+(feat.desc?'<div class="feat-desc">'+e(feat.desc)+'</div>':'')+(feat.btnText&&_fbu?'<a class="feat-btn" href="'+e(_fbu)+'" target="_blank" rel="noopener">'+e(feat.btnText)+' →</a>':'')+'</div>';}
+var svcItems=svcs.filter(function(s){return s.name}).map(function(s){var cu=fcu(s.ctaType,s.ctaValue);var _spu=s.photo&&/^https?:/.test(s.photo)?s.photo:'';var _cuu=su(cu);var st=_spu?'padding-top:0;overflow:hidden':'';return'<div class="svc" style="'+st+'">'+(_spu?'<img src="'+e(_spu)+'" alt="'+e(s.name)+'" class="svc-img">':'')+'<div class="svc-top"><div class="svc-nm">'+e(s.name)+'</div>'+(s.price?'<div class="svc-pr">'+e(s.price)+'</div>':'')+'</div>'+(s.desc?'<div class="svc-ds">'+e(s.desc)+'</div>':'')+(_cuu&&_cuu!=='#'?'<a class="svc-ct" href="'+e(_cuu)+'" target="_blank" rel="noopener">'+cci(s.ctaType)+' Consultar</a>':'')+'</div>';}).join('');
 if(svcItems){html+='<div class="sec"><div class="sec-lbl">Servicios</div><div class="svcs">'+svcItems+'</div></div>';}
-var lnkItems=ls.filter(function(l){return l.url}).map(function(l){if(l.platform==='youtube_embed'){var vid=eytid(l.url);if(!vid)return'';return'<div style="padding:0 0 8px"><iframe src="https://www.youtube.com/embed/'+vid+'" frameborder="0" allowfullscreen style="width:100%;aspect-ratio:16/9;border-radius:10px;display:block"></iframe></div>';}return'<a class="lnk" href="'+fu(l.platform,l.url)+'" target="_blank" rel="noopener"><div class="lnk-ico" style="background:'+l._color+'"><i class="'+(l._fa||'fa-solid fa-link')+'"></i></div><div class="lnk-body"><span class="lnk-txt">'+(l.text||l.platform)+'</span></div><div class="lnk-arr"><i class="fa-solid fa-chevron-right"></i></div></a>';}).join('');
+var lnkItems=ls.filter(function(l){return l.url}).map(function(l){if(l.platform==='youtube_embed'){var vid=eytid(l.url);if(!vid)return'';return'<div style="padding:0 0 8px"><iframe src="https://www.youtube.com/embed/'+vid+'" frameborder="0" allowfullscreen style="width:100%;aspect-ratio:16/9;border-radius:10px;display:block"></iframe></div>';}return'<a class="lnk" href="'+e(su(fu(l.platform,l.url)))+'" target="_blank" rel="noopener"><div class="lnk-ico" style="background:'+l._color+'"><i class="'+(l._fa||'fa-solid fa-link')+'"></i></div><div class="lnk-body"><span class="lnk-txt">'+e(l.text||l.platform)+'</span></div><div class="lnk-arr"><i class="fa-solid fa-chevron-right"></i></div></a>';}).join('');
 if(lnkItems){html+='<div class="sec"><div class="sec-lbl">Contacto y redes</div><div class="links">'+lnkItems+'</div></div>';}
 html+='<div class="footer">DEVYNEST Links</div>';
-if(wf.enabled&&wf.number){var _wb=wf.number.startsWith('https://')?wf.number:'https://wa.me/'+wf.number.replace(/\\D/g,'');var _wm=wf.message?'?text='+encodeURIComponent(wf.message):'';html+='<a class="wa-fab" href="'+_wb+_wm+'" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i></a>';}
+if(wf.enabled&&wf.number){var _wb=wf.number.startsWith('https://')?wf.number:'https://wa.me/'+wf.number.replace(/\\D/g,'');var _wm=wf.message?'?text='+encodeURIComponent(wf.message):'';html+='<a class="wa-fab" href="'+e(_wb+_wm)+'" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i></a>';}
 pg.innerHTML=html;
 document.title=(p.name||'DEVYNEST Links')+' — DEVYNEST Links';
 <\/script>
@@ -2370,6 +2380,12 @@ document.title=(p.name||'DEVYNEST Links')+' — DEVYNEST Links';
 
 function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function safeUrl(url) {
+  if (!url || typeof url !== 'string') return '';
+  const s = url.trim().toLowerCase();
+  if (s.startsWith('javascript:') || s.startsWith('data:') || s.startsWith('vbscript:')) return '';
+  return url;
 }
 
 /* ═══════════════════════════════════════════
@@ -2793,12 +2809,12 @@ if (_sharedId) {
 /* — Helpers de suscripción y admin — */
 async function checkUserAccess(uid, email) {
   try {
+    const authHeader = await _getAuthHeader();
     const r = await fetch('/api/check-access', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeader },
       body: JSON.stringify({
         uid,
-        email,
         country: _country || undefined,
         ref:     _ref     || undefined,
       }),

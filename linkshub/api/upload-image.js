@@ -6,6 +6,7 @@
 // Habilitarlo: Dashboard → proyecto → Storage → Create → Blob → Connect.
 
 import { put } from '@vercel/blob';
+import { verifyFirebaseToken, extractBearerToken } from './_auth.js';
 
 // Límites por tipo (en bytes)
 const MAX_SIZES = {
@@ -16,9 +17,18 @@ const MAX_SIZES = {
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Image-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Image-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
+
+  // ── Verificar autenticación — evita uploads anónimos abusivos ────────────
+  const idToken = extractBearerToken(req);
+  if (!idToken) return res.status(401).json({ error: 'Autenticación requerida.' });
+  try {
+    await verifyFirebaseToken(idToken);
+  } catch (e) {
+    return res.status(401).json({ error: 'Token inválido o expirado.' });
+  }
 
   const imageType = req.query.type || req.headers['x-image-type'] || 'img';
   const contentType = req.headers['content-type'] || 'image/jpeg';

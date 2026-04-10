@@ -1,3 +1,6 @@
+// Solo permite acortar URLs del propio dominio — no funciona como proxy abierto.
+const ALLOWED_HOSTS = ['go.devynest.com'];
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
@@ -5,6 +8,16 @@ export default async function handler(req, res) {
 
   const { url } = req.query;
   if (!url) return res.status(400).json({ error: 'Falta el parámetro url' });
+
+  // Validar que la URL pertenece al dominio permitido
+  try {
+    const parsed = new URL(url);
+    if (!ALLOWED_HOSTS.includes(parsed.hostname)) {
+      return res.status(400).json({ error: 'URL no permitida.' });
+    }
+  } catch (_) {
+    return res.status(400).json({ error: 'URL inválida.' });
+  }
 
   try {
     const response = await fetch(

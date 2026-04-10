@@ -1,25 +1,39 @@
 // Verifica si un usuario tiene suscripción activa.
-// Admins bypasean el check de pago.
+// Admin bypass: solo via Firebase token verificado — NO se confía en email del body.
 // Registra cada usuario en el índice para el panel admin.
 // También almacena país y ref de afiliado para cross-device.
 
 import { redis } from './_redis.js';
+import { verifyFirebaseToken, extractBearerToken } from './_auth.js';
+
+function isAdminEmail(email) {
+  const adminEmail = process.env.ADMIN_EMAIL;
+  return adminEmail && email && email.toLowerCase() === adminEmail.toLowerCase();
+}
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
 
   const { uid, email, country, ref } = req.body || {};
   if (!uid) return res.status(400).json({ error: 'uid requerido' });
 
-  // ── Admin bypass ──────────────────────────────────────────────────────────
-  const adminEmail = process.env.ADMIN_EMAIL;
-  if (adminEmail && email && email.toLowerCase() === adminEmail.toLowerCase()) {
-    const pubId = await redis.get(`pub:${uid}`).catch(() => null);
-    return res.status(200).json({ active: true, isAdmin: true, pubId: pubId || null });
+  // ── Admin bypass — solo via Firebase token verificado ────────────────────
+  // El email del body YA NO otorga privilegios admin (eliminado el bypass sin credenciales).
+  const idToken = extractBearerToken(req);
+  if (idToken) {
+    try {
+      const firebaseUser = await verifyFirebaseToken(idToken);
+      if (isAdminEmail(firebaseUser?.email)) {
+        const pubId = await redis.get(`pub:${uid}`).catch(() => null);
+        return res.status(200).json({ active: true, isAdmin: true, pubId: pubId || null });
+      }
+    } catch (_) {
+      // Token inválido — continuar como usuario normal, no es error fatal
+    }
   }
 
   // ── Registrar usuario en índice (para panel admin) ────────────────────────
@@ -71,9 +85,9 @@ export default async function handler(req, res) {
     return res.status(200).json({
       active:    true,
       expiresAt: sub.expiresAt,
-      email:     sub.email,
       pubId:     pubId || null,
       country:   sub.country || country || null,
+      // email eliminado de la respuesta — no lo usa el frontend y evita fuga de datos
     });
   } catch (err) {
     console.error('[check-access] Error:', err.message);

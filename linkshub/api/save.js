@@ -1,4 +1,6 @@
+import crypto from 'crypto';
 import { redis } from './_redis.js';
+import { verifyFirebaseToken, extractBearerToken } from './_auth.js';
 
 // Las imágenes base64/blob: pueden pesar mucho y agotan la memoria Redis.
 // Se descartan data: (base64) y blob: (URL temporal de objeto local) antes de guardar.
@@ -22,19 +24,15 @@ function stripBase64Images(data) {
   return clean;
 }
 
+// IDs de 8 bytes hex (16 chars) con crypto — más seguro y difícil de enumerar
 function generateId() {
-  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let id = '';
-  for (let i = 0; i < 6; i++) {
-    id += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return id;
+  return crypto.randomBytes(5).toString('hex'); // 10 hex chars
 }
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -42,7 +40,19 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Método no permitido. Usá POST.' });
   }
 
-  const { uid } = req.query;
+  // ── Verificar autenticación ───────────────────────────────────────────────
+  const idToken = extractBearerToken(req);
+  if (!idToken) return res.status(401).json({ error: 'Autenticación requerida.' });
+
+  let firebaseUser;
+  try {
+    firebaseUser = await verifyFirebaseToken(idToken);
+  } catch (e) {
+    return res.status(401).json({ error: 'Token inválido o expirado.' });
+  }
+  // uid viene del token verificado — no del query param
+  const uid = firebaseUser.localId;
+
   const data = req.body;
 
   if (!data || typeof data !== 'object') {

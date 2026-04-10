@@ -33,6 +33,7 @@ export default async function handler(req, res) {
   const data = req.body;
 
   if (!id)   return res.status(400).json({ error: 'id requerido en query string' });
+  if (!uid)  return res.status(401).json({ error: 'uid requerido' });
   if (!data) return res.status(400).json({ error: 'body vacío' });
 
   const redisKey = `lh:${id}`;
@@ -48,6 +49,13 @@ export default async function handler(req, res) {
     if (!exists) {
       console.error(`[UPDATE] 404 — clave ${redisKey} no encontrada en Redis`);
       return res.status(404).json({ error: `ID ${id} no encontrado. Generá el link primero.` });
+    }
+
+    // ── Verificar ownership: pub:{uid} debe apuntar a este id ────────────────
+    const ownerLinkId = await redis.get(`pub:${uid}`).catch(() => null);
+    if (!ownerLinkId || ownerLinkId !== id) {
+      console.warn(`[UPDATE] Ownership check failed: uid=${uid} no es propietario de id=${id} (pub:${uid}=${ownerLinkId || 'null'})`);
+      return res.status(403).json({ error: 'No autorizado para actualizar este link.' });
     }
 
     // Leer entry actual para conservar createdAt y linkId original

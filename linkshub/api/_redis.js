@@ -21,7 +21,7 @@ function getClient() {
   }
 
   client = new Redis(url, {
-    tls: url.startsWith('rediss://') ? { rejectUnauthorized: false } : undefined,
+    tls: url.startsWith('rediss://') ? { rejectUnauthorized: true } : undefined,
     maxRetriesPerRequest: 3,
     connectTimeout: 10000,
     lazyConnect: false,

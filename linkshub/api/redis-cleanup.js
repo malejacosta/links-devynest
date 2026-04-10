@@ -2,6 +2,7 @@
 // Solo accesible con el email admin (query param ?email=...) para evitar uso no autorizado.
 
 import { redis } from './_redis.js';
+import { verifyFirebaseToken, extractBearerToken } from './_auth.js';
 
 // Escanea todas las claves que coinciden con el patrón (usa SCAN incremental, seguro en producción)
 async function scanKeys(pattern) {
@@ -15,16 +16,28 @@ async function scanKeys(pattern) {
   return keys;
 }
 
+function isAdminEmail(email) {
+  const adminEmail = process.env.ADMIN_EMAIL;
+  return adminEmail && email && email.toLowerCase() === adminEmail.toLowerCase();
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // Protección: solo admin
-  const adminEmail = process.env.ADMIN_EMAIL;
-  const email = req.query.email || req.body?.email;
-  if (!adminEmail || !email || email.toLowerCase() !== adminEmail.toLowerCase()) {
+  // Protección: solo admin via Firebase token
+  const idToken = extractBearerToken(req);
+  if (!idToken) return res.status(401).json({ error: 'Token de autenticación requerido.' });
+
+  let firebaseUser;
+  try {
+    firebaseUser = await verifyFirebaseToken(idToken);
+  } catch (e) {
+    return res.status(401).json({ error: 'Token inválido o expirado.' });
+  }
+  if (!isAdminEmail(firebaseUser?.email)) {
     return res.status(403).json({ error: 'Acceso denegado.' });
   }
 

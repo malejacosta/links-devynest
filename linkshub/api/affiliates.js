@@ -9,20 +9,35 @@
 
 import { redis } from './_redis.js';
 import { AFFILIATES } from './_config.js';
+import { verifyFirebaseToken, extractBearerToken } from './_auth.js';
+
+function isAdminEmail(email) {
+  const adminEmail = process.env.ADMIN_EMAIL;
+  return adminEmail && email && email.toLowerCase() === adminEmail.toLowerCase();
+}
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).end();
 
-  // ── Verificar admin ───────────────────────────────────────────────────────
-  const { email, ref } = req.query;
-  const adminEmail = process.env.ADMIN_EMAIL;
-  if (!adminEmail || !email || email.toLowerCase() !== adminEmail.toLowerCase()) {
+  // ── Verificar admin via Firebase token ───────────────────────────────────
+  const idToken = extractBearerToken(req);
+  if (!idToken) return res.status(401).json({ error: 'Token de autenticación requerido.' });
+
+  let firebaseUser;
+  try {
+    firebaseUser = await verifyFirebaseToken(idToken);
+  } catch (e) {
+    return res.status(401).json({ error: 'Token inválido o expirado.' });
+  }
+  if (!isAdminEmail(firebaseUser?.email)) {
     return res.status(403).json({ error: 'No autorizado' });
   }
+
+  const { ref } = req.query;
 
   try {
     if (ref) {

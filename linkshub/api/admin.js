@@ -4,30 +4,13 @@
 // El email del token debe coincidir con ADMIN_EMAIL (env var).
 
 import { redis } from './_redis.js';
+import { verifyFirebaseToken, extractBearerToken } from './_auth.js';
 
 const PLAN_SECONDS = 30 * 24 * 60 * 60; // 30 días
 
 function isAdmin(email) {
   const adminEmail = process.env.ADMIN_EMAIL;
   return adminEmail && email && email.toLowerCase() === adminEmail.toLowerCase();
-}
-
-// Verifica un Firebase ID token via la REST API de Firebase.
-// No requiere firebase-admin SDK — usa la API pública de identidad.
-async function verifyFirebaseToken(idToken) {
-  const apiKey = process.env.FIREBASE_API_KEY;
-  if (!apiKey) throw new Error('FIREBASE_API_KEY no configurado');
-  const r = await fetch(
-    `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${apiKey}`,
-    {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ idToken }),
-    }
-  );
-  const data = await r.json();
-  if (!r.ok || data.error) throw new Error('Token inválido');
-  return data.users?.[0]; // { email, localId, ... }
 }
 
 export default async function handler(req, res) {
@@ -37,8 +20,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   // ── Verificar admin via Firebase token ───────────────────────────────────
-  const authHeader = req.headers['authorization'] || '';
-  const idToken    = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const idToken = extractBearerToken(req);
 
   if (!idToken) {
     return res.status(401).json({ error: 'Token de autenticación requerido.' });
