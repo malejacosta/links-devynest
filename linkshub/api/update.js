@@ -2,6 +2,7 @@
 // El ID debe existir — nunca crea entradas nuevas.
 
 import { redis } from './_redis.js';
+import { verifyFirebaseToken, extractBearerToken } from './_auth.js';
 
 function stripBase64Images(data) {
   if (!data || typeof data !== 'object') return data;
@@ -25,16 +26,27 @@ function stripBase64Images(data) {
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { id, uid } = req.query;
+  const { id } = req.query;
   const data = req.body;
 
   if (!id)   return res.status(400).json({ error: 'id requerido en query string' });
-  if (!uid)  return res.status(401).json({ error: 'uid requerido' });
   if (!data) return res.status(400).json({ error: 'body vacío' });
+
+  // ── Verificar autenticación — uid viene del token, no del query ──────────
+  const idToken = extractBearerToken(req);
+  if (!idToken) return res.status(401).json({ error: 'Autenticación requerida.' });
+
+  let firebaseUser;
+  try {
+    firebaseUser = await verifyFirebaseToken(idToken);
+  } catch (e) {
+    return res.status(401).json({ error: 'Token inválido o expirado.' });
+  }
+  const uid = firebaseUser.localId;
 
   const redisKey = `lh:${id}`;
   console.log(`[UPDATE] id recibido del query: "${id}"`);
