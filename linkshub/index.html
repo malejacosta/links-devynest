@@ -662,6 +662,11 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
       </div>
       <button type="button" class="forgot-link" id="forgotLink" onclick="sendPasswordReset()">¿Olvidaste tu contraseña?</button>
     </div>
+    <div class="fg" id="refCodeField" style="display:none;margin-top:12px">
+      <label>Código de afiliado <span style="font-weight:400;color:var(--muted);font-size:12px">(opcional)</span></label>
+      <input type="text" id="authRefCode" class="fc" placeholder="Ej: aislan" autocomplete="off" maxlength="20" style="text-transform:lowercase">
+      <div style="font-size:11px;color:var(--muted);margin-top:5px">Si alguien te recomendó, ingresá su código aquí</div>
+    </div>
     <button class="btn btn-accent" id="authSubmitBtn" onclick="handleAuth()" style="width:100%;justify-content:center;margin-top:18px;padding:12px">Iniciar sesión</button>
     <div class="auth-divider" style="margin-top:18px"><span>o</span></div>
     <button class="btn btn-ghost" onclick="handleGoogleAuth()" style="width:100%;justify-content:center;margin-top:0;padding:11px;gap:8px">
@@ -3179,6 +3184,13 @@ function switchAuthTab(mode) {
   document.getElementById('authError').classList.remove('show');
   document.getElementById('authPassword').placeholder = mode === 'login' ? 'Tu contraseña' : 'Mínimo 6 caracteres';
   document.getElementById('forgotLink').style.display = mode === 'login' ? 'block' : 'none';
+  // Mostrar campo de afiliado solo en registro y pre-llenarlo si vino por link
+  const refField = document.getElementById('refCodeField');
+  const refInput = document.getElementById('authRefCode');
+  if (refField) {
+    refField.style.display = mode === 'register' ? '' : 'none';
+    if (mode === 'register' && _ref && !refInput.value) refInput.value = _ref;
+  }
 }
 
 function showAuthError(msg) {
@@ -3194,6 +3206,12 @@ function handleAuth() {
   const btn = document.getElementById('authSubmitBtn');
   btn.textContent = '...';
   btn.disabled = true;
+
+  // Capturar código de afiliado del campo manual (solo en registro)
+  if (_authMode === 'register') {
+    const refVal = (document.getElementById('authRefCode')?.value || '').trim().toLowerCase();
+    if (refVal) _ref = refVal;
+  }
 
   const promise = _authMode === 'login'
     ? auth.signInWithEmailAndPassword(email, pass)
@@ -3217,6 +3235,11 @@ function handleAuth() {
 }
 
 function handleGoogleAuth() {
+  // Capturar código de afiliado del campo si está visible (modo registro)
+  if (_authMode === 'register') {
+    const refVal = (document.getElementById('authRefCode')?.value || '').trim().toLowerCase();
+    if (refVal) _ref = refVal;
+  }
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithPopup(provider).catch(err => {
     if (err.code !== 'auth/popup-closed-by-user') {
