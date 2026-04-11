@@ -498,6 +498,25 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
 .admin-action.deactivate:hover{background:#dc2626;color:#fff}
 .admin-action:disabled{opacity:.4;cursor:not-allowed}
 .admin-empty{text-align:center;padding:40px;color:var(--muted);font-size:14px}
+/* ════ ADMIN TABS ════ */
+.admin-tabs{display:flex;gap:0;margin-bottom:24px;border-bottom:2px solid var(--border)}
+.admin-tab{font-size:13px;font-weight:600;padding:9px 20px;border:none;background:none;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;font-family:'Montserrat',sans-serif;transition:.15s}
+.admin-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.admin-tab:hover:not(.active){color:var(--ink)}
+/* ════ AFFILIATE CARDS ════ */
+.aff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:28px}
+.aff-card{background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.06);padding:20px 22px;border:1.5px solid var(--border)}
+.aff-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.aff-code-label{font-family:'Montserrat',sans-serif;font-size:17px;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:.5px}
+.aff-rate-badge{background:#ede9fe;color:#6d28d9;padding:4px 11px;border-radius:20px;font-size:12px;font-weight:700}
+.aff-stats{display:flex;gap:18px;margin-bottom:14px}
+.aff-stat-item{display:flex;flex-direction:column;gap:2px}
+.aff-stat-num{font-size:20px;font-weight:700;color:var(--ink);font-family:'Montserrat',sans-serif}
+.aff-stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.aff-commission-row{background:#f0fdf4;border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+.aff-commission-lbl{font-size:11px;font-weight:600;color:#065f46;text-transform:uppercase;letter-spacing:.5px}
+.aff-commission-val{font-size:15px;font-weight:800;color:#065f46;font-family:'Montserrat',sans-serif}
+.aff-commission-inactive{background:#fef2f2;border-radius:8px;padding:8px 14px;font-size:12px;color:#991b1b;text-align:center;font-weight:600}
 /* ════ EXPIRED PAGE ════ */
 .expired-overlay{position:fixed;inset:0;background:#1A1814;display:flex;align-items:center;justify-content:center;z-index:9999;padding:24px}
 .expired-box{background:#F7F5F0;border-radius:24px;padding:36px 28px;max-width:360px;width:100%;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.4)}
@@ -951,12 +970,22 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
     <div class="admin-header">
       <h1>✦ Panel Admin — DEVYNEST Links</h1>
       <div style="display:flex;gap:10px;align-items:center">
-        <button class="btn btn-ghost" onclick="adminRefresh()" id="adminRefreshBtn" style="font-size:13px">↻ Actualizar</button>
+        <button class="btn btn-ghost" id="adminRefreshBtn" onclick="adminTabRefresh()" style="font-size:13px">↻ Actualizar</button>
         <button class="btn btn-ghost" onclick="handleLogout()" style="font-size:13px">Salir ↩</button>
       </div>
     </div>
+    <!-- Tabs -->
+    <div class="admin-tabs">
+      <button class="admin-tab active" id="tabUsuarios"   onclick="switchAdminTab('usuarios')">👥 Usuarios</button>
+      <button class="admin-tab"        id="tabAfiliados"  onclick="switchAdminTab('afiliados')">🤝 Afiliados</button>
+    </div>
+    <!-- Tab: Usuarios -->
     <div id="adminTableWrap">
       <div class="admin-empty">Cargando usuarios…</div>
+    </div>
+    <!-- Tab: Afiliados -->
+    <div id="adminAffWrap" style="display:none">
+      <div class="admin-empty">Cargando afiliados…</div>
     </div>
   </div>
 </div>
@@ -2897,12 +2926,134 @@ async function adminAction(action, targetUid, btn) {
   }
 }
 
+/* ── Tab switcher ─────────────────────────────────────────────────────── */
+let _adminActiveTab = 'usuarios';
+
+function switchAdminTab(tab) {
+  _adminActiveTab = tab;
+  document.getElementById('adminTableWrap').style.display = tab === 'usuarios'   ? '' : 'none';
+  document.getElementById('adminAffWrap').style.display   = tab === 'afiliados'  ? '' : 'none';
+  document.getElementById('tabUsuarios').classList.toggle('active',  tab === 'usuarios');
+  document.getElementById('tabAfiliados').classList.toggle('active', tab === 'afiliados');
+  if (tab === 'usuarios')  adminRefresh();
+  if (tab === 'afiliados') affiliatesRefresh();
+}
+
+function adminTabRefresh() {
+  if (_adminActiveTab === 'afiliados') affiliatesRefresh();
+  else adminRefresh();
+}
+
+/* ── Panel de afiliados ───────────────────────────────────────────────── */
+async function affiliatesRefresh() {
+  if (!currentUser) return;
+  const wrap = document.getElementById('adminAffWrap');
+  const btn  = document.getElementById('adminRefreshBtn');
+  btn.disabled = true;
+  wrap.innerHTML = '<div class="admin-empty">Cargando afiliados…</div>';
+
+  try {
+    const token = await currentUser.getIdToken();
+    const r = await fetch('/api/affiliates', {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    const data = await r.json();
+
+    if (data.error) {
+      wrap.innerHTML = `<div class="admin-empty">Error: ${esc(data.error)}</div>`;
+      return;
+    }
+
+    const { affiliates } = data;
+    if (!affiliates || affiliates.length === 0) {
+      wrap.innerHTML = '<div class="admin-empty">No hay afiliados configurados.</div>';
+      return;
+    }
+
+    const fmt      = iso => iso ? new Date(iso).toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric' }) : '—';
+    const fmtMoney = (n, cur) => n != null ? `${cur === 'BRL' ? 'R$' : '$'}${Number(n).toLocaleString('es-AR', { minimumFractionDigits:2, maximumFractionDigits:2 })}` : '—';
+
+    // ── Tarjetas resumen por afiliado ──────────────────────────────────
+    const cards = affiliates.map(aff => {
+      const s = aff.summary;
+      const currencies = Object.entries(s.byCurrency || {});
+
+      const commissionLines = currencies.length
+        ? currencies.map(([cur, c]) => `
+            <div class="aff-commission-row" style="margin-bottom:${currencies.length > 1 ? '6px' : '0'}">
+              <span class="aff-commission-lbl">Comisión a pagar (${cur})</span>
+              <span class="aff-commission-val">${fmtMoney(c.commissionDue, cur)}</span>
+            </div>`).join('')
+        : `<div class="aff-commission-inactive">Sin usuarios activos este mes</div>`;
+
+      return `
+        <div class="aff-card">
+          <div class="aff-card-top">
+            <span class="aff-code-label">${esc(aff.code)}</span>
+            <span class="aff-rate-badge">${Math.round(aff.commissionRate * 100)}% comisión</span>
+          </div>
+          <div class="aff-stats">
+            <div class="aff-stat-item">
+              <span class="aff-stat-num" style="color:#065f46">${s.activeUsers}</span>
+              <span class="aff-stat-lbl">Activos</span>
+            </div>
+            <div class="aff-stat-item">
+              <span class="aff-stat-num" style="color:#991b1b">${s.inactiveUsers}</span>
+              <span class="aff-stat-lbl">Inactivos</span>
+            </div>
+            <div class="aff-stat-item">
+              <span class="aff-stat-num">${s.totalUsers}</span>
+              <span class="aff-stat-lbl">Total</span>
+            </div>
+          </div>
+          ${commissionLines}
+        </div>`;
+    }).join('');
+
+    // ── Tabla detalle de todos los usuarios referidos ──────────────────
+    const allRows = affiliates.flatMap(aff =>
+      aff.users.map(u => `
+        <tr>
+          <td style="font-weight:500;color:var(--ink)">${esc(u.email || '—')}</td>
+          <td style="font-weight:700;text-transform:uppercase;font-size:12px;color:#6d28d9">${esc(aff.code)}</td>
+          <td><span class="${u.active ? 'badge-active' : 'badge-inactive'}">${u.active ? 'Activo' : 'Inactivo'}</span></td>
+          <td>${fmt(u.expiresAt)}</td>
+          <td>${fmt(u.activatedAt)}</td>
+          <td>${u.amount != null ? fmtMoney(u.amount, u.currency) : '—'}</td>
+          <td style="font-weight:700;color:${u.active ? '#065f46' : 'var(--muted)'}">
+            ${u.active ? fmtMoney(u.commissionDue, u.currency) : '—'}
+          </td>
+        </tr>`)
+    ).join('');
+
+    const totalUsers = affiliates.reduce((s, a) => s + a.summary.totalUsers, 0);
+
+    wrap.innerHTML = `
+      <div class="aff-grid">${cards}</div>
+      <h3 style="font-size:13px;font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px">Detalle de usuarios referidos</h3>
+      <table class="admin-table">
+        <thead><tr>
+          <th>Email</th><th>Afiliado</th><th>Estado</th>
+          <th>Vence</th><th>Último pago</th><th>Monto pagado</th><th>Comisión</th>
+        </tr></thead>
+        <tbody>${allRows || '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--muted)">Sin usuarios referidos aún</td></tr>'}</tbody>
+      </table>
+      <p style="font-size:12px;color:var(--muted);margin-top:10px;text-align:right">${totalUsers} usuario${totalUsers !== 1 ? 's' : ''} en total</p>`;
+
+  } catch (e) {
+    wrap.innerHTML = `<div class="admin-empty">Error de conexión.</div>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 function showAdminPanel() {
   document.getElementById('adminPanel').classList.add('active');
   document.getElementById('authView').classList.remove('active');
   document.getElementById('builder').style.display = 'none';
   document.getElementById('paywall').classList.remove('active');
-  adminRefresh();
+  _adminActiveTab = 'usuarios';
+  switchAdminTab('usuarios');
 }
 
 /* ═══════════════════════════════════════════

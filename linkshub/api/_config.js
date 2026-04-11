@@ -24,13 +24,17 @@ export const COUNTRIES = {
   },
 };
 
-// Afiliados: código → { discount (0–1), type ('recurring'|'months'), months? }
-// recurring : descuento aplica en cada renovación indefinidamente
-// months    : descuento aplica solo en los primeros N meses
+// Afiliados: código → configuración
+// discount    : descuento que recibe el usuario referido (0–1)
+// commission  : % del pago que cobrás al afiliado por cada usuario activo
+// type        : 'recurring' = descuento indefinido | 'months' = solo N meses
 export const AFFILIATES = {
-  aislan: { discount: 0.25, type: 'recurring' },
-  carla:  { discount: 0.20, type: 'months', months: 6 },
+  aislan: { discount: 0.25, type: 'recurring', commission: 0.30 }, // 30% de comisión
+  carla:  { discount: 0.20, type: 'months', months: 6, commission: 0.20 }, // 20%
 };
+
+// Comisión por defecto para afiliados sin valor explícito
+export const DEFAULT_COMMISSION = 0.20;
 
 export function getCountry(code) {
   return COUNTRIES[code] || COUNTRIES.UY;
