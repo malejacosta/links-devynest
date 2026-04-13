@@ -518,6 +518,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
 .admin-table tr:hover td{background:#faf8f4}
 .badge-active{background:#d1fae5;color:#065f46;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
 .badge-inactive{background:#fee2e2;color:#991b1b;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-approved{background:#ede9fe;color:#5b21b6;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
 .admin-action{font-size:12px;padding:5px 10px;border-radius:6px;border:1.5px solid;cursor:pointer;font-weight:600;font-family:'Montserrat',sans-serif;transition:.15s}
 .admin-action.activate{border-color:var(--accent);color:var(--accent);background:transparent}
 .admin-action.activate:hover{background:var(--accent);color:#fff}
@@ -3238,13 +3239,20 @@ async function adminRefresh() {
     const rows = users.map(u => `
       <tr>
         <td style="font-weight:500;color:var(--ink)">${u.email || '—'}</td>
-        <td><span class="${u.subscription.active ? 'badge-active' : 'badge-inactive'}">${u.subscription.active ? 'Activo' : 'Inactivo'}</span></td>
+        <td>
+          <span class="${u.subscription.active ? 'badge-active' : 'badge-inactive'}">${u.subscription.active ? 'Activo' : 'Inactivo'}</span>
+          ${u.manually_approved ? '<span class="badge-approved" style="margin-left:4px">✓ Aprobado</span>' : ''}
+        </td>
         <td>${u.subscription.expiresAt ? fmt(u.subscription.expiresAt) : '—'}</td>
         <td>${u.lastSeen ? fmt(u.lastSeen) : '—'}</td>
-        <td style="white-space:nowrap">
+        <td style="white-space:nowrap;display:flex;gap:4px;flex-wrap:wrap">
           ${u.subscription.active
             ? `<button class="admin-action deactivate" onclick="adminAction('deactivate','${u.uid}',this)">Desactivar</button>`
             : `<button class="admin-action activate"   onclick="adminAction('activate','${u.uid}',this)">Activar</button>`
+          }
+          ${u.manually_approved
+            ? `<button class="admin-action deactivate" onclick="adminAction('unapprove','${u.uid}',this)">Quitar acceso</button>`
+            : `<button class="admin-action" style="background:#ede9fe;color:#5b21b6" onclick="adminAction('approve','${u.uid}',this)">Dar acceso</button>`
           }
         </td>
       </tr>`).join('');

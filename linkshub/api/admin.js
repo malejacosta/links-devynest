@@ -44,9 +44,10 @@ export default async function handler(req, res) {
       const uids = await redis.smembers('users:index');
 
       const users = await Promise.all(uids.map(async (uid) => {
-        const [userRaw, subRaw] = await Promise.all([
+        const [userRaw, subRaw, approvedRaw] = await Promise.all([
           redis.get(`user:${uid}`),
           redis.get(`sub:${uid}`),
+          redis.get(`approved:${uid}`),
         ]);
 
         const userInfo = userRaw ? JSON.parse(userRaw) : { uid, email: '—' };
@@ -62,7 +63,7 @@ export default async function handler(req, res) {
           };
         }
 
-        return { ...userInfo, subscription };
+        return { ...userInfo, subscription, manually_approved: approvedRaw === '1' };
       }));
 
       // Ordenar: activos primero, luego por email
@@ -84,8 +85,8 @@ export default async function handler(req, res) {
     const { action, targetUid } = req.body || {};
 
     if (!targetUid) return res.status(400).json({ error: 'targetUid requerido' });
-    if (!['activate', 'deactivate'].includes(action)) {
-      return res.status(400).json({ error: 'action debe ser activate o deactivate' });
+    if (!['activate', 'deactivate', 'approve', 'unapprove'].includes(action)) {
+      return res.status(400).json({ error: 'action debe ser activate, deactivate, approve o unapprove' });
     }
 
     try {
@@ -112,6 +113,18 @@ export default async function handler(req, res) {
         await redis.del(`sub:${targetUid}`);
         console.log(`[admin] ❌ Desactivado: ${targetUid}`);
         return res.status(200).json({ ok: true, action: 'deactivated' });
+      }
+
+      if (action === 'approve') {
+        await redis.set(`approved:${targetUid}`, '1');
+        console.log(`[admin] ✅ Acceso manual aprobado: ${targetUid}`);
+        return res.status(200).json({ ok: true, action: 'approved' });
+      }
+
+      if (action === 'unapprove') {
+        await redis.del(`approved:${targetUid}`);
+        console.log(`[admin] ❌ Acceso manual revocado: ${targetUid}`);
+        return res.status(200).json({ ok: true, action: 'unapproved' });
       }
     } catch (err) {
       console.error('[admin] Error al ejecutar acción:', err.message);

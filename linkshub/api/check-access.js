@@ -69,12 +69,16 @@ export default async function handler(req, res) {
 
   // ── Verificar suscripción ─────────────────────────────────────────────────
   try {
-    const [raw, pubId] = await Promise.all([
+    const [raw, pubId, approved] = await Promise.all([
       redis.get(`sub:${uid}`),
       redis.get(`pub:${uid}`).catch(() => null),
+      redis.get(`approved:${uid}`).catch(() => null),
     ]);
 
     if (!raw) {
+      if (approved === '1') {
+        return res.status(200).json({ active: true, pubId: pubId || null, manually_approved: true });
+      }
       return res.status(200).json({ active: false, reason: 'no_subscription' });
     }
 
