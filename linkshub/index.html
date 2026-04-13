@@ -209,7 +209,8 @@ select.fc{cursor:pointer;appearance:none;background-image:url("data:image/svg+xm
 .svc-photo-rm{position:absolute;top:5px;right:5px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:5px;padding:2px 7px;font-size:11px;font-weight:600;cursor:pointer;z-index:1}
 
 /* ─── SERVICE CARD PUBLIC: imagen ─── */
-.pub-svc-img{width:100%;height:120px;object-fit:cover;border-radius:9px 9px 0 0;display:block;margin:-13px -14px 10px;width:calc(100% + 28px)}
+.pub-svc-img{width:100%;height:140px;object-fit:cover;border-radius:12px 12px 0 0;display:block}
+.pub-svc-body{padding:10px 14px 13px}
 
 /* ─── FEATURED CARD EDITOR ─── */
 .featured-toggle{display:flex;align-items:center;gap:10px;margin-bottom:16px}
@@ -1925,15 +1926,19 @@ function buildPageHTML(forExport) {
     }
     const ctaIcon = ctaIconLabel(s.ctaType);
     const trackId = 'svc_' + esc(s.name).replace(/\s+/g,'_').slice(0,20);
-    return `<div class="pub-service-card" style="${s.photo ? 'padding-top:0;overflow:hidden' : ''}">
-      ${s.photo ? `<img src="${safeUrl(s.photo)}" alt="${esc(s.name)}" class="pub-svc-img">` : ''}
+    const cardInner = `
       <div class="svc-top">
         <div class="svc-name">${esc(s.name)}</div>
         ${s.price ? `<div class="svc-price">${esc(s.price)}</div>` : ''}
       </div>
       ${s.desc ? `<div class="svc-desc">${esc(s.desc)}</div>` : ''}
-      ${ctaUrl !== '#' ? `<a class="svc-cta" href="${safeUrl(ctaUrl)}" target="_blank" rel="noopener" data-track="${trackId}">${ctaIcon} Consultar</a>` : ''}
-    </div>`;
+      ${ctaUrl !== '#' ? `<a class="svc-cta" href="${safeUrl(ctaUrl)}" target="_blank" rel="noopener" data-track="${trackId}">${ctaIcon} Consultar</a>` : ''}`;
+    return s.photo
+      ? `<div class="pub-service-card" style="padding:0;overflow:hidden">
+          <img src="${safeUrl(s.photo)}" alt="${esc(s.name)}" class="pub-svc-img">
+          <div class="pub-svc-body">${cardInner}</div>
+        </div>`
+      : `<div class="pub-service-card">${cardInner}</div>`;
   }).join('');
 
   const svcSection = svcItems ? `<div class="pub-section">
@@ -2631,7 +2636,8 @@ body{font-family:'Montserrat',sans-serif;min-height:100vh;background:${bg};displ
 .svc-ds{font-size:11px;color:rgba(255,255,255,.65);line-height:1.5;margin-bottom:8px}
 .svc-ct{font-size:11px;font-weight:600;color:#fff;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);border-radius:7px;padding:5px 11px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;transition:all .2s}
 .svc-ct:hover{background:rgba(255,255,255,.3)}
-.svc-img{width:calc(100% + 28px);margin:-13px -14px 10px;height:120px;object-fit:cover;border-radius:9px 9px 0 0;display:block}
+.svc-img{width:100%;height:140px;object-fit:cover;border-radius:12px 12px 0 0;display:block}
+.svc-body{padding:10px 14px 13px}
 .links{display:flex;flex-direction:column;gap:8px}
 .lnk{display:flex;align-items:center;gap:13px;padding:13px 15px;background:rgba(255,255,255,.12);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.2);border-radius:14px;text-decoration:none;color:#fff;transition:all .2s;box-shadow:0 1px 4px rgba(0,0,0,.08)}
 .lnk:hover{background:rgba(255,255,255,.22);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.15)}
@@ -2682,7 +2688,7 @@ var _avaSrc=(p.avatarPhoto&&/^https?:/.test(p.avatarPhoto))?p.avatarPhoto:'';
 if(_avaSrc){ava='<div class="ava"><img src="'+e(_avaSrc)+'" alt="" onerror="this.style.display=\'none\'"></div>';}else{ava='<div class="ava">'+(p.avatar||'👤')+'</div>';}
 var html='<div class="hero">'+ava+(p.tag?'<div class="badge">✦ '+e(p.tag)+'</div>':'')+'<div class="name">'+e(p.name||'')+'</div>'+(p.bio?'<div class="bio">'+e(p.bio)+'</div>':'')+(p.location?'<div class="loc">📍 '+e(p.location)+'</div>':'')+'</div>';
 if(feat.enabled&&feat.title){var _fbu=su(feat.btnUrl||'');html+='<div class="feat">'+(feat.tag?'<div class="feat-tag">✦ '+e(feat.tag)+'</div>':'')+'<div class="feat-title">'+e(feat.title)+'</div>'+(feat.desc?'<div class="feat-desc">'+e(feat.desc)+'</div>':'')+(feat.btnText&&_fbu?'<a class="feat-btn" href="'+e(_fbu)+'" target="_blank" rel="noopener">'+e(feat.btnText)+' →</a>':'')+'</div>';}
-var svcItems=svcs.filter(function(s){return s.name}).map(function(s){var cu=fcu(s.ctaType,s.ctaValue);var _spu=s.photo&&/^https?:/.test(s.photo)?s.photo:'';var _cuu=su(cu);var st=_spu?'padding-top:0;overflow:hidden':'';return'<div class="svc" style="'+st+'">'+(_spu?'<img src="'+e(_spu)+'" alt="'+e(s.name)+'" class="svc-img">':'')+'<div class="svc-top"><div class="svc-nm">'+e(s.name)+'</div>'+(s.price?'<div class="svc-pr">'+e(s.price)+'</div>':'')+'</div>'+(s.desc?'<div class="svc-ds">'+e(s.desc)+'</div>':'')+(_cuu&&_cuu!=='#'?'<a class="svc-ct" href="'+e(_cuu)+'" target="_blank" rel="noopener">'+cci(s.ctaType)+' Consultar</a>':'')+'</div>';}).join('');
+var svcItems=svcs.filter(function(s){return s.name}).map(function(s){var cu=fcu(s.ctaType,s.ctaValue);var _spu=s.photo&&/^https?:/.test(s.photo)?s.photo:'';var _cuu=su(cu);var _inner='<div class="svc-top"><div class="svc-nm">'+e(s.name)+'</div>'+(s.price?'<div class="svc-pr">'+e(s.price)+'</div>':'')+'</div>'+(s.desc?'<div class="svc-ds">'+e(s.desc)+'</div>':'')+(_cuu&&_cuu!=='#'?'<a class="svc-ct" href="'+e(_cuu)+'" target="_blank" rel="noopener">'+cci(s.ctaType)+' Consultar</a>':'');return _spu?'<div class="svc" style="padding:0;overflow:hidden"><img src="'+e(_spu)+'" alt="'+e(s.name)+'" class="svc-img"><div class="svc-body">'+_inner+'</div></div>':'<div class="svc">'+_inner+'</div>';}).join('');
 if(svcItems){html+='<div class="sec"><div class="sec-lbl">Servicios</div><div class="svcs">'+svcItems+'</div></div>';}
 var lnkItems=ls.filter(function(l){return l.url}).map(function(l){if(l.platform==='youtube_embed'){var vid=eytid(l.url);if(!vid)return'';return'<div style="padding:0 0 8px"><iframe src="https://www.youtube.com/embed/'+vid+'" frameborder="0" allowfullscreen style="width:100%;aspect-ratio:16/9;border-radius:10px;display:block"></iframe></div>';}return'<a class="lnk" href="'+e(su(fu(l.platform,l.url)))+'" target="_blank" rel="noopener"><div class="lnk-ico" style="background:'+l._color+'"><i class="'+(l._fa||'fa-solid fa-link')+'"></i></div><div class="lnk-body"><span class="lnk-txt">'+e(l.text||l.platform)+'</span></div><div class="lnk-arr"><i class="fa-solid fa-chevron-right"></i></div></a>';}).join('');
 if(lnkItems){html+='<div class="sec"><div class="sec-lbl">Contacto y redes</div><div class="links">'+lnkItems+'</div></div>';}
