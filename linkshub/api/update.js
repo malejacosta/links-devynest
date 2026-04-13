@@ -4,21 +4,33 @@
 import { redis } from './_redis.js';
 import { verifyFirebaseToken, extractBearerToken } from './_auth.js';
 
+function isTempUrl(str) {
+  return typeof str === 'string' && (str.startsWith('data:') || str.startsWith('blob:'));
+}
+
 function stripBase64Images(data) {
   if (!data || typeof data !== 'object') return data;
   const clean = { ...data };
   if (clean.profile) {
     clean.profile = { ...clean.profile };
-    if (typeof clean.profile.avatarPhoto === 'string' &&
-        (clean.profile.avatarPhoto.startsWith('data:') || clean.profile.avatarPhoto.startsWith('blob:'))) {
-      console.log('[UPDATE] avatarPhoto temporal eliminado (data:/blob:) para ahorrar memoria Redis');
+    if (isTempUrl(clean.profile.avatarPhoto)) {
+      console.log('[UPDATE] avatarPhoto temporal eliminado');
       clean.profile.avatarPhoto = null;
     }
-    if (typeof clean.profile.bgImage === 'string' &&
-        (clean.profile.bgImage.startsWith('data:') || clean.profile.bgImage.startsWith('blob:'))) {
-      console.log('[UPDATE] bgImage temporal eliminado (data:/blob:) para ahorrar memoria Redis');
+    if (isTempUrl(clean.profile.bgImage)) {
+      console.log('[UPDATE] bgImage temporal eliminado');
       clean.profile.bgImage = null;
     }
+  }
+  // Limpiar fotos de servicios con data:/blob: (no subidas a Vercel Blob)
+  if (Array.isArray(clean.services)) {
+    clean.services = clean.services.map(s => {
+      if (s && isTempUrl(s.photo)) {
+        console.log('[UPDATE] service.photo temporal eliminado');
+        return { ...s, photo: null };
+      }
+      return s;
+    });
   }
   return clean;
 }

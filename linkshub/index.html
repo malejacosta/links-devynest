@@ -1650,21 +1650,41 @@ function triggerSvcPhoto(id) {
   document.getElementById('svcPhotoInput-' + id)?.click();
 }
 
-function handleSvcPhoto(id, input) {
+async function handleSvcPhoto(id, input) {
   const file = input.files[0];
   if (!file) return;
   if (file.size > 1 * 1024 * 1024) { showToast('La imagen supera el límite de 1MB. Subí una versión más liviana.'); return; }
+
+  const svc = services.find(s => s.id === id);
+  if (!svc) return;
+
+  // Preview inmediato con data URL mientras se sube
   const reader = new FileReader();
   reader.onload = e => {
-    const svc = services.find(s => s.id === id);
-    if (svc) {
-      svc.photo = e.target.result;
-      const wrap = document.getElementById('svcPhoto-' + id);
-      if (wrap) wrap.innerHTML = `<img src="${svc.photo}" alt=""><button class="svc-photo-rm" onclick="removeSvcPhoto(${id})">✕</button>`;
-      updatePreview(); saveDraft();
-    }
+    svc.photo = e.target.result; // temporal data: URL para preview
+    const wrap = document.getElementById('svcPhoto-' + id);
+    if (wrap) wrap.innerHTML = `<img src="${svc.photo}" alt=""><button class="svc-photo-rm" onclick="removeSvcPhoto(${id})">✕</button>`;
+    updatePreview();
   };
   reader.readAsDataURL(file);
+
+  // Subir a Vercel Blob para URL permanente
+  _uploadInProgress++;
+  try {
+    const url = await _uploadImage(file, 'svc');
+    svc.photo = url; // reemplazar data: con URL https: permanente
+    const wrap = document.getElementById('svcPhoto-' + id);
+    if (wrap) wrap.innerHTML = `<img src="${svc.photo}" alt=""><button class="svc-photo-rm" onclick="removeSvcPhoto(${id})">✕</button>`;
+    updatePreview(); saveDraft();
+  } catch (err) {
+    showToast('No se pudo subir la imagen del servicio. Intentá de nuevo.');
+    svc.photo = null;
+    const wrap = document.getElementById('svcPhoto-' + id);
+    if (wrap) wrap.innerHTML = '<span>📷</span><span>Foto del servicio (opcional)</span>';
+    updatePreview();
+  } finally {
+    _uploadInProgress--;
+  }
 }
 
 function removeSvcPhoto(id) {
@@ -1933,9 +1953,11 @@ function buildPageHTML(forExport) {
       </div>
       ${s.desc ? `<div class="svc-desc">${esc(s.desc)}</div>` : ''}
       ${ctaUrl !== '#' ? `<a class="svc-cta" href="${safeUrl(ctaUrl)}" target="_blank" rel="noopener" data-track="${trackId}">${ctaIcon} Consultar</a>` : ''}`;
-    return s.photo
+    // En el preview del editor se permite data: URL (temporal mientras sube)
+    const photoSrc = s.photo && (s.photo.startsWith('https://') || s.photo.startsWith('data:')) ? s.photo : null;
+    return photoSrc
       ? `<div class="pub-service-card" style="padding:0;overflow:hidden">
-          <img src="${safeUrl(s.photo)}" alt="${esc(s.name)}" class="pub-svc-img">
+          <img src="${photoSrc}" alt="${esc(s.name)}" class="pub-svc-img">
           <div class="pub-svc-body">${cardInner}</div>
         </div>`
       : `<div class="pub-service-card">${cardInner}</div>`;
