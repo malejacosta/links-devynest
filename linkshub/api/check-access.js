@@ -5,6 +5,7 @@
 
 import { redis } from './_redis.js';
 import { verifyFirebaseToken, extractBearerToken } from './_auth.js';
+import { getAffiliate } from './_config.js';
 
 function isAdminEmail(email) {
   const adminEmail = process.env.ADMIN_EMAIL;
@@ -53,8 +54,8 @@ export default async function handler(req, res) {
     }
   }
 
-  // ── Guardar ref de afiliado si se envía y no existe uno previo ────────────
-  if (uid && ref) {
+  // ── Guardar ref de afiliado solo si es válido y no existe uno previo ────────
+  if (uid && ref && getAffiliate(ref)) {
     try {
       const existing = await redis.get(`ref:${uid}`).catch(() => null);
       if (!existing) {
@@ -93,6 +94,6 @@ export default async function handler(req, res) {
     });
   } catch (err) {
     console.error('[check-access] Error:', err.message);
-    return res.status(500).json({ error: 'Error al verificar acceso.', detail: err.message });
+    return res.status(500).json({ error: 'Error al verificar acceso.' });
   }
 }

@@ -7,6 +7,7 @@
 import crypto from 'crypto';
 import { redis } from './_redis.js';
 import { getAffiliate } from './_config.js';
+import { captureError } from './_sentry.js';
 
 const PLAN_SECONDS = 30 * 24 * 60 * 60; // 30 días
 
@@ -89,6 +90,13 @@ export default async function handler(req, res) {
         return res.status(200).end();
       }
 
+      // ── Idempotencia: ignorar pagos ya procesados (previene replay attacks) ─
+      const alreadyProcessed = await redis.get(`mp_paid:${paymentId}`).catch(() => null);
+      if (alreadyProcessed) {
+        console.log(`[webhook] Pago ${paymentId} ya procesado — skip replay`);
+        return res.status(200).end();
+      }
+
       // Leer afiliado registrado en el momento del pago
       const ref = await redis.get(`ref:${uid}`).catch(() => null);
       const affiliate = getAffiliate(ref);
@@ -115,10 +123,14 @@ export default async function handler(req, res) {
         await redis.sadd(`aff:${ref}:users`, uid).catch(() => null);
       }
 
+      // Marcar pago como procesado — TTL 90 días (previene replay attacks)
+      await redis.setex(`mp_paid:${paymentId}`, 90 * 24 * 60 * 60, '1').catch(() => null);
+
       console.log(`[webhook] ✅ Suscripción activada — uid: ${uid}, ref: ${ref || 'none'}, expira: ${sub.expiresAt}`);
     }
   } catch (err) {
     console.error('[webhook] Error interno:', err.message);
+    captureError(err, { endpoint: 'webhook-mp', paymentId });
     // No re-throw: MP siempre debe recibir 200
   }
 

@@ -1,17 +1,28 @@
-// Crea una orden de pago en PayPal (Brasil).
-// Retorna la URL de aprobación para redirigir al usuario.
-// Requiere env vars: PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET
-// Opcional: PAYPAL_ENV=sandbox (default: producción)
+// Crea una SUSCRIPCIÓN recurrente en PayPal (Brasil).
+// Usa la API de Billing Subscriptions (no Orders) para cobro mensual automático.
+//
+// Requiere env vars:
+//   PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET
+//   PAYPAL_PLAN_ID   → ID del plan mensual creado en el Dashboard de PayPal
+//   PAYPAL_ENV=sandbox (opcional, default: producción)
+//
+// Para crear el plan una sola vez: Dashboard PayPal → Catálogo de productos → Planes
+// Precio: R$49.00 BRL / mensual → obtenés un ID tipo P-XXXXXXXXXXXXXXXXXXXXXXXX
 
 import { redis } from './_redis.js';
-import { getCountry, getAffiliate } from './_config.js';
+import { getAffiliate } from './_config.js';
 import { verifyFirebaseToken, extractBearerToken } from './_auth.js';
+import { checkRateLimit } from './_ratelimit.js';
+import { captureError } from './_sentry.js';
 
 const ALLOWED_ORIGINS = ['https://go.devynest.com', 'https://devynest.com', 'https://www.devynest.com'];
 
 const PAYPAL_BASE = process.env.PAYPAL_ENV === 'sandbox'
   ? 'https://api-m.sandbox.paypal.com'
   : 'https://api-m.paypal.com';
+
+// TTL para el mapping subscriptionId → uid (1 año, se renueva en cada pago)
+const SUB_MAPPING_TTL = 365 * 24 * 60 * 60;
 
 async function getPayPalToken() {
   const creds = Buffer.from(
@@ -26,8 +37,7 @@ async function getPayPalToken() {
     body: 'grant_type=client_credentials',
   });
   if (!r.ok) throw new Error(`PayPal token error: HTTP ${r.status}`);
-  const d = await r.json();
-  return d.access_token;
+  return (await r.json()).access_token;
 }
 
 export default async function handler(req, res) {
@@ -39,6 +49,17 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
+
+  // Rate limiting — máx 5 intentos de pago por minuto por IP
+  const allowed = await checkRateLimit(req, 'payment');
+  if (!allowed) {
+    return res.status(429).json({ error: 'Demasiadas solicitudes. Esperá un momento e intentá de nuevo.' });
+  }
+
+  if (!process.env.PAYPAL_PLAN_ID) {
+    console.error('[create-payment-paypal] PAYPAL_PLAN_ID no configurado');
+    return res.status(500).json({ error: 'Configuración de pago incompleta. Contactá al administrador.' });
+  }
 
   const { uid: bodyUid, email, ref } = req.body || {};
 
@@ -53,8 +74,6 @@ export default async function handler(req, res) {
   }
 
   if (!uid) return res.status(400).json({ error: 'uid requerido' });
-
-  const cfg = getCountry('BR');
 
   // Registrar ref del afiliado solo si no hay uno existente (evita envenenamiento)
   if (ref && getAffiliate(ref)) {
@@ -74,63 +93,70 @@ export default async function handler(req, res) {
   try {
     const token = await getPayPalToken();
 
-    const order = {
-      intent: 'CAPTURE',
-      purchase_units: [{
-        custom_id:   uid,  // para identificar al usuario en el webhook y la captura
-        description: 'DEVYNEST Links — Plano Mensal',
-        amount: {
-          currency_code: cfg.currency,
-          value:         cfg.price.toFixed(2),
-        },
-      }],
+    // Crear suscripción recurrente (no orden one-time)
+    const subscriptionBody = {
+      plan_id:   process.env.PAYPAL_PLAN_ID,
+      custom_id: uid,   // ← clave: vuelve en todos los webhooks de esta suscripción
+      subscriber: {
+        ...(email ? { email_address: email } : {}),
+      },
       application_context: {
-        brand_name:  'DEVYNEST Links',
-        landing_page: 'BILLING',
-        user_action:  'PAY_NOW',
-        return_url:   'https://go.devynest.com/?payment=success',
-        cancel_url:   'https://go.devynest.com/?payment=failure',
+        brand_name:            'DEVYNEST Links',
+        shipping_preference:   'NO_SHIPPING',
+        user_action:           'SUBSCRIBE_NOW',
+        payment_method: {
+          payer_selected:    'PAYPAL',
+          payee_preferred:   'IMMEDIATE_PAYMENT_REQUIRED',
+        },
+        return_url: 'https://go.devynest.com/?payment=success',
+        cancel_url: 'https://go.devynest.com/?payment=failure',
       },
     };
 
-    const r = await fetch(`${PAYPAL_BASE}/v2/checkout/orders`, {
+    const r = await fetch(`${PAYPAL_BASE}/v1/billing/subscriptions`, {
       method: 'POST',
       headers: {
         Authorization:      `Bearer ${token}`,
         'Content-Type':     'application/json',
-        'PayPal-Request-Id': `devynest-${uid}-${Date.now()}`,
+        'PayPal-Request-Id': `devynest-sub-${uid}-${Date.now()}`,
+        'Prefer':            'return=representation',
       },
-      body: JSON.stringify(order),
+      body: JSON.stringify(subscriptionBody),
     });
 
     if (!r.ok) {
       const err = await r.text();
       console.error('[create-payment-paypal] Error PayPal:', r.status, err);
-      return res.status(500).json({ error: 'Error al crear orden PayPal.', detail: err });
+      return res.status(500).json({ error: 'Error al crear suscripción PayPal.', detail: err });
     }
 
     const data = await r.json();
     const approveLink = data.links?.find(l => l.rel === 'approve')?.href;
 
     if (!approveLink) {
+      console.error('[create-payment-paypal] No se obtuvo URL de aprobación:', JSON.stringify(data));
       return res.status(500).json({ error: 'No se obtuvo URL de aprobación de PayPal.' });
     }
 
-    // Guardar orderId → uid para captura posterior (TTL 1h)
-    try {
-      await redis.setex(`pp_order:${data.id}`, 3600, uid);
-    } catch (e) {
-      console.warn('[create-payment-paypal] No se pudo guardar order mapping:', e.message);
+    // Guardar subscriptionId → uid para que el webhook pueda identificar al usuario
+    if (data.id) {
+      try {
+        await redis.setex(`pp_sub:${data.id}`, SUB_MAPPING_TTL, uid);
+        console.log(`[create-payment-paypal] Mapping guardado: pp_sub:${data.id} → ${uid}`);
+      } catch (e) {
+        console.warn('[create-payment-paypal] No se pudo guardar sub mapping:', e.message);
+      }
     }
 
-    console.log(`[create-payment-paypal] Orden creada — id: ${data.id}, uid: ${uid}`);
+    console.log(`[create-payment-paypal] Suscripción creada — id: ${data.id}, uid: ${uid}`);
 
     return res.status(200).json({
-      checkoutUrl: approveLink,
-      orderId:     data.id,
+      checkoutUrl:    approveLink,
+      subscriptionId: data.id,
     });
   } catch (err) {
     console.error('[create-payment-paypal] Error:', err.message);
-    return res.status(500).json({ error: 'Error interno.', detail: err.message });
+    captureError(err, { endpoint: 'create-payment-paypal', uid });
+    return res.status(500).json({ error: 'Error interno.' });
   }
 }

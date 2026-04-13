@@ -74,7 +74,7 @@ export default async function handler(req, res) {
     } while (true);
   } catch (err) {
     console.error('[save] Error al verificar ID:', err.message);
-    return res.status(500).json({ error: 'Error de conexión con Redis.', detail: err.message });
+    return res.status(500).json({ error: 'Error de conexión con Redis.', detail: undefined });
   }
 
   const cleanData = stripBase64Images(data);
@@ -101,8 +101,34 @@ export default async function handler(req, res) {
     console.log(`[SAVE] OK — clave escrita: ${redisKey}`);
   } catch (err) {
     console.error('[SAVE] Error al guardar:', err.message);
-    return res.status(500).json({ error: 'Error al guardar en Redis.', detail: err.message });
+    return res.status(500).json({ error: 'Error al guardar en Redis.' });
   }
 
-  return res.status(200).json({ id, url: `/api/get?id=${id}` });
+  // ── Registrar slug personalizado si fue enviado ─────────────────────────
+  const rawSlug = (cleanData?.profile?.slug || '').trim().toLowerCase();
+  const SLUG_REGEX = /^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$|^[a-z0-9]{3,30}$/;
+  let registeredSlug = null;  // solo se devuelve si el slug fue efectivamente registrado
+  if (rawSlug && SLUG_REGEX.test(rawSlug)) {
+    try {
+      // Limpiar slug anterior del usuario
+      const oldSlug = await redis.get(`uid_slug:${uid}`).catch(() => null);
+      if (oldSlug && oldSlug !== rawSlug) {
+        await redis.del(`slug:${oldSlug}`).catch(() => null);
+      }
+      // Registrar nuevo slug (solo si está libre o ya le pertenece)
+      const existingSlugOwner = await redis.get(`slug:${rawSlug}`).catch(() => null);
+      if (!existingSlugOwner || existingSlugOwner === id) {
+        await redis.set(`slug:${rawSlug}`, id);
+        await redis.set(`uid_slug:${uid}`, rawSlug);
+        registeredSlug = rawSlug;
+        console.log(`[SAVE] Slug registrado: ${rawSlug} → ${id}`);
+      } else {
+        console.warn(`[SAVE] Slug "${rawSlug}" ya está tomado por otro usuario — se usará solo el ID hex`);
+      }
+    } catch (e) {
+      console.warn('[SAVE] Error al registrar slug:', e.message);
+    }
+  }
+
+  return res.status(200).json({ id, slug: registeredSlug, url: `/api/get?id=${id}` });
 }

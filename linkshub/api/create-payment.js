@@ -5,6 +5,8 @@
 import { redis } from './_redis.js';
 import { getCountry, getAffiliate } from './_config.js';
 import { verifyFirebaseToken, extractBearerToken } from './_auth.js';
+import { checkRateLimit } from './_ratelimit.js';
+import { captureError } from './_sentry.js';
 
 // Orígenes permitidos: la app y la web de venta
 const ALLOWED_ORIGINS = ['https://go.devynest.com', 'https://devynest.com', 'https://www.devynest.com'];
@@ -18,6 +20,12 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
+
+  // Rate limiting — máx 5 intentos de pago por minuto por IP
+  const allowed = await checkRateLimit(req, 'payment');
+  if (!allowed) {
+    return res.status(429).json({ error: 'Demasiadas solicitudes. Esperá un momento e intentá de nuevo.' });
+  }
 
   const { uid: bodyUid, email, country = 'UY', ref } = req.body || {};
 
@@ -101,6 +109,7 @@ export default async function handler(req, res) {
     });
   } catch (err) {
     console.error('[create-payment] Error:', err.message);
-    return res.status(500).json({ error: 'Error interno.', detail: err.message });
+    captureError(err, { endpoint: 'create-payment', uid });
+    return res.status(500).json({ error: 'Error interno.' });
   }
 }

@@ -20,7 +20,21 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Falta el parámetro id.' });
   }
 
-  const redisKey = `lh:${id}`;
+  // Resolver: si es hex → uso directo. Si es slug (letras/guiones) → buscar en Redis.
+  let resolvedId = id;
+  if (/^[a-f0-9]{10}$/.test(id)) {
+    resolvedId = id;
+  } else if (/^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$|^[a-z0-9]{3,30}$/.test(id)) {
+    const slugTarget = await redis.get(`slug:${id.toLowerCase()}`).catch(() => null);
+    if (!slugTarget) {
+      return res.status(404).json({ error: 'No se encontró ningún dato con ese ID.' });
+    }
+    resolvedId = slugTarget;
+  } else {
+    return res.status(400).json({ error: 'ID inválido.' });
+  }
+
+  const redisKey = `lh:${resolvedId}`;
   console.log(`[GET] id recibido del query: "${id}"`);
   console.log(`[GET] REDIS READ KEY: ${redisKey}`);
 
@@ -30,7 +44,7 @@ export default async function handler(req, res) {
     console.log(`[GET] ¿encontrado en Redis? → ${raw !== null}`);
   } catch (err) {
     console.error('[GET] Error al leer Redis:', err.message);
-    return res.status(500).json({ error: 'Error de conexión con Redis.', detail: err.message });
+    return res.status(500).json({ error: 'Error de conexión con Redis.' });
   }
 
   if (!raw) {
@@ -48,5 +62,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Error al procesar los datos guardados.' });
   }
 
-  return res.status(200).json(entry);
+  // Incluir el id resuelto (hex) para que el frontend lo use en analytics
+  return res.status(200).json({ ...entry, _id: resolvedId });
 }

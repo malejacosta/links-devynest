@@ -36,6 +36,11 @@ export default async function handler(req, res) {
   if (!id)   return res.status(400).json({ error: 'id requerido en query string' });
   if (!data) return res.status(400).json({ error: 'body vacío' });
 
+  // Validar formato: solo IDs generados internamente (10 caracteres hex)
+  if (!/^[a-f0-9]{10}$/.test(id)) {
+    return res.status(400).json({ error: 'ID inválido.' });
+  }
+
   // ── Verificar autenticación — uid viene del token, no del query ──────────
   const idToken = extractBearerToken(req);
   if (!idToken) return res.status(401).json({ error: 'Autenticación requerida.' });
@@ -106,9 +111,46 @@ export default async function handler(req, res) {
       console.log(`[UPDATE] pub:${uid} → ${id}`);
     }
 
-    return res.status(200).json({ ok: true, id });
+    // ── Actualizar slug si fue enviado ──────────────────────────────────────
+    const rawSlug = (mergedData?.profile?.slug || '').trim().toLowerCase();
+    const SLUG_REGEX = /^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$|^[a-z0-9]{3,30}$/;
+    let registeredSlug = null;  // solo se devuelve si el slug fue efectivamente registrado
+    if (rawSlug && SLUG_REGEX.test(rawSlug)) {
+      try {
+        const oldSlug = await redis.get(`uid_slug:${uid}`).catch(() => null);
+        if (oldSlug && oldSlug !== rawSlug) {
+          await redis.del(`slug:${oldSlug}`).catch(() => null);
+        }
+        const existingSlugOwner = await redis.get(`slug:${rawSlug}`).catch(() => null);
+        if (!existingSlugOwner || existingSlugOwner === id) {
+          await redis.set(`slug:${rawSlug}`, id);
+          await redis.set(`uid_slug:${uid}`, rawSlug);
+          registeredSlug = rawSlug;
+          console.log(`[UPDATE] Slug actualizado: ${rawSlug} → ${id}`);
+        } else {
+          // Slug tomado por otro usuario — devolver el slug actual del dueño si tiene uno
+          const ownCurrentSlug = await redis.get(`uid_slug:${uid}`).catch(() => null);
+          registeredSlug = ownCurrentSlug || null;
+          console.warn(`[UPDATE] Slug "${rawSlug}" tomado por otro. Slug actual del usuario: ${registeredSlug || 'ninguno'}`);
+        }
+      } catch (e) {
+        console.warn('[UPDATE] Error al actualizar slug:', e.message);
+      }
+    } else if (!rawSlug) {
+      // Si se borra el slug, limpiar el registro
+      try {
+        const oldSlug = await redis.get(`uid_slug:${uid}`).catch(() => null);
+        if (oldSlug) {
+          await redis.del(`slug:${oldSlug}`).catch(() => null);
+          await redis.del(`uid_slug:${uid}`).catch(() => null);
+          console.log(`[UPDATE] Slug removido: ${oldSlug}`);
+        }
+      } catch (_) {}
+    }
+
+    return res.status(200).json({ ok: true, id, slug: registeredSlug });
   } catch (err) {
     console.error('[UPDATE] Error:', err.message);
-    return res.status(500).json({ error: 'Error al actualizar en Redis.', detail: err.message });
+    return res.status(500).json({ error: 'Error al actualizar en Redis.' });
   }
 }

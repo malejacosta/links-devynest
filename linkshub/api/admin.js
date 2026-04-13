@@ -75,7 +75,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ users });
     } catch (err) {
       console.error('[admin] Error al listar:', err.message);
-      return res.status(500).json({ error: 'Error al obtener usuarios.', detail: err.message });
+      return res.status(500).json({ error: 'Error al obtener usuarios.', detail: undefined });
     }
   }
 
@@ -115,7 +115,7 @@ export default async function handler(req, res) {
       }
     } catch (err) {
       console.error('[admin] Error al ejecutar acción:', err.message);
-      return res.status(500).json({ error: 'Error al ejecutar acción.', detail: err.message });
+      return res.status(500).json({ error: 'Error al ejecutar acción.', detail: undefined });
     }
   }
 

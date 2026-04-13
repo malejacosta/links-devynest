@@ -383,6 +383,32 @@ select.fc{cursor:pointer;appearance:none;background-image:url("data:image/svg+xm
 .pub-footer{font-size:10px;color:rgba(255,255,255,.3);font-family:'Montserrat',sans-serif;letter-spacing:1.2px;text-align:center;padding:18px 0 16px}
 .pub-page.theme-light .pub-footer{color:var(--muted)}
 
+/* ── Testimonios ── */
+.pub-testimonials{display:flex;flex-direction:column;gap:9px}
+.pub-testimonial{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:14px 16px}
+.pub-testimonial-text{font-size:13px;line-height:1.65;color:rgba(255,255,255,.82);font-style:italic}
+.pub-testimonial-text::before{content:'"';font-size:18px;line-height:0;vertical-align:-.35em;margin-right:2px;opacity:.6}
+.pub-testimonial-text::after{content:'"';font-size:18px;line-height:0;vertical-align:-.35em;margin-left:2px;opacity:.6}
+.pub-testimonial-author{font-size:11px;font-weight:700;color:rgba(255,255,255,.55);margin-top:8px;letter-spacing:.3px}
+.pub-testimonial-role{font-size:11px;color:rgba(255,255,255,.35);margin-top:1px}
+.pub-page.theme-light .pub-testimonial{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.07)}
+.pub-page.theme-light .pub-testimonial-text{color:rgba(0,0,0,.72)}
+.pub-page.theme-light .pub-testimonial-author{color:rgba(0,0,0,.5)}
+.pub-page.theme-light .pub-testimonial-role{color:rgba(0,0,0,.35)}
+
+/* ── Cupos / deadline en destacado ── */
+.pub-feat-meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;margin-bottom:2px}
+.pub-feat-slots{display:inline-flex;align-items:center;gap:5px;background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.3);border-radius:20px;padding:4px 11px;font-size:11px;font-weight:700;color:#f59e0b}
+.pub-feat-deadline{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:4px 11px;font-size:11px;font-weight:600;color:rgba(255,255,255,.7)}
+.pub-page.theme-light .pub-feat-deadline{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.1);color:rgba(0,0,0,.55)}
+
+/* ── Slug status ── */
+#slugStatus{font-size:11px;margin-top:5px;transition:color .2s}
+#slugStatus.ok{color:#16a34a}
+#slugStatus.error{color:#dc2626}
+#slugStatus.checking{color:#ca8a04}
+.slug-prefix{font-size:12px;color:var(--muted);white-space:nowrap;background:#f5f0e8;border:1.5px solid var(--border);border-right:none;border-radius:8px 0 0 8px;padding:0 8px;display:flex;align-items:center;height:40px;flex-shrink:0}
+
 /* ═══════════════════════════════════════════
    MODAL
 ═══════════════════════════════════════════ */
@@ -720,6 +746,7 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
         <button class="tab-btn" onclick="switchTab('destacado',this)">· Destacado</button>
         <button class="tab-btn" onclick="switchTab('servicios',this)">· Servicios</button>
         <button class="tab-btn" onclick="switchTab('links',this)">· Links</button>
+        <button class="tab-btn" onclick="switchTab('testimonios',this)">· Testimonios</button>
         <button class="tab-btn" onclick="switchTab('estadisticas',this);renderStats()">· Stats</button>
       </div>
 
@@ -767,6 +794,16 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
             <div class="fg">
               <label>Ciudad / ubicación</label>
               <input type="text" id="profileLocation" class="fc" placeholder="Ej: Buenos Aires, Argentina" oninput="updatePreview()" maxlength="40">
+            </div>
+
+            <div class="fg">
+              <label>URL personalizada <span style="font-weight:400;color:var(--muted);font-size:11px">(opcional)</span></label>
+              <div style="display:flex;align-items:stretch">
+                <span class="slug-prefix">go.devynest.com/</span>
+                <input type="text" id="profileSlug" class="fc" placeholder="tu-nombre" oninput="onSlugInput(this.value)" maxlength="30" style="border-radius:0 8px 8px 0;text-transform:lowercase;flex:1">
+              </div>
+              <div id="slugStatus"></div>
+              <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5">Solo letras minúsculas, números y guiones. Ej: <strong>maria-garcia</strong></div>
             </div>
           </div>
         </div>
@@ -872,6 +909,18 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
                   <input type="text" id="featBtnUrl" class="fc" placeholder="https://..." oninput="updatePreview()">
                 </div>
               </div>
+              <div class="form-row" style="margin-top:14px">
+                <div class="fg" style="margin-bottom:0">
+                  <label>Cupos disponibles <span style="font-weight:400;color:var(--muted);font-size:11px">(opcional)</span></label>
+                  <input type="number" id="featSlots" class="fc" placeholder="Ej: 5" min="0" max="999" oninput="updatePreview()">
+                  <div style="font-size:11px;color:var(--muted);margin-top:3px">Muestra "Quedan X lugares" en tu página</div>
+                </div>
+                <div class="fg" style="margin-bottom:0">
+                  <label>Fecha límite <span style="font-weight:400;color:var(--muted);font-size:11px">(opcional)</span></label>
+                  <input type="date" id="featDeadline" class="fc" oninput="updatePreview()">
+                  <div style="font-size:11px;color:var(--muted);margin-top:3px">Muestra un contador regresivo</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -884,6 +933,20 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
           <div class="panel-bd">
             <div id="servicesContainer"></div>
             <button class="add-link-btn" onclick="addService()">+ Agregar servicio</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: TESTIMONIOS -->
+      <div id="tab-testimonios" class="tab-content">
+        <div class="panel">
+          <div class="panel-hd"><h3>💬 Testimonios</h3><span style="font-size:12px;color:var(--muted)">Lo que dicen tus clientes</span></div>
+          <div class="panel-bd">
+            <div style="font-size:12px;color:var(--muted);background:#f5f0e8;border-radius:8px;padding:10px 12px;margin-bottom:14px;line-height:1.5">
+              ✦ Agregá reseñas de clientes reales. Aparecen debajo de tus servicios y generan confianza instantánea.
+            </div>
+            <div id="testimonialsContainer"></div>
+            <button class="add-link-btn" onclick="addTestimonial()">+ Agregar testimonio</button>
           </div>
         </div>
       </div>
@@ -1137,7 +1200,10 @@ let profileData = {
   bgImage: null,
   bgOverlay: 30,
 };
-let links = [], services = [], linkId = 0, serviceId = 0;
+let links = [], services = [], testimonials = [], linkId = 0, serviceId = 0, testimonialId = 0;
+let _slugStatus = null;   // 'ok'|'error'|'checking'|null
+let _currentPubId = null; // hex id de la página pública activa (para analytics)
+let _slugDebounce = null; // timer para debounce del check de slug
 
 const emojis = ['🫧','🌙','⚡','🪷','🦋','🌊','🍂','🪐','💫','🌿','🔮','🎯','🦚','🌸','🫶','✦','🪞','🐚','🌺','🍃','🪸','🌾','🫐','🦩'];
 
@@ -1566,8 +1632,15 @@ function _renderServiceItem(svc) {
     </div>
     <div class="fg"><label>Descripción breve</label><textarea class="fc" placeholder="Qué incluye, para quién es..." oninput="updateSvc(${svc.id},'desc',this.value)" style="min-height:60px">${svc.desc}</textarea></div>
     <div class="service-grid">
-      <div><label>Acción del botón</label><select class="fc" onchange="updateSvc(${svc.id},'ctaType',this.value)">${ctaOpts}</select></div>
-      <div><label>Link / número / email</label><input type="text" class="fc" placeholder="URL, número o email" value="${svc.ctaValue}" oninput="updateSvc(${svc.id},'ctaValue',this.value)"></div>
+      <div><label>Acción del botón</label><select class="fc" onchange="updateSvc(${svc.id},'ctaType',this.value);_toggleWaMsg(${svc.id},this.value)">${ctaOpts}</select></div>
+      <div><label>Link / número / email</label><input type="text" class="fc" placeholder="URL, número o email" value="${svc.ctaValue||''}" oninput="updateSvc(${svc.id},'ctaValue',this.value)"></div>
+    </div>
+    <div id="waMsgField-${svc.id}" style="${(svc.ctaType||'wa')==='wa'?'':'display:none'}">
+      <div class="fg" style="margin-top:8px;margin-bottom:0">
+        <label>Mensaje de WhatsApp <span style="font-weight:400;color:var(--muted);font-size:11px">(opcional)</span></label>
+        <input type="text" class="fc" placeholder="Ej: Hola! Vi tu servicio y quiero consultar..." value="${svc.ctaMessage||''}" oninput="updateSvc(${svc.id},'ctaMessage',this.value)" maxlength="120">
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">💬 El cliente solo toca "Enviar" — mensaje pre-escrito por vos</div>
+      </div>
     </div>`;
   c.appendChild(el);
 }
@@ -1627,6 +1700,118 @@ function removeService(id) {
 function updateSvc(id, key, val) {
   const s = services.find(x=>x.id===id);
   if (s) { s[key]=val; updatePreview(); saveDraft(); }
+}
+
+function _toggleWaMsg(svcId, ctaType) {
+  const el = document.getElementById('waMsgField-' + svcId);
+  if (el) el.style.display = ctaType === 'wa' ? '' : 'none';
+}
+
+/* ═══════════════════════════════════════════
+   TESTIMONIOS
+═══════════════════════════════════════════ */
+function _renderTestimonialItem(t) {
+  const c = document.getElementById('testimonialsContainer');
+  const el = document.createElement('div');
+  el.className = 'service-item';
+  el.id = 'tmn-' + t.id;
+  el.innerHTML = `
+    <div class="service-hd">
+      <span>Testimonio #${c.children.length + 1}</span>
+      <button class="btn-danger-sm" onclick="removeTestimonial(${t.id})">Eliminar</button>
+    </div>
+    <div class="service-grid">
+      <div><label>Nombre del cliente</label><input type="text" class="fc" placeholder="Ej: María García" value="${esc(t.name||'')}" oninput="updateTestimonial(${t.id},'name',this.value)" maxlength="40"></div>
+      <div><label>Rol / empresa (opcional)</label><input type="text" class="fc" placeholder="Ej: Emprendedora" value="${esc(t.role||'')}" oninput="updateTestimonial(${t.id},'role',this.value)" maxlength="40"></div>
+    </div>
+    <div class="fg"><label>Testimonio</label><textarea class="fc" placeholder="Lo que dijo tu cliente sobre vos o tu servicio..." oninput="updateTestimonial(${t.id},'text',this.value)" style="min-height:70px" maxlength="200">${esc(t.text||'')}</textarea></div>`;
+  c.appendChild(el);
+}
+
+function addTestimonial(data) {
+  const id = testimonialId++;
+  const t = data ? { ...data, id } : { id, name:'', role:'', text:'' };
+  testimonials.push(t);
+  _renderTestimonialItem(t);
+  updatePreview();
+}
+
+function restoreTestimonial(t) {
+  const id = testimonialId++;
+  const item = { ...t, id };
+  testimonials.push(item);
+  _renderTestimonialItem(item);
+}
+
+function removeTestimonial(id) {
+  testimonials = testimonials.filter(t=>t.id!==id);
+  document.getElementById('tmn-'+id)?.remove();
+  updatePreview(); saveDraft();
+}
+
+function updateTestimonial(id, key, val) {
+  const t = testimonials.find(x=>x.id===id);
+  if (t) { t[key]=val; updatePreview(); saveDraft(); }
+}
+
+/* ═══════════════════════════════════════════
+   SLUG
+═══════════════════════════════════════════ */
+// Verifica disponibilidad del slug sin modificar estado de autoFilled
+function _checkSlugAvailability(clean) {
+  const status = document.getElementById('slugStatus');
+  if (!status) return;
+
+  if (!clean) {
+    status.textContent = '';
+    status.className = '';
+    _slugStatus = null;
+    return;
+  }
+
+  if (clean.length < 3) {
+    status.textContent = 'Mínimo 3 caracteres';
+    status.className = 'error';
+    _slugStatus = 'error';
+    return;
+  }
+
+  clearTimeout(_slugDebounce);
+  status.textContent = '⏳ Verificando…';
+  status.className = 'checking';
+  _slugStatus = 'checking';
+
+  _slugDebounce = setTimeout(async () => {
+    try {
+      const authHeader = await _getAuthHeader();
+      const r = await fetch('/api/check-slug?slug=' + encodeURIComponent(clean), { headers: authHeader });
+      const { available, reason } = await r.json();
+      if (available) {
+        status.textContent = '✓ Disponible — tu URL será go.devynest.com/' + clean;
+        status.className = 'ok';
+        _slugStatus = 'ok';
+      } else {
+        status.textContent = '✗ ' + (reason || 'No disponible');
+        status.className = 'error';
+        _slugStatus = 'error';
+      }
+    } catch (_) {
+      status.textContent = '';
+      status.className = '';
+      _slugStatus = null;
+    }
+  }, 600);
+}
+
+// Llamada desde el campo de texto (edición manual del usuario)
+function onSlugInput(val) {
+  const clean = val.toLowerCase().replace(/[^a-z0-9-]/g, '');
+  const input = document.getElementById('profileSlug');
+  if (input && input.value !== clean) input.value = clean;
+  // Marcar como editado manualmente — desactiva el auto-completado por nombre
+  if (input) input.dataset.autoFilled = 'false';
+  profileData.slug = clean || null;
+  _checkSlugAvailability(clean);
 }
 
 /* ═══════════════════════════════════════════
@@ -1706,17 +1891,40 @@ function buildPageHTML(forExport) {
 
   let featHTML = '';
   if (featured.enabled && featured.title) {
+    // Cupos
+    let slotsHTML = '';
+    if (featured.slots != null && featured.slots >= 0) {
+      slotsHTML = `<div class="pub-feat-slots">🎯 Quedan ${esc(String(featured.slots))} lugar${featured.slots !== 1 ? 'es' : ''}</div>`;
+    }
+    // Deadline countdown
+    let deadlineHTML = '';
+    if (featured.deadline) {
+      const diff = new Date(featured.deadline + 'T23:59:59') - new Date();
+      if (diff > 0) {
+        const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+        deadlineHTML = `<div class="pub-feat-deadline">⏳ ${days === 1 ? 'Cierra mañana' : `Cierra en ${days} días`}</div>`;
+      } else {
+        deadlineHTML = `<div class="pub-feat-deadline" style="color:#ef4444">⏳ Cerrado</div>`;
+      }
+    }
+    const metaHTML = (slotsHTML || deadlineHTML) ? `<div class="pub-feat-meta">${slotsHTML}${deadlineHTML}</div>` : '';
     featHTML = `<div class="pub-featured">
       ${featured.tag ? `<div class="pub-feat-tag">✦ ${esc(featured.tag)}</div>` : ''}
       <div class="pub-feat-title">${esc(featured.title)}</div>
       ${featured.desc ? `<div class="pub-feat-desc">${esc(featured.desc)}</div>` : ''}
-      ${featured.btnText && featured.btnUrl ? `<a class="pub-feat-btn" href="${safeUrl(featured.btnUrl)}" target="_blank" rel="noopener">${esc(featured.btnText)} →</a>` : ''}
+      ${metaHTML}
+      ${featured.btnText && featured.btnUrl ? `<a class="pub-feat-btn" href="${safeUrl(featured.btnUrl)}" target="_blank" rel="noopener" data-track="feat_btn">${esc(featured.btnText)} →</a>` : ''}
     </div>`;
   }
 
   const svcItems = services.filter(s=>s.name).map(s => {
-    const ctaUrl = formatCtaUrl(s.ctaType, s.ctaValue);
+    // WhatsApp: incluir mensaje pre-escrito si existe
+    let ctaUrl = formatCtaUrl(s.ctaType, s.ctaValue);
+    if (s.ctaType === 'wa' && s.ctaMessage && ctaUrl !== '#') {
+      ctaUrl = ctaUrl + '?text=' + encodeURIComponent(s.ctaMessage);
+    }
     const ctaIcon = ctaIconLabel(s.ctaType);
+    const trackId = 'svc_' + esc(s.name).replace(/\s+/g,'_').slice(0,20);
     return `<div class="pub-service-card" style="${s.photo ? 'padding-top:0;overflow:hidden' : ''}">
       ${s.photo ? `<img src="${safeUrl(s.photo)}" alt="${esc(s.name)}" class="pub-svc-img">` : ''}
       <div class="svc-top">
@@ -1724,7 +1932,7 @@ function buildPageHTML(forExport) {
         ${s.price ? `<div class="svc-price">${esc(s.price)}</div>` : ''}
       </div>
       ${s.desc ? `<div class="svc-desc">${esc(s.desc)}</div>` : ''}
-      ${ctaUrl !== '#' ? `<a class="svc-cta" href="${safeUrl(ctaUrl)}" target="_blank" rel="noopener">${ctaIcon} Consultar</a>` : ''}
+      ${ctaUrl !== '#' ? `<a class="svc-cta" href="${safeUrl(ctaUrl)}" target="_blank" rel="noopener" data-track="${trackId}">${ctaIcon} Consultar</a>` : ''}
     </div>`;
   }).join('');
 
@@ -1745,7 +1953,8 @@ function buildPageHTML(forExport) {
     }
     const href = forExport ? formatUrl(l.platform, l.url) : '#';
     const faIcon = platformFaIcons[l.platform] || 'fa-solid fa-link';
-    return `<a class="pub-link" href="${href}" target="_blank" rel="noopener" ${!forExport?'onclick="return false"':''}>
+    const trackId = 'link_' + (l.platform||'link');
+    return `<a class="pub-link" href="${href}" target="_blank" rel="noopener" data-track="${trackId}" ${!forExport?'onclick="return false"':''}>
       <div class="pub-link-icon" style="background:${plat.color}"><i class="${faIcon}"></i></div>
       <div class="pub-link-body"><span class="pub-link-text">${esc(l.text||plat.name)}</span></div>
       <div class="pub-link-arrow"><i class="fa-solid fa-chevron-right" style="font-size:9px"></i></div>
@@ -1771,6 +1980,17 @@ function buildPageHTML(forExport) {
     </div>`;
   }
 
+  // Testimonios
+  const tmnItems = testimonials.filter(t=>t.text).map(t => `
+    <div class="pub-testimonial">
+      <div class="pub-testimonial-text">${esc(t.text)}</div>
+      ${t.name ? `<div class="pub-testimonial-author">${esc(t.name)}${t.role ? ` <span class="pub-testimonial-role">· ${esc(t.role)}</span>` : ''}</div>` : ''}
+    </div>`).join('');
+  const tmnSection = tmnItems ? `<div class="pub-section">
+    <div class="pub-section-label">Testimonios</div>
+    <div class="pub-testimonials">${tmnItems}</div>
+  </div>` : '';
+
   return `
     <div class="pub-hero">
       ${avatarHTML}
@@ -1781,6 +2001,7 @@ function buildPageHTML(forExport) {
     </div>
     ${featHTML}
     ${svcSection}
+    ${tmnSection}
     ${linkSection}
     <div class="pub-footer">DEVYNEST Links</div>
     ${waFabHTML}
@@ -1788,6 +2009,8 @@ function buildPageHTML(forExport) {
 }
 
 function getFeatured() {
+  const slotsRaw = document.getElementById('featSlots')?.value;
+  const slots = slotsRaw !== '' && slotsRaw != null ? parseInt(slotsRaw) : null;
   return {
     enabled:  document.getElementById('featuredEnabled')?.checked || false,
     tag:      document.getElementById('featTag')?.value || '',
@@ -1795,6 +2018,8 @@ function getFeatured() {
     desc:     document.getElementById('featDesc')?.value || '',
     btnText:  document.getElementById('featBtnText')?.value || '',
     btnUrl:   document.getElementById('featBtnUrl')?.value || '',
+    slots:    Number.isFinite(slots) && slots >= 0 ? slots : null,
+    deadline: document.getElementById('featDeadline')?.value || '',
   };
 }
 
@@ -1815,6 +2040,34 @@ function updatePreview() {
   p.tag      = document.getElementById('profileTag')?.value || '';
   p.bio      = document.getElementById('profileBio')?.value || '';
   p.location = document.getElementById('profileLocation')?.value || '';
+
+  // Auto-completar slug con el nombre si el campo está vacío o tiene el valor anterior auto-generado
+  const slugInput = document.getElementById('profileSlug');
+  if (slugInput && (!slugInput.value || slugInput.dataset.autoFilled === 'true')) {
+    if (p.name) {
+      const autoSlug = p.name
+        .toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // quitar tildes
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .slice(0, 30);
+      if (autoSlug.length >= 3) {
+        slugInput.value = autoSlug;
+        slugInput.dataset.autoFilled = 'true'; // mantener flag para que siga actualizándose con el nombre
+        profileData.slug = autoSlug;
+        // Solo verificar disponibilidad (sin tocar el flag autoFilled)
+        _checkSlugAvailability(autoSlug);
+      }
+    } else {
+      slugInput.value = '';
+      slugInput.dataset.autoFilled = 'true';
+      profileData.slug = null;
+      const status = document.getElementById('slugStatus');
+      if (status) { status.textContent = ''; status.className = ''; }
+    }
+  }
 
   const pp = document.getElementById('previewPage');
   if (!pp) return;
@@ -1884,7 +2137,10 @@ function showUsageBadge(remaining) {
   setTimeout(() => { badge.style.transition = 'opacity .5s'; badge.style.opacity = '0'; setTimeout(() => badge.remove(), 500); }, 4500);
 }
 
-function showUserView(data) {
+function showUserView(data, pubId) {
+  // Guardar pubId para analytics de clicks
+  if (pubId) _currentPubId = pubId;
+
   // ── USAGE LIMIT ──
   // maxUses: 0 o ausente = sin límite. Solo se activa si es un número > 0 explícito.
   const linkId = data.linkId;
@@ -1899,11 +2155,12 @@ function showUserView(data) {
   document.getElementById('builder').style.display = 'none';
   document.getElementById('userView').classList.add('active');
 
-  const { profile, links: ls, services: svcs, featured, wafab } = data;
+  const { profile, links: ls, services: svcs, featured, wafab, testimonials: tmns } = data;
 
   profileData = profile || profileData;
-  links = (ls||[]).map((l,i) => ({...l, id:i}));
-  services = (svcs||[]).map((s,i) => ({...s, id:i}));
+  links        = (ls||[]).map((l,i) => ({...l, id:i}));
+  services     = (svcs||[]).map((s,i) => ({...s, id:i}));
+  testimonials = (tmns||[]).map((t,i) => ({...t, id:i}));
 
   if (featured) {
     document.getElementById('featuredEnabled').checked = featured.enabled;
@@ -1942,6 +2199,15 @@ function showUserView(data) {
 
   document.title = (profile.name||'LinksHub') + ' — LinksHub';
   document.body.style.background = profile.background;
+
+  // ── Analytics: registrar vista ──────────────────────────────────────────
+  if (_currentPubId) {
+    fetch('/api/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: _currentPubId, event: 'view' }),
+    }).catch(() => {});
+  }
   } // end doRender
 
   if (linkId && maxUses > 0) {
@@ -1961,6 +2227,21 @@ function showUserView(data) {
     doRender();
   }
 }
+
+/* ═══════════════════════════════════════════
+   ANALYTICS — CLICK TRACKING (delegación)
+═══════════════════════════════════════════ */
+document.addEventListener('click', function(e) {
+  if (!_currentPubId) return;
+  const link = e.target.closest('a[data-track]');
+  if (!link) return;
+  const target = link.getAttribute('data-track') || 'unknown';
+  fetch('/api/track', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: _currentPubId, event: 'click', target }),
+  }).catch(() => {});
+}, true);
 
 /* ═══════════════════════════════════════════
    SAVE DRAFT
@@ -2024,6 +2305,7 @@ function saveDraft() {
       profile: profileData,
       links,
       services,
+      testimonials,
       featured: getFeatured(),
       wafab: getWafab(),
     }));
@@ -2054,10 +2336,15 @@ async function openShareModal() {
   const urlBox = document.getElementById('generatedUrl');
   document.getElementById('shareModal').classList.add('active');
 
+  // Incluir slug en profileData antes de guardar
+  const slugVal = (document.getElementById('profileSlug')?.value || '').trim().toLowerCase();
+  profileData.slug = slugVal || null;
+
   const data = {
     profile: profileData,
     links,
     services,
+    testimonials,
     featured: getFeatured(),
     wafab: getWafab(),
     maxUses: 0,
@@ -2084,7 +2371,9 @@ async function openShareModal() {
         urlBox.textContent = 'Error al actualizar el link. Intentá de nuevo.';
         return;
       } else {
-        renderShortUrl('https://go.devynest.com/' + _publishedId);
+        const upRes = await res.json().catch(() => ({}));
+        const displayId = upRes.slug || _publishedId;
+        renderShortUrl('https://go.devynest.com/' + displayId);
         return;
       }
     } catch (e) {
@@ -2108,12 +2397,13 @@ async function openShareModal() {
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error('error');
-    const { id } = await res.json();
+    const { id, slug } = await res.json();
     // Guardar ID publicado para futuros updates (localStorage + variable)
     _publishedId = id;
     if (currentUser) localStorage.setItem('lh_pub_' + currentUser.uid, id);
     _showSaveBtn();
-    renderShortUrl('https://go.devynest.com/' + id);
+    // Mostrar slug si fue registrado, sino el hex id
+    renderShortUrl('https://go.devynest.com/' + (slug || id));
   } catch (e) {
     urlBox.textContent = 'Error al generar el link. Intentá de nuevo.';
   }
@@ -2123,10 +2413,14 @@ async function refreshShareUrl() {
   document.getElementById('generatedUrl').textContent = 'Actualizando link…';
   document.getElementById('qrcode').innerHTML = '';
 
+  const slugVal = (document.getElementById('profileSlug')?.value || '').trim().toLowerCase();
+  profileData.slug = slugVal || null;
+
   const data = {
     profile: profileData,
     links,
     services,
+    testimonials,
     featured: getFeatured(),
     wafab: getWafab(),
     maxUses: 0,
@@ -2141,7 +2435,9 @@ async function refreshShareUrl() {
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error('error');
-      renderShortUrl('https://go.devynest.com/' + _publishedId);
+      const upRes = await res.json().catch(() => ({}));
+      const displayId = upRes.slug || _publishedId;
+      renderShortUrl('https://go.devynest.com/' + displayId);
     } catch (e) {
       document.getElementById('generatedUrl').textContent = 'Error al actualizar el link.';
     }
@@ -2161,12 +2457,11 @@ async function refreshShareUrl() {
       body: JSON.stringify(data),
     });
     if (!res.ok) throw new Error('error');
-    const { id } = await res.json();
+    const { id, slug } = await res.json();
     _publishedId = id;
     if (currentUser) localStorage.setItem('lh_pub_' + currentUser.uid, id);
     _showSaveBtn();
-    const shortUrl = 'https://go.devynest.com/' + id;
-    renderShortUrl(shortUrl);
+    renderShortUrl('https://go.devynest.com/' + (slug || id));
   } catch (e) {
     document.getElementById('generatedUrl').textContent = 'Error al generar el link.';
   }
@@ -2194,10 +2489,14 @@ async function saveChanges() {
   btn.classList.add('saving');
   btn.textContent = '⏳ Guardando…';
 
+  const slugVal = (document.getElementById('profileSlug')?.value || '').trim().toLowerCase();
+  profileData.slug = slugVal || null;
+
   const data = {
     profile: profileData,
     links,
     services,
+    testimonials,
     featured: getFeatured(),
     wafab: getWafab(),
     maxUses: 0,
@@ -2694,49 +2993,71 @@ function trackLinkGenerated(linkId) {
   } catch(e) {}
 }
 
-function renderStats() {
+async function renderStats() {
   const container = document.getElementById('statsContainer');
   if (!container) return;
+  container.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Cargando estadísticas…</div>';
+
+  // Intentar obtener datos reales del servidor
   try {
-    const key = 'linkshub_stats' + (currentUser ? '_' + currentUser.uid : '');
-    const stats = JSON.parse(localStorage.getItem(key) || '[]');
-    if (!stats.length) {
+    if (!currentUser) throw new Error('no user');
+    const token = await currentUser.getIdToken();
+    const r = await fetch('/api/stats', { headers: { Authorization: 'Bearer ' + token } });
+    if (!r.ok) throw new Error('api error');
+    const { views, clicks, pubId } = await r.json();
+
+    if (!pubId) {
       container.innerHTML = '<div style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;line-height:1.6">Aún no generaste ningún link.<br>Hacé clic en <strong>✦ Generar mi link</strong> para empezar.</div>';
       return;
     }
-    let totalViews = 0;
-    const rows = stats.map(s => {
-      const views = parseInt(localStorage.getItem('lh_views_' + s.linkId) || '0');
-      totalViews += views;
-      const date = new Date(s.createdAt).toLocaleDateString('es-AR', { day:'2-digit', month:'short', year:'numeric' });
-      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
-        <div>
-          <div style="font-size:13px;font-weight:600;color:var(--ink)">${esc(s.name)}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px">${date}</div>
-        </div>
-        <div style="text-align:right;flex-shrink:0;margin-left:12px">
-          <div style="font-size:18px;font-weight:700;color:var(--accent)">${views}</div>
-          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">vistas</div>
-        </div>
-      </div>`;
-    }).join('');
+
+    const clicksHtml = clicks.length ? clicks.map(c => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)">
+        <div style="font-size:13px;color:var(--ink)">${esc(c.target.replace(/_/g,' '))}</div>
+        <div style="font-size:16px;font-weight:700;color:var(--accent)">${c.count} <span style="font-size:10px;color:var(--muted);font-weight:400">clics</span></div>
+      </div>`).join('') : '<div style="font-size:12px;color:var(--muted);padding:10px 0">Aún no hay clics registrados.</div>';
+
     container.innerHTML = `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">
         <div style="background:#f5f0e8;border-radius:10px;padding:14px;text-align:center">
-          <div style="font-size:26px;font-weight:700;color:var(--ink)">${stats.length}</div>
-          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px">Links generados</div>
+          <div style="font-size:30px;font-weight:700;color:var(--ink)">${views}</div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px">Visitas totales</div>
         </div>
         <div style="background:#fdf0e8;border-radius:10px;padding:14px;text-align:center">
-          <div style="font-size:26px;font-weight:700;color:var(--accent)">${totalViews}</div>
-          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px">Vistas totales</div>
+          <div style="font-size:30px;font-weight:700;color:var(--accent)">${clicks.reduce((a,c)=>a+c.count,0)}</div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px">Clics totales</div>
         </div>
       </div>
-      ${rows}
+      ${clicks.length ? `<div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Clics por botón</div>${clicksHtml}` : clicksHtml}
       <div style="font-size:11px;color:var(--muted);margin-top:14px;line-height:1.6;background:#f5f0e8;border-radius:8px;padding:10px 12px">
-        💡 Las vistas se registran en este navegador. Para estadísticas cross-device usá un acortador como bit.ly.
+        ✦ Estadísticas reales — se actualizan con cada visita a tu página desde cualquier dispositivo.
       </div>`;
-  } catch(e) {
-    container.innerHTML = '<div style="color:var(--muted);font-size:13px">No se pudieron cargar las estadísticas.</div>';
+  } catch(_) {
+    // Fallback a localStorage si el servidor no responde
+    try {
+      const key = 'linkshub_stats' + (currentUser ? '_' + currentUser.uid : '');
+      const stats = JSON.parse(localStorage.getItem(key) || '[]');
+      if (!stats.length) {
+        container.innerHTML = '<div style="text-align:center;padding:32px 16px;color:var(--muted);font-size:13px;line-height:1.6">Aún no generaste ningún link.</div>';
+        return;
+      }
+      let totalViews = 0;
+      const rows = stats.map(s => {
+        const views = parseInt(localStorage.getItem('lh_views_' + s.linkId) || '0');
+        totalViews += views;
+        return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+          <div style="font-size:13px;font-weight:600;color:var(--ink)">${esc(s.name)}</div>
+          <div style="font-size:18px;font-weight:700;color:var(--accent)">${views}</div>
+        </div>`;
+      }).join('');
+      container.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">
+        <div style="background:#f5f0e8;border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:26px;font-weight:700;color:var(--ink)">${totalViews}</div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px">Vistas (local)</div>
+        </div></div>${rows}`;
+    } catch(e2) {
+      container.innerHTML = '<div style="color:var(--muted);font-size:13px">No se pudieron cargar las estadísticas.</div>';
+    }
   }
 }
 
@@ -2832,7 +3153,7 @@ if (_sharedId) {
   _isSharedView = true; // bloquea el flujo de auth antes del fetch
   fetch('/api/get?id=' + encodeURIComponent(_sharedId))
     .then(r => { if (!r.ok) throw new Error('not found'); return r.json(); })
-    .then(entry => { showUserView(entry.data); })
+    .then(entry => { showUserView(entry.data, entry._id); })
     .catch(() => {
       _isSharedView = false; // ID inválido: volver al flujo normal de auth
     });
@@ -3120,25 +3441,33 @@ auth.onAuthStateChanged(async user => {
     const lbl = document.getElementById('userEmailLabel');
     if (lbl) lbl.textContent = user.email || user.displayName || 'Usuario';
 
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams     = new URLSearchParams(window.location.search);
     const paymentResult = urlParams.get('payment');
-    const paypalToken   = urlParams.get('token'); // PayPal adjunta token al return_url
+    const paypalSubId   = urlParams.get('subscription_id'); // suscripción recurrente PayPal
+    const paypalToken   = urlParams.get('token');           // backward compat: orden one-time
 
-    if (paypalToken && paymentResult === 'success') {
-      // Flujo PayPal: capturar la orden antes de verificar acceso
-      try {
-        await fetch('/api/capture-paypal', {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token: paypalToken, uid: user.uid }),
-        });
-      } catch (e) {
-        console.warn('[capture-paypal] Error en frontend:', e.message);
+    if (paymentResult === 'success') {
+      if (paypalSubId) {
+        // Flujo PayPal Subscriptions: webhook activa la sub automáticamente.
+        // Esperar 3s para que el webhook BILLING.SUBSCRIPTION.ACTIVATED procese.
+        console.log('[paypal] Suscripción aprobada:', paypalSubId);
+        await new Promise(r => setTimeout(r, 3000));
+      } else if (paypalToken) {
+        // Backward compat: flujo de orden one-time (captura manual)
+        try {
+          const idToken = await user.getIdToken();
+          await fetch('/api/capture-paypal', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+            body: JSON.stringify({ token: paypalToken, uid: user.uid }),
+          });
+        } catch (e) {
+          console.warn('[capture-paypal] Error en frontend:', e.message);
+        }
+      } else {
+        // Flujo MercadoPago: dar 2s para que el webhook procese
+        await new Promise(r => setTimeout(r, 2000));
       }
-      history.replaceState(null, '', '/');
-    } else if (paymentResult === 'success') {
-      // Flujo MercadoPago: dar 2s para que el webhook procese
-      await new Promise(r => setTimeout(r, 2000));
       history.replaceState(null, '', '/');
     }
 
@@ -3294,7 +3623,7 @@ function initBuilder() {
         return r.json();
       })
       .then(entry => {
-        showUserView(entry.data);
+        showUserView(entry.data, entry._id);
       })
       .catch(() => {
         // ID inválido o expirado: iniciar builder normal
@@ -3326,15 +3655,31 @@ function _initBuilderFallback() {
       document.getElementById('profileTag').value      = profileData.tag || '';
       document.getElementById('profileBio').value      = profileData.bio || '';
       document.getElementById('profileLocation').value = profileData.location || '';
-      if (d.links)    d.links.forEach(l => restoreLink(l));
-      if (d.services) d.services.forEach(s => restoreService(s));
+      if (profileData.slug) {
+        const slugEl = document.getElementById('profileSlug');
+        if (slugEl) {
+          slugEl.value = profileData.slug;
+          // Si el slug coincide con el nombre auto-generado, mantenerlo como auto-llenado
+          const autoFromName = (profileData.name||'')
+            .toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+            .replace(/[^a-z0-9\s-]/g,'').trim()
+            .replace(/\s+/g,'-').replace(/-+/g,'-').slice(0,30);
+          slugEl.dataset.autoFilled = (profileData.slug === autoFromName) ? 'true' : 'false';
+        }
+      }
+      if (d.links)        d.links.forEach(l => restoreLink(l));
+      if (d.services)     d.services.forEach(s => restoreService(s));
+      if (d.testimonials) d.testimonials.forEach(t => restoreTestimonial(t));
       if (d.featured) {
         document.getElementById('featuredEnabled').checked = d.featured.enabled || false;
-        document.getElementById('featTag').value    = d.featured.tag || '';
-        document.getElementById('featTitle').value  = d.featured.title || '';
-        document.getElementById('featDesc').value   = d.featured.desc || '';
+        document.getElementById('featTag').value     = d.featured.tag || '';
+        document.getElementById('featTitle').value   = d.featured.title || '';
+        document.getElementById('featDesc').value    = d.featured.desc || '';
         document.getElementById('featBtnText').value = d.featured.btnText || '';
         document.getElementById('featBtnUrl').value  = d.featured.btnUrl || '';
+        if (d.featured.slots != null) document.getElementById('featSlots').value = d.featured.slots;
+        if (d.featured.deadline) document.getElementById('featDeadline').value = d.featured.deadline;
       }
       if (d.wafab) {
         document.getElementById('wafabEnabled').checked = d.wafab.enabled || false;
