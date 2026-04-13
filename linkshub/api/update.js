@@ -69,10 +69,16 @@ export default async function handler(req, res) {
     }
 
     // ── Verificar ownership: pub:{uid} debe apuntar a este id ────────────────
+    // Si pub:{uid} no existe (Redis eviccionó la clave), re-registrar automáticamente.
+    // Si pub:{uid} apunta a otro id diferente, rechazar (otro usuario podría tener el ID).
     const ownerLinkId = await redis.get(`pub:${uid}`).catch(() => null);
-    if (!ownerLinkId || ownerLinkId !== id) {
-      console.warn(`[UPDATE] Ownership check failed: uid=${uid} no es propietario de id=${id} (pub:${uid}=${ownerLinkId || 'null'})`);
+    if (ownerLinkId && ownerLinkId !== id) {
+      console.warn(`[UPDATE] Ownership check failed: uid=${uid} no es propietario de id=${id} (pub:${uid}=${ownerLinkId})`);
       return res.status(403).json({ error: 'No autorizado para actualizar este link.' });
+    }
+    // pub:{uid} no existía — reconectar automáticamente
+    if (!ownerLinkId) {
+      console.warn(`[UPDATE] pub:${uid} no encontrado — re-registrando para id=${id}`);
     }
 
     // Leer entry actual para conservar createdAt y linkId original

@@ -2361,14 +2361,17 @@ async function openShareModal() {
         headers: { 'Content-Type': 'application/json', ...authHeader },
         body: JSON.stringify(data),
       });
-      if (res.status === 404) {
-        // El ID ya no existe en Redis (fue limpiado) → resetear y crear nuevo abajo
-        console.warn('[openShareModal] 404 en update → reseteando _publishedId para crear nuevo');
+      if (res.status === 404 || res.status === 403) {
+        // 404: ID limpiado de Redis | 403: ID desincronizado con pub:{uid}
+        // En ambos casos resetear y crear nuevo link limpio
+        console.warn('[openShareModal] ' + res.status + ' en update → reseteando _publishedId para crear nuevo');
         _publishedId = null;
         if (currentUser) localStorage.removeItem('lh_pub_' + currentUser.uid);
         // continúa al bloque create a continuación (sin return)
       } else if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
         urlBox.textContent = 'Error al actualizar el link. Intentá de nuevo.';
+        console.error('[openShareModal] update error', res.status, errData);
         return;
       } else {
         const upRes = await res.json().catch(() => ({}));
@@ -2510,15 +2513,15 @@ async function saveChanges() {
       body: JSON.stringify(data),
     });
 
-    if (res.status === 404) {
-      // El ID fue borrado de Redis → crear nuevo link automáticamente
-      console.warn('[saveChanges] 404 en update → creando nuevo link');
+    if (res.status === 404 || res.status === 403) {
+      // 404: ID limpiado de Redis | 403: ID desincronizado con pub:{uid}
+      // En ambos casos resetear y crear nuevo link limpio
+      console.warn('[saveChanges] ' + res.status + ' en update → creando nuevo link');
       _publishedId = null;
       if (currentUser) localStorage.removeItem('lh_pub_' + currentUser.uid);
       btn.disabled = false;
       btn.classList.remove('saving');
       btn.textContent = '💾 Guardar cambios';
-      // Abrir modal de generación para crear el nuevo link
       openShareModal();
       return;
     }
