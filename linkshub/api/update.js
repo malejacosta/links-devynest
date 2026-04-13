@@ -36,8 +36,8 @@ export default async function handler(req, res) {
   if (!id)   return res.status(400).json({ error: 'id requerido en query string' });
   if (!data) return res.status(400).json({ error: 'body vacío' });
 
-  // Validar formato: solo IDs generados internamente (10 caracteres hex)
-  if (!/^[a-f0-9]{10}$/.test(id)) {
+  // Validar formato: acepta IDs hex de 10 chars (nuevo) y alfanuméricos de 6 chars (formato anterior)
+  if (!/^[a-f0-9]{10}$/.test(id) && !/^[a-zA-Z0-9]{6}$/.test(id)) {
     return res.status(400).json({ error: 'ID inválido.' });
   }
 

@@ -20,10 +20,15 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Falta el parámetro id.' });
   }
 
-  // Resolver: si es hex → uso directo. Si es slug (letras/guiones) → buscar en Redis.
+  // Resolver ID:
+  // 1. Hex de 10 chars (formato nuevo) → uso directo
+  // 2. Alfanumérico de 6 chars (formato anterior) → uso directo
+  // 3. Slug (letras minúsculas/números/guiones) → buscar en Redis
   let resolvedId = id;
   if (/^[a-f0-9]{10}$/.test(id)) {
-    resolvedId = id;
+    resolvedId = id; // nuevo formato hex
+  } else if (/^[a-zA-Z0-9]{6}$/.test(id)) {
+    resolvedId = id; // formato anterior — lookup directo
   } else if (/^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$|^[a-z0-9]{3,30}$/.test(id)) {
     const slugTarget = await redis.get(`slug:${id.toLowerCase()}`).catch(() => null);
     if (!slugTarget) {
