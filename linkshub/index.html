@@ -730,9 +730,9 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
       </div>
       <div class="user-chip"><span class="user-chip-dot"></span><span id="userEmailLabel">—</span></div>
       <button class="btn btn-ghost" id="adminNavBtn" onclick="location.href='/admin'" style="display:none;font-size:13px">⚙ Admin</button>
-      <button class="btn btn-save" id="saveChangesBtn" onclick="saveChanges()" style="display:none;font-size:13px">💾 Guardar cambios</button>
-      <button class="btn btn-accent" onclick="openShareModal()">✦ Generar mi link</button>
-      <button class="btn btn-ghost" onclick="handleLogout()" style="gap:6px">Salir ↩</button>
+      <button class="btn btn-save" id="saveChangesBtn" onclick="saveChanges()" style="display:none;font-size:13px" data-i18n="saveChanges">💾 Guardar cambios</button>
+      <button class="btn btn-accent" onclick="openShareModal()" data-i18n="generateLink">✦ Generar mi link</button>
+      <button class="btn btn-ghost" onclick="handleLogout()" style="gap:6px" data-i18n="logout">Salir ↩</button>
     </div>
   </nav>
 
@@ -741,37 +741,37 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
     <div class="builder-intro" style="grid-column:1/-1">
       <div class="builder-intro-icon">✦</div>
       <div style="flex:1">
-        <h2>Creá tu página de contacto en minutos.</h2>
-        <p>Completá cómo te presentás, dónde te contactan y qué ofrecés. Vas a obtener un link y un QR listos para compartir sin instalar nada.</p>
+        <h2 data-i18n="builderIntroTitle">Creá tu página de contacto en minutos.</h2>
+        <p data-i18n="builderIntroSub">Completá cómo te presentás, dónde te contactan y qué ofrecés. Vas a obtener un link y un QR listos para compartir sin instalar nada.</p>
       </div>
-      <button class="btn btn-accent" onclick="showOnboarding()" style="flex-shrink:0;font-size:13px;white-space:nowrap">✦ Auto-completar</button>
+      <button class="btn btn-accent" onclick="showOnboarding()" style="flex-shrink:0;font-size:13px;white-space:nowrap" data-i18n="autoComplete">✦ Auto-completar</button>
     </div>
 
     <!-- REGEN BANNER (se muestra después del onboarding) -->
     <div class="onb-regen-banner" id="regenBanner" style="display:none;grid-column:1/-1">
       <div class="onb-regen-banner-txt">
-        <strong>✦ Página generada automáticamente</strong><br>
-        Podés editar cualquier campo. Para regenerar los textos con otro enfoque usá el botón.
+        <strong data-i18n="regenTitle">✦ Página generada automáticamente</strong><br>
+        <span data-i18n="regenSub">Podés editar cualquier campo. Para regenerar los textos con otro enfoque usá el botón.</span>
       </div>
-      <button class="btn btn-ghost" onclick="regenerateProfile()" style="font-size:12px;padding:8px 12px;flex-shrink:0">↺ Regenerar textos</button>
+      <button class="btn btn-ghost" onclick="regenerateProfile()" style="font-size:12px;padding:8px 12px;flex-shrink:0" data-i18n="regenBtn">↺ Regenerar textos</button>
     </div>
     <!-- LEFT -->
     <div>
       <!-- TABS -->
       <div class="editor-tabs">
-        <button class="tab-btn active" onclick="switchTab('perfil',this)">· Perfil</button>
-        <button class="tab-btn" onclick="switchTab('apariencia',this)">· Apariencia</button>
-        <button class="tab-btn" onclick="switchTab('destacado',this)">· Destacado</button>
-        <button class="tab-btn" onclick="switchTab('servicios',this)">· Servicios</button>
-        <button class="tab-btn" onclick="switchTab('links',this)">· Links</button>
-        <button class="tab-btn" onclick="switchTab('testimonios',this)">· Testimonios</button>
-        <button class="tab-btn" onclick="switchTab('estadisticas',this);renderStats()">· Stats</button>
+        <button class="tab-btn active" onclick="switchTab('perfil',this)" data-i18n="tabPerfil">· Perfil</button>
+        <button class="tab-btn" onclick="switchTab('apariencia',this)" data-i18n="tabApariencia">· Apariencia</button>
+        <button class="tab-btn" onclick="switchTab('destacado',this)" data-i18n="tabDestacado">· Destacado</button>
+        <button class="tab-btn" onclick="switchTab('servicios',this)" data-i18n="tabServicios">· Servicios</button>
+        <button class="tab-btn" onclick="switchTab('links',this)" data-i18n="tabLinks">· Links</button>
+        <button class="tab-btn" onclick="switchTab('testimonios',this)" data-i18n="tabTestimonios">· Testimonios</button>
+        <button class="tab-btn" onclick="switchTab('estadisticas',this);renderStats()" data-i18n="tabStats">· Stats</button>
       </div>
 
       <!-- TAB: PERFIL -->
       <div id="tab-perfil" class="tab-content active">
         <div class="panel">
-          <div class="panel-hd"><h3>👤 Tu perfil</h3></div>
+          <div class="panel-hd"><h3 data-i18n="panelPerfil">👤 Tu perfil</h3></div>
           <div class="panel-bd">
             <div class="fg">
               <label>Foto</label>
@@ -830,7 +830,7 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
       <!-- TAB: APARIENCIA -->
       <div id="tab-apariencia" class="tab-content">
         <div class="panel">
-          <div class="panel-hd"><h3>Fondo de tu página</h3></div>
+          <div class="panel-hd"><h3 data-i18n="panelFondo">Fondo de tu página</h3></div>
           <div class="panel-bd">
             <div class="fg">
               <label>Imagen personalizada</label>
@@ -895,14 +895,14 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
       <!-- TAB: DESTACADO -->
       <div id="tab-destacado" class="tab-content">
         <div class="panel">
-          <div class="panel-hd"><h3>Card destacada</h3><span style="font-size:12px;color:var(--muted)">Promo, lanzamiento, anuncio</span></div>
+          <div class="panel-hd"><h3 data-i18n="panelDestacado">Card destacada</h3><span style="font-size:12px;color:var(--muted)" data-i18n="panelDestacadoSub">Promo, lanzamiento, anuncio</span></div>
           <div class="panel-bd">
             <div class="featured-toggle">
               <label class="toggle-wrap">
                 <input type="checkbox" id="featuredEnabled" onchange="updatePreview();toggleFeaturedFields(this.checked)">
                 <span class="toggle-track"></span>
               </label>
-              <span class="toggle-label">Mostrar card destacada</span>
+              <span class="toggle-label" data-i18n="featToggleLabel">Mostrar card destacada</span>
             </div>
             <div id="featuredFields" class="disabled">
               <div class="fg">
@@ -947,10 +947,10 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
       <!-- TAB: SERVICIOS -->
       <div id="tab-servicios" class="tab-content">
         <div class="panel">
-          <div class="panel-hd"><h3>Servicios / Productos</h3></div>
+          <div class="panel-hd"><h3 data-i18n="panelServicios">Servicios / Productos</h3></div>
           <div class="panel-bd">
             <div id="servicesContainer"></div>
-            <button class="add-link-btn" onclick="addService()">+ Agregar servicio</button>
+            <button class="add-link-btn" onclick="addService()" data-i18n="addService">+ Agregar servicio</button>
           </div>
         </div>
       </div>
@@ -958,13 +958,13 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
       <!-- TAB: TESTIMONIOS -->
       <div id="tab-testimonios" class="tab-content">
         <div class="panel">
-          <div class="panel-hd"><h3>💬 Testimonios</h3><span style="font-size:12px;color:var(--muted)">Lo que dicen tus clientes</span></div>
+          <div class="panel-hd"><h3 data-i18n="panelTestimonios">💬 Testimonios</h3><span style="font-size:12px;color:var(--muted)" data-i18n="panelTestimoniosSub">Lo que dicen tus clientes</span></div>
           <div class="panel-bd">
             <div style="font-size:12px;color:var(--muted);background:#f5f0e8;border-radius:8px;padding:10px 12px;margin-bottom:14px;line-height:1.5">
               ✦ Agregá reseñas de clientes reales. Aparecen debajo de tus servicios y generan confianza instantánea.
             </div>
             <div id="testimonialsContainer"></div>
-            <button class="add-link-btn" onclick="addTestimonial()">+ Agregar testimonio</button>
+            <button class="add-link-btn" onclick="addTestimonial()" data-i18n="addTestimonial">+ Agregar testimonio</button>
           </div>
         </div>
       </div>
@@ -972,21 +972,21 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
       <!-- TAB: LINKS -->
       <div id="tab-links" class="tab-content">
         <div class="panel">
-          <div class="panel-hd"><h3>Redes y contacto</h3></div>
+          <div class="panel-hd"><h3 data-i18n="panelLinks">Redes y contacto</h3></div>
           <div class="panel-bd">
             <div id="linksContainer"></div>
-            <button class="add-link-btn" onclick="addLink()">+ Agregar enlace</button>
+            <button class="add-link-btn" onclick="addLink()" data-i18n="addLink">+ Agregar enlace</button>
           </div>
         </div>
         <div class="panel" style="margin-top:16px">
-          <div class="panel-hd"><h3>Botón flotante WhatsApp</h3></div>
+          <div class="panel-hd"><h3 data-i18n="panelWhatsapp">Botón flotante WhatsApp</h3></div>
           <div class="panel-bd">
             <div class="featured-toggle" style="margin-bottom:12px">
               <label class="toggle-wrap">
                 <input type="checkbox" id="wafabEnabled" onchange="updatePreview()">
                 <span class="toggle-track"></span>
               </label>
-              <span class="toggle-label">Mostrar botón flotante de WhatsApp</span>
+              <span class="toggle-label" data-i18n="wafabToggleLabel">Mostrar botón flotante de WhatsApp</span>
             </div>
             <div class="fg">
               <label>Link de WhatsApp</label>
@@ -1006,7 +1006,7 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
       <div id="tab-estadisticas" class="tab-content">
         <div class="panel">
           <div class="panel-hd">
-            <h3>📊 Estadísticas</h3>
+            <h3 data-i18n="panelStats">📊 Estadísticas</h3>
             <button class="btn-ghost" onclick="renderStats()" style="font-size:12px;padding:5px 10px;border-radius:7px;border:1.5px solid var(--border2);background:transparent;cursor:pointer;font-family:'Montserrat',sans-serif;color:var(--ink2)">↻ Actualizar</button>
           </div>
           <div class="panel-bd">
@@ -1018,7 +1018,7 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
 
     <!-- RIGHT: PREVIEW -->
     <div class="preview-sticky">
-      <div class="preview-label">📱 Vista previa en vivo</div>
+      <div class="preview-label" data-i18n="previewLabel">📱 Vista previa en vivo</div>
       <div class="phone-frame">
         <div class="phone-camera"></div>
         <div class="phone-screen" id="phoneScreen">
@@ -1079,27 +1079,27 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
 <!-- ═══════════════════ SHARE MODAL ═══════════════════ -->
 <div id="shareModal" class="modal-overlay">
   <div class="modal-box">
-    <h2>¡Listo para compartir!</h2>
-    <p class="sub">Tu link corto, listo para compartir.</p>
+    <h2 data-i18n="shareTitle">¡Listo para compartir!</h2>
+    <p class="sub" data-i18n="shareSub">Tu link corto, listo para compartir.</p>
     <div class="url-box" id="generatedUrl">—</div>
     <div class="modal-btns">
-      <button class="btn btn-ink" onclick="copyLink()">Copiar link</button>
-      <button class="btn btn-ghost" onclick="downloadQR()">Descargar QR</button>
+      <button class="btn btn-ink" onclick="copyLink()" data-i18n="shareCopy">Copiar link</button>
+      <button class="btn btn-ghost" onclick="downloadQR()" data-i18n="shareQR">Descargar QR</button>
     </div>
     <div class="qr-wrap"><div id="qrcode"></div></div>
     <div style="background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:8px">
       <div style="display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600;color:#166534">
-        <span>✓</span> Este link ya está listo para compartir
+        <span>✓</span><span data-i18n="shareCheck1"> Este link ya está listo para compartir</span>
       </div>
       <div style="display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600;color:#166534">
-        <span>✓</span> Funciona desde cualquier dispositivo
+        <span>✓</span><span data-i18n="shareCheck2"> Funciona desde cualquier dispositivo</span>
       </div>
       <div style="display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600;color:#166534">
-        <span>✓</span> No requiere instalación
+        <span>✓</span><span data-i18n="shareCheck3"> No requiere instalación</span>
       </div>
     </div>
     <hr class="div">
-    <button class="btn btn-ghost" onclick="closeModal()" style="width:100%;justify-content:center">Cerrar</button>
+    <button class="btn btn-ghost" onclick="closeModal()" style="width:100%;justify-content:center" data-i18n="shareClose">Cerrar</button>
   </div>
 </div>
 
@@ -1116,8 +1116,8 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
     <!-- PASO 1: ¿Qué hacés? -->
     <div class="onb-step active" id="onb-step-1">
       <div class="onb-icon">🎯</div>
-      <h2>¿Qué hacés o vendés?</h2>
-      <p class="onb-sub">Elegí tu categoría y describilo en pocas palabras. La app genera todo el texto por vos.</p>
+      <h2 data-i18n="onb1Title">¿Qué hacés o vendés?</h2>
+      <p class="onb-sub" data-i18n="onb1Sub">Elegí tu categoría y describilo en pocas palabras. La app genera todo el texto por vos.</p>
       <div class="fg">
         <label>Categoría</label>
         <select id="onbCategoria" class="fc">
@@ -1142,8 +1142,8 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
     <!-- PASO 2: ¿A quién ayudás? -->
     <div class="onb-step" id="onb-step-2">
       <div class="onb-icon">🙋</div>
-      <h2>¿A quién ayudás o le vendés?</h2>
-      <p class="onb-sub">Tu cliente ideal en pocas palabras. Esto personaliza todos los textos.</p>
+      <h2 data-i18n="onb2Title">¿A quién ayudás o le vendés?</h2>
+      <p class="onb-sub" data-i18n="onb2Sub">Tu cliente ideal en pocas palabras. Esto personaliza todos los textos.</p>
       <div class="fg">
         <label>Tu cliente ideal</label>
         <input type="text" id="onbCliente" class="fc" placeholder="Ej: emprendedoras que quieren vender más" maxlength="80">
@@ -1153,8 +1153,8 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
     <!-- PASO 3: ¿Qué vendés? -->
     <div class="onb-step" id="onb-step-3">
       <div class="onb-icon">💼</div>
-      <h2>¿Qué vendés?</h2>
-      <p class="onb-sub">Hasta 2 servicios o productos. Si no sabés el precio, dejalo vacío.</p>
+      <h2 data-i18n="onb3Title">¿Qué vendés?</h2>
+      <p class="onb-sub" data-i18n="onb3Sub">Hasta 2 servicios o productos. Si no sabés el precio, dejalo vacío.</p>
       <div class="fg">
         <label>Servicio / Producto 1</label>
         <div style="display:grid;grid-template-columns:1fr 110px;gap:8px">
@@ -1174,8 +1174,8 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
     <!-- PASO 4: ¿Cómo contactarte? -->
     <div class="onb-step" id="onb-step-4">
       <div class="onb-icon">📲</div>
-      <h2>¿Cómo querés que te contacten?</h2>
-      <p class="onb-sub">Este va a ser el botón principal de tu página.</p>
+      <h2 data-i18n="onb4Title">¿Cómo querés que te contacten?</h2>
+      <p class="onb-sub" data-i18n="onb4Sub">Este va a ser el botón principal de tu página.</p>
       <div class="onb-contact-opts">
         <button class="onb-contact-opt" onclick="selectOnbContact('whatsapp',this)">
           <span>💬</span> WhatsApp
@@ -1194,10 +1194,10 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
     </div>
 
     <div class="onb-nav">
-      <button class="onb-skip" onclick="skipOnboarding()">Omitir</button>
+      <button class="onb-skip" onclick="skipOnboarding()" data-i18n="onbSkip">Omitir</button>
       <div style="display:flex;gap:8px;align-items:center">
-        <button class="btn btn-ghost" id="onbBackBtn" onclick="onbBack()" style="display:none;padding:9px 14px">← Atrás</button>
-        <button class="btn btn-accent" id="onbNextBtn" onclick="onbNext()">Siguiente →</button>
+        <button class="btn btn-ghost" id="onbBackBtn" onclick="onbBack()" style="display:none;padding:9px 14px" data-i18n="onbBack">← Atrás</button>
+        <button class="btn btn-accent" id="onbNextBtn" onclick="onbNext()" data-i18n="onbNext">Siguiente →</button>
       </div>
     </div>
   </div>
@@ -3161,6 +3161,67 @@ const LANG = {
     errInvalidEmail:   'Email inválido.',
     errInvalidCred:    'Email o contraseña incorrectos.',
     errTooMany:        'Demasiados intentos. Intentá más tarde.',
+    // Builder topbar
+    saveChanges: '💾 Guardar cambios',
+    generateLink: '✦ Generar mi link',
+    logout: 'Salir ↩',
+    // Builder intro
+    builderIntroTitle: 'Creá tu página de contacto en minutos.',
+    builderIntroSub: 'Completá cómo te presentás, dónde te contactan y qué ofrecés. Vas a obtener un link y un QR listos para compartir sin instalar nada.',
+    autoComplete: '✦ Auto-completar',
+    // Regen banner
+    regenTitle: '✦ Página generada automáticamente',
+    regenSub: 'Podés editar cualquier campo. Para regenerar los textos con otro enfoque usá el botón.',
+    regenBtn: '↺ Regenerar textos',
+    // Tabs
+    tabPerfil: '· Perfil',
+    tabApariencia: '· Apariencia',
+    tabDestacado: '· Destacado',
+    tabServicios: '· Servicios',
+    tabLinks: '· Links',
+    tabTestimonios: '· Testimonios',
+    tabStats: '· Stats',
+    // Panel headers
+    panelPerfil: '👤 Tu perfil',
+    panelFondo: 'Fondo de tu página',
+    panelDestacado: 'Card destacada',
+    panelDestacadoSub: 'Promo, lanzamiento, anuncio',
+    panelServicios: 'Servicios / Productos',
+    panelTestimonios: '💬 Testimonios',
+    panelTestimoniosSub: 'Lo que dicen tus clientes',
+    panelLinks: 'Redes y contacto',
+    panelWhatsapp: 'Botón flotante WhatsApp',
+    panelStats: '📊 Estadísticas',
+    // Featured toggle
+    featToggleLabel: 'Mostrar card destacada',
+    wafabToggleLabel: 'Mostrar botón flotante de WhatsApp',
+    // Add buttons
+    addService: '+ Agregar servicio',
+    addTestimonial: '+ Agregar testimonio',
+    addLink: '+ Agregar enlace',
+    // Preview
+    previewLabel: '📱 Vista previa en vivo',
+    // Share modal
+    shareTitle: '¡Listo para compartir!',
+    shareSub: 'Tu link corto, listo para compartir.',
+    shareCopy: 'Copiar link',
+    shareQR: 'Descargar QR',
+    shareClose: 'Cerrar',
+    shareCheck1: ' Este link ya está listo para compartir',
+    shareCheck2: ' Funciona desde cualquier dispositivo',
+    shareCheck3: ' No requiere instalación',
+    // Onboarding
+    onbSkip: 'Omitir',
+    onbBack: '← Atrás',
+    onbNext: 'Siguiente →',
+    onb1Title: '¿Qué hacés o vendés?',
+    onb1Sub: 'Elegí tu categoría y describilo en pocas palabras. La app genera todo el texto por vos.',
+    onb2Title: '¿A quién ayudás o le vendés?',
+    onb2Sub: 'Tu cliente ideal en pocas palabras. Esto personaliza todos los textos.',
+    onb3Title: '¿Qué vendés?',
+    onb3Sub: 'Hasta 2 servicios o productos. Si no sabés el precio, dejalo vacío.',
+    onb4Title: '¿Cómo querés que te contacten?',
+    onb4Sub: 'Este va a ser el botón principal de tu página.',
   },
   pt: {
     // Auth
@@ -3185,6 +3246,67 @@ const LANG = {
     errInvalidEmail:   'E-mail inválido.',
     errInvalidCred:    'E-mail ou senha incorretos.',
     errTooMany:        'Muitas tentativas. Tente mais tarde.',
+    // Builder topbar
+    saveChanges: '💾 Salvar alterações',
+    generateLink: '✦ Gerar meu link',
+    logout: 'Sair ↩',
+    // Builder intro
+    builderIntroTitle: 'Crie sua página de contato em minutos.',
+    builderIntroSub: 'Preencha como você se apresenta, onde te contactam e o que você oferece. Você terá um link e um QR prontos para compartilhar sem instalar nada.',
+    autoComplete: '✦ Auto-preencher',
+    // Regen banner
+    regenTitle: '✦ Página gerada automaticamente',
+    regenSub: 'Você pode editar qualquer campo. Para regenerar os textos com outro enfoque, use o botão.',
+    regenBtn: '↺ Regenerar textos',
+    // Tabs
+    tabPerfil: '· Perfil',
+    tabApariencia: '· Aparência',
+    tabDestacado: '· Destaque',
+    tabServicios: '· Serviços',
+    tabLinks: '· Links',
+    tabTestimonios: '· Depoimentos',
+    tabStats: '· Stats',
+    // Panel headers
+    panelPerfil: '👤 Seu perfil',
+    panelFondo: 'Fundo da sua página',
+    panelDestacado: 'Card em destaque',
+    panelDestacadoSub: 'Promoção, lançamento, anúncio',
+    panelServicios: 'Serviços / Produtos',
+    panelTestimonios: '💬 Depoimentos',
+    panelTestimoniosSub: 'O que seus clientes dizem',
+    panelLinks: 'Redes e contato',
+    panelWhatsapp: 'Botão flutuante WhatsApp',
+    panelStats: '📊 Estatísticas',
+    // Featured toggle
+    featToggleLabel: 'Mostrar card em destaque',
+    wafabToggleLabel: 'Mostrar botão flutuante de WhatsApp',
+    // Add buttons
+    addService: '+ Adicionar serviço',
+    addTestimonial: '+ Adicionar depoimento',
+    addLink: '+ Adicionar link',
+    // Preview
+    previewLabel: '📱 Pré-visualização ao vivo',
+    // Share modal
+    shareTitle: 'Pronto para compartilhar!',
+    shareSub: 'Seu link curto, pronto para compartilhar.',
+    shareCopy: 'Copiar link',
+    shareQR: 'Baixar QR',
+    shareClose: 'Fechar',
+    shareCheck1: ' Este link está pronto para compartilhar',
+    shareCheck2: ' Funciona em qualquer dispositivo',
+    shareCheck3: ' Não requer instalação',
+    // Onboarding
+    onbSkip: 'Pular',
+    onbBack: '← Voltar',
+    onbNext: 'Próximo →',
+    onb1Title: 'O que você faz ou vende?',
+    onb1Sub: 'Escolha sua categoria e descreva em poucas palavras. O app gera todo o texto por você.',
+    onb2Title: 'Para quem você ajuda ou vende?',
+    onb2Sub: 'Seu cliente ideal em poucas palavras. Isso personaliza todos os textos.',
+    onb3Title: 'O que você vende?',
+    onb3Sub: 'Até 2 serviços ou produtos. Se não souber o preço, deixe em branco.',
+    onb4Title: 'Como você quer ser contactado?',
+    onb4Sub: 'Este será o botão principal da sua página.',
   },
 };
 
@@ -3223,6 +3345,10 @@ function applyLang() {
   document.querySelectorAll('.lang-sw button').forEach(b =>
     b.classList.toggle('ls-active', b.dataset.lang === _lang)
   );
+  // loop data-i18n
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
 }
 
 /* — Carga directa por /ID (sin necesidad de login) — */
