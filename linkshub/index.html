@@ -567,7 +567,11 @@ hr.div{border:none;border-top:1px solid var(--border);margin:18px 0}
   padding:36px 32px;max-width:420px;width:100%;
   box-shadow:var(--shadow-lg);
 }
-.auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:24px;justify-content:center}
+.auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:24px;justify-content:space-between}
+.lang-sw{display:flex;align-items:center;gap:2px;font-size:11px;font-weight:700;letter-spacing:.4px}
+.lang-sw button{background:none;border:none;cursor:pointer;padding:2px 6px;color:var(--muted);font-size:11px;font-weight:700;border-radius:4px;transition:color .15s}
+.lang-sw button.ls-active{color:var(--ink);background:rgba(0,0,0,.06)}
+.lang-sw .ls-sep{opacity:.3;user-select:none;font-size:11px}
 .auth-hero{text-align:center;margin-bottom:28px}
 .auth-hero h1{font-family:'Montserrat',sans-serif;font-size:22px;font-weight:700;color:var(--ink);line-height:1.3;margin-bottom:10px;letter-spacing:-.5px}
 .auth-hero p{font-size:13px;color:var(--ink2);line-height:1.65}
@@ -666,12 +670,19 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
 <div id="authView" class="active">
   <div class="auth-card">
     <div class="auth-logo">
-      <div class="logo-mark">D</div>
-      <span class="logo-name">DEVYNEST <span style="font-weight:400;opacity:.7">Links</span></span>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="logo-mark">D</div>
+        <span class="logo-name">DEVYNEST <span style="font-weight:400;opacity:.7">Links</span></span>
+      </div>
+      <div class="lang-sw" id="langSwAuth">
+        <button data-lang="es" onclick="setLang('es')">ES</button>
+        <span class="ls-sep">|</span>
+        <button data-lang="pt" onclick="setLang('pt')">PT</button>
+      </div>
     </div>
     <div class="auth-hero">
-      <h1>Creá tu página de contacto en minutos.</h1>
-      <p>Completá cómo te presentás, dónde te contactan y qué ofrecés. Vas a obtener un link y un QR listos para compartir sin instalar nada.</p>
+      <h1 id="authHeroTitle">Creá tu página de contacto en minutos.</h1>
+      <p id="authHeroSub">Completá cómo te presentás, dónde te contactan y qué ofrecés. Vas a obtener un link y un QR listos para compartir sin instalar nada.</p>
     </div>
     <div class="auth-tabs-wrap">
       <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Iniciar sesión</button>
@@ -712,6 +723,11 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
       <span class="logo-name">DEVYNEST <span style="font-weight:400;opacity:.7">Links</span></span>
     </div>
     <div class="topbar-right">
+      <div class="lang-sw" id="langSwTopbar">
+        <button data-lang="es" onclick="setLang('es')">ES</button>
+        <span class="ls-sep">|</span>
+        <button data-lang="pt" onclick="setLang('pt')">PT</button>
+      </div>
       <div class="user-chip"><span class="user-chip-dot"></span><span id="userEmailLabel">—</span></div>
       <button class="btn btn-ghost" id="adminNavBtn" onclick="location.href='/admin'" style="display:none;font-size:13px">⚙ Admin</button>
       <button class="btn btn-save" id="saveChangesBtn" onclick="saveChanges()" style="display:none;font-size:13px">💾 Guardar cambios</button>
@@ -3172,9 +3188,41 @@ const LANG = {
   },
 };
 
+let _lang = (() => {
+  const s = localStorage.getItem('lang');
+  if (s === 'es' || s === 'pt') return s;
+  return navigator.language?.startsWith('pt') ? 'pt' : 'es';
+})();
+
 function t(key) {
-  const lang = _country === 'BR' ? 'pt' : 'es';
-  return (LANG[lang] && LANG[lang][key]) || (LANG.es[key]) || key;
+  return (LANG[_lang]?.[key]) || (LANG.es[key]) || key;
+}
+
+function setLang(lang) {
+  _lang = lang;
+  localStorage.setItem('lang', lang);
+  document.documentElement.lang = lang;
+  applyLang();
+}
+
+function applyLang() {
+  const h = document.getElementById('authHeroTitle');
+  const p = document.getElementById('authHeroSub');
+  if (h) h.textContent = t('heroTitle');
+  if (p) p.textContent = t('heroSub');
+  const tl = document.getElementById('tabLogin');
+  const tr = document.getElementById('tabRegister');
+  const sb = document.getElementById('authSubmitBtn');
+  const fl = document.getElementById('forgotLink');
+  if (tl) tl.textContent = t('signIn');
+  if (tr) tr.textContent = t('createAccount');
+  if (sb) sb.textContent = typeof _authMode !== 'undefined' && _authMode === 'register' ? t('createAccount') : t('signIn');
+  if (fl) fl.textContent = t('forgotPassword');
+  const gg = document.querySelector('[onclick="handleGoogleAuth()"]');
+  if (gg) { const last = gg.lastChild; if (last && last.nodeType === 3) last.textContent = ' ' + t('continueGoogle'); }
+  document.querySelectorAll('.lang-sw button').forEach(b =>
+    b.classList.toggle('ls-active', b.dataset.lang === _lang)
+  );
 }
 
 /* — Carga directa por /ID (sin necesidad de login) — */
@@ -3741,6 +3789,9 @@ function _initBuilderFallback() {
     setTimeout(() => showOnboarding(), 400);
   }
 }
+
+// Aplicar idioma inicial
+applyLang();
 </script>
 </body>
 </html>
