@@ -794,24 +794,24 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
             <div class="form-row" style="margin-top:16px">
               <div class="fg" style="margin-bottom:0">
                 <label>Nombre o marca</label>
-                <input type="text" id="profileName" class="fc" placeholder="Ej: Valentina López" oninput="updatePreview()" maxlength="50">
+                <input type="text" id="profileName" class="fc" placeholder="Ej: Valentina López" data-i18n-ph="phName" oninput="updatePreview()" maxlength="50">
                 <div class="char-hint"><span id="nameCount">0</span>/50</div>
               </div>
               <div class="fg" style="margin-bottom:0">
                 <label>Profesión / categoría</label>
-                <input type="text" id="profileTag" class="fc" placeholder="Ej: Diseñadora de packaging" oninput="updatePreview()" maxlength="40">
+                <input type="text" id="profileTag" class="fc" placeholder="Ej: Diseñadora de packaging" data-i18n-ph="phTag" oninput="updatePreview()" maxlength="40">
               </div>
             </div>
 
             <div class="fg" style="margin-top:16px">
               <label>Descripción</label>
-              <textarea id="profileBio" class="fc" placeholder="Contá quién sos y qué hacés en 2 líneas..." oninput="updatePreview()" maxlength="120"></textarea>
+              <textarea id="profileBio" class="fc" placeholder="Contá quién sos y qué hacés en 2 líneas..." data-i18n-ph="phBio" oninput="updatePreview()" maxlength="120"></textarea>
               <div class="char-hint"><span id="bioCount">0</span>/120</div>
             </div>
 
             <div class="fg">
               <label>Ciudad / ubicación</label>
-              <input type="text" id="profileLocation" class="fc" placeholder="Ej: Buenos Aires, Argentina" oninput="updatePreview()" maxlength="40">
+              <input type="text" id="profileLocation" class="fc" placeholder="Ej: Buenos Aires, Argentina" data-i18n-ph="phLocation" oninput="updatePreview()" maxlength="40">
             </div>
 
             <div class="fg">
@@ -911,16 +911,16 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
               </div>
               <div class="fg">
                 <label>Título</label>
-                <input type="text" id="featTitle" class="fc" placeholder="Ej: Mentoría 1:1 — Julio" oninput="updatePreview()" maxlength="60">
+                <input type="text" id="featTitle" class="fc" placeholder="Ej: Mentoría 1:1 — Julio" data-i18n-ph="phFeatTitle" oninput="updatePreview()" maxlength="60">
               </div>
               <div class="fg">
-                <label>Descripción breve</label>
-                <textarea id="featDesc" class="fc" placeholder="Una línea que genere interés..." oninput="updatePreview()" maxlength="100" style="min-height:60px"></textarea>
+                <label data-i18n="featLabelDesc">Descripción breve</label>
+                <textarea id="featDesc" class="fc" placeholder="Una línea que genere interés..." data-i18n-ph="phFeatDesc" oninput="updatePreview()" maxlength="100" style="min-height:60px"></textarea>
               </div>
               <div class="form-row">
                 <div class="fg" style="margin-bottom:0">
-                  <label>Texto del botón</label>
-                  <input type="text" id="featBtnText" class="fc" placeholder="Ver más" oninput="updatePreview()" maxlength="25">
+                  <label data-i18n="featLabelBtn">Texto del botón</label>
+                  <input type="text" id="featBtnText" class="fc" placeholder="Ver más" data-i18n-ph="phFeatBtn" oninput="updatePreview()" maxlength="25">
                 </div>
                 <div class="fg" style="margin-bottom:0">
                   <label>Link del botón</label>
@@ -996,7 +996,7 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
             </div>
             <div class="fg">
               <label>Mensaje predefinido (opcional)</label>
-              <input type="text" id="wafabMessage" class="fc" placeholder="Ej: Hola! Vi tu página y quiero consultar..." oninput="updatePreview()">
+              <input type="text" id="wafabMessage" class="fc" placeholder="Ej: Hola! Vi tu página y quiero consultar..." data-i18n-ph="phWafabMessage" oninput="updatePreview()">
             </div>
           </div>
         </div>
@@ -1007,7 +1007,7 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
         <div class="panel">
           <div class="panel-hd">
             <h3 data-i18n="panelStats">📊 Estadísticas</h3>
-            <button class="btn-ghost" onclick="renderStats()" style="font-size:12px;padding:5px 10px;border-radius:7px;border:1.5px solid var(--border2);background:transparent;cursor:pointer;font-family:'Montserrat',sans-serif;color:var(--ink2)">↻ Actualizar</button>
+            <button class="btn-ghost" onclick="renderStats()" style="font-size:12px;padding:5px 10px;border-radius:7px;border:1.5px solid var(--border2);background:transparent;cursor:pointer;font-family:'Montserrat',sans-serif;color:var(--ink2)" data-i18n="statsRefresh">↻ Actualizar</button>
           </div>
           <div class="panel-bd">
             <div id="statsContainer"></div>
@@ -1119,7 +1119,7 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
       <h2 data-i18n="onb1Title">¿Qué hacés o vendés?</h2>
       <p class="onb-sub" data-i18n="onb1Sub">Elegí tu categoría y describilo en pocas palabras. La app genera todo el texto por vos.</p>
       <div class="fg">
-        <label>Categoría</label>
+        <label data-i18n="onbLabelCategoria">Categoría</label>
         <select id="onbCategoria" class="fc">
           <option value="">— Elegí una opción —</option>
           <option value="coach">Coach / Mentor</option>
@@ -1134,8 +1134,8 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
         </select>
       </div>
       <div class="fg">
-        <label>Describilo en tus palabras (opcional)</label>
-        <input type="text" id="onbActividad" class="fc" placeholder="Ej: diseño packaging para emprendedores" maxlength="80">
+        <label data-i18n="onbLabelActividad">Describilo en tus palabras (opcional)</label>
+        <input type="text" id="onbActividad" class="fc" placeholder="Ej: diseño packaging para emprendedores" data-i18n-ph="onbPhActividad" maxlength="80">
       </div>
     </div>
 
@@ -1145,8 +1145,8 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
       <h2 data-i18n="onb2Title">¿A quién ayudás o le vendés?</h2>
       <p class="onb-sub" data-i18n="onb2Sub">Tu cliente ideal en pocas palabras. Esto personaliza todos los textos.</p>
       <div class="fg">
-        <label>Tu cliente ideal</label>
-        <input type="text" id="onbCliente" class="fc" placeholder="Ej: emprendedoras que quieren vender más" maxlength="80">
+        <label data-i18n="onbLabelCliente">Tu cliente ideal</label>
+        <input type="text" id="onbCliente" class="fc" placeholder="Ej: emprendedoras que quieren vender más" data-i18n-ph="onbPhCliente" maxlength="80">
       </div>
     </div>
 
@@ -1156,17 +1156,17 @@ if (location.pathname.length > 1 && !location.pathname.startsWith('/api')) {
       <h2 data-i18n="onb3Title">¿Qué vendés?</h2>
       <p class="onb-sub" data-i18n="onb3Sub">Hasta 2 servicios o productos. Si no sabés el precio, dejalo vacío.</p>
       <div class="fg">
-        <label>Servicio / Producto 1</label>
+        <label data-i18n="onbLabelSvc1">Servicio / Producto 1</label>
         <div style="display:grid;grid-template-columns:1fr 110px;gap:8px">
-          <input type="text" id="onbSvc1Name" class="fc" placeholder="Ej: Consultoría de packaging">
-          <input type="text" id="onbSvc1Price" class="fc" placeholder="Precio">
+          <input type="text" id="onbSvc1Name" class="fc" placeholder="Ej: Consultoría de packaging" data-i18n-ph="onbPhSvc1Name">
+          <input type="text" id="onbSvc1Price" class="fc" placeholder="Precio" data-i18n-ph="onbPhPrice">
         </div>
       </div>
       <div class="fg">
-        <label>Servicio / Producto 2 (opcional)</label>
+        <label data-i18n="onbLabelSvc2">Servicio / Producto 2 (opcional)</label>
         <div style="display:grid;grid-template-columns:1fr 110px;gap:8px">
-          <input type="text" id="onbSvc2Name" class="fc" placeholder="Ej: Mentoría 1:1">
-          <input type="text" id="onbSvc2Price" class="fc" placeholder="Precio">
+          <input type="text" id="onbSvc2Name" class="fc" placeholder="Ej: Mentoría 1:1" data-i18n-ph="onbPhSvc2Name">
+          <input type="text" id="onbSvc2Price" class="fc" placeholder="Precio" data-i18n-ph="onbPhPrice">
         </div>
       </div>
     </div>
@@ -1579,7 +1579,7 @@ function _renderLinkItem(link) {
     </div>
     <div class="link-row2">
       <input type="text" class="fc" placeholder="${curPlat.ph}" value="${link.url||''}" oninput="updateLinkUrl(${link.id},this.value)">
-      <input type="text" class="fc" placeholder="Texto del botón" value="${link.text||curPlat.name}" oninput="updateLinkText(${link.id},this.value)">
+      <input type="text" class="fc" placeholder="${t('linkBtnText')}" value="${link.text||curPlat.name}" oninput="updateLinkText(${link.id},this.value)">
     </div>`;
   c.appendChild(el);
 }
@@ -1632,11 +1632,11 @@ function _renderServiceItem(svc) {
   const ctaOpts = ctaOptions.map(o => `<option value="${o.id}" ${o.id===svc.ctaType?'selected':''}>${o.icon} ${o.label}</option>`).join('');
   const photoHtml = svc.photo
     ? `<img src="${svc.photo}" alt=""><button class="svc-photo-rm" onclick="removeSvcPhoto(${svc.id})">✕</button>`
-    : `<span>📷</span><span>Foto del servicio (opcional)</span>`;
+    : `<span>📷</span><span>${t('svcLabelPhoto')}</span>`;
   el.innerHTML = `
     <div class="service-hd">
-      <span>Servicio #${c.children.length+1}</span>
-      <button class="btn-danger-sm" onclick="removeService(${svc.id})">Eliminar</button>
+      <span>${t('svcHeader')} #${c.children.length+1}</span>
+      <button class="btn-danger-sm" onclick="removeService(${svc.id})">${t('svcRemove')}</button>
     </div>
     <div class="fg" style="margin-bottom:10px">
       <label>Foto del servicio / producto</label>
@@ -1645,18 +1645,18 @@ function _renderServiceItem(svc) {
       <div style="font-size:11px;color:var(--muted);margin-top:4px">Imagen de hasta 1MB (opcional)</div>
     </div>
     <div class="service-grid">
-      <div><label>Nombre del servicio</label><input type="text" class="fc" placeholder="Ej: Consultoría de packaging" value="${svc.name}" oninput="updateSvc(${svc.id},'name',this.value)"></div>
-      <div><label>Precio</label><input type="text" class="fc" placeholder="Ej: USD 150 · Desde $50" value="${svc.price}" oninput="updateSvc(${svc.id},'price',this.value)"></div>
+      <div><label>${t('svcLabelName')}</label><input type="text" class="fc" placeholder="${t('phSvcName')}" value="${svc.name}" oninput="updateSvc(${svc.id},'name',this.value)"></div>
+      <div><label>${t('svcLabelPrice')}</label><input type="text" class="fc" placeholder="${t('phSvcPrice')}" value="${svc.price}" oninput="updateSvc(${svc.id},'price',this.value)"></div>
     </div>
-    <div class="fg"><label>Descripción breve</label><textarea class="fc" placeholder="Qué incluye, para quién es..." oninput="updateSvc(${svc.id},'desc',this.value)" style="min-height:60px">${svc.desc}</textarea></div>
+    <div class="fg"><label>${t('svcLabelDesc')}</label><textarea class="fc" placeholder="${t('phSvcDesc')}" oninput="updateSvc(${svc.id},'desc',this.value)" style="min-height:60px">${svc.desc}</textarea></div>
     <div class="service-grid">
       <div><label>Acción del botón</label><select class="fc" onchange="updateSvc(${svc.id},'ctaType',this.value);_toggleWaMsg(${svc.id},this.value)">${ctaOpts}</select></div>
-      <div><label>Link / número / email</label><input type="text" class="fc" placeholder="URL, número o email" value="${svc.ctaValue||''}" oninput="updateSvc(${svc.id},'ctaValue',this.value)"></div>
+      <div><label>${t('svcLabelCta')}</label><input type="text" class="fc" placeholder="${t('phSvcCta')}" value="${svc.ctaValue||''}" oninput="updateSvc(${svc.id},'ctaValue',this.value)"></div>
     </div>
     <div id="waMsgField-${svc.id}" style="${(svc.ctaType||'wa')==='wa'?'':'display:none'}">
       <div class="fg" style="margin-top:8px;margin-bottom:0">
-        <label>Mensaje de WhatsApp <span style="font-weight:400;color:var(--muted);font-size:11px">(opcional)</span></label>
-        <input type="text" class="fc" placeholder="Ej: Hola! Vi tu servicio y quiero consultar..." value="${svc.ctaMessage||''}" oninput="updateSvc(${svc.id},'ctaMessage',this.value)" maxlength="120">
+        <label>${t('svcLabelWaMsg')} <span style="font-weight:400;color:var(--muted);font-size:11px">(opcional)</span></label>
+        <input type="text" class="fc" placeholder="${t('phSvcWaMsg')}" value="${svc.ctaMessage||''}" oninput="updateSvc(${svc.id},'ctaMessage',this.value)" maxlength="120">
         <div style="font-size:11px;color:var(--muted);margin-top:3px">💬 El cliente solo toca "Enviar" — mensaje pre-escrito por vos</div>
       </div>
     </div>`;
@@ -1759,10 +1759,10 @@ function _renderTestimonialItem(t) {
       <button class="btn-danger-sm" onclick="removeTestimonial(${t.id})">Eliminar</button>
     </div>
     <div class="service-grid">
-      <div><label>Nombre del cliente</label><input type="text" class="fc" placeholder="Ej: María García" value="${esc(t.name||'')}" oninput="updateTestimonial(${t.id},'name',this.value)" maxlength="40"></div>
-      <div><label>Rol / empresa (opcional)</label><input type="text" class="fc" placeholder="Ej: Emprendedora" value="${esc(t.role||'')}" oninput="updateTestimonial(${t.id},'role',this.value)" maxlength="40"></div>
+      <div><label>${t('testLabelName')}</label><input type="text" class="fc" placeholder="${t('phTestName')}" value="${esc(t.name||'')}" oninput="updateTestimonial(${t.id},'name',this.value)" maxlength="40"></div>
+      <div><label>${t('testLabelRole')}</label><input type="text" class="fc" placeholder="${t('phTestRole')}" value="${esc(t.role||'')}" oninput="updateTestimonial(${t.id},'role',this.value)" maxlength="40"></div>
     </div>
-    <div class="fg"><label>Testimonio</label><textarea class="fc" placeholder="Lo que dijo tu cliente sobre vos o tu servicio..." oninput="updateTestimonial(${t.id},'text',this.value)" style="min-height:70px" maxlength="200">${esc(t.text||'')}</textarea></div>`;
+    <div class="fg"><label>${t('testLabelText')}</label><textarea class="fc" placeholder="${t('phTestText')}" oninput="updateTestimonial(${t.id},'text',this.value)" style="min-height:70px" maxlength="200">${esc(t.text||'')}</textarea></div>`;
   c.appendChild(el);
 }
 
@@ -2371,7 +2371,7 @@ function renderShortUrl(shortUrl) {
 
 async function openShareModal() {
   if (!profileData.name) {
-    showToast('Ingresá tu nombre primero'); return;
+    showToast(t('toastNameRequired')); return;
   }
   if (_uploadInProgress > 0) {
     showToast('⏳ Esperá a que termine la subida de imagen'); return;
@@ -2528,13 +2528,13 @@ function _showSaveBtn() {
 
 async function saveChanges() {
   if (!_publishedId) { openShareModal(); return; }
-  if (!profileData.name) { showToast('Ingresá tu nombre primero'); return; }
+  if (!profileData.name) { showToast(t('toastNameRequired')); return; }
   if (_uploadInProgress > 0) { showToast('⏳ Esperá a que termine la subida de imagen'); return; }
 
   const btn = document.getElementById('saveChangesBtn');
   btn.disabled = true;
   btn.classList.add('saving');
-  btn.textContent = '⏳ Guardando…';
+  btn.textContent = t('saving');
 
   const slugVal = (document.getElementById('profileSlug')?.value || '').trim().toLowerCase();
   profileData.slug = slugVal || null;
@@ -2565,7 +2565,7 @@ async function saveChanges() {
       if (currentUser) localStorage.removeItem('lh_pub_' + currentUser.uid);
       btn.disabled = false;
       btn.classList.remove('saving');
-      btn.textContent = '💾 Guardar cambios';
+      btn.textContent = t('saveChanges');
       openShareModal();
       return;
     }
@@ -2578,19 +2578,19 @@ async function saveChanges() {
 
     btn.classList.remove('saving');
     btn.classList.add('saved');
-    btn.textContent = '✓ Cambios guardados';
+    btn.textContent = t('saved');
     setTimeout(() => {
       btn.classList.remove('saved');
-      btn.textContent = '💾 Guardar cambios';
+      btn.textContent = t('saveChanges');
       btn.disabled = false;
     }, 2500);
   } catch (e) {
     btn.classList.remove('saving');
     btn.classList.add('error');
-    btn.textContent = '✗ Error al guardar';
+    btn.textContent = t('saveError');
     setTimeout(() => {
       btn.classList.remove('error');
-      btn.textContent = '💾 Guardar cambios';
+      btn.textContent = t('saveChanges');
       btn.disabled = false;
     }, 3000);
   }
@@ -2620,7 +2620,7 @@ function downloadQR() {
    EXPORT STANDALONE HTML
 ═══════════════════════════════════════════ */
 function exportHTML() {
-  if (!profileData.name) { showToast('Ingresá tu nombre primero'); return; }
+  if (!profileData.name) { showToast(t('toastNameRequired')); return; }
 
   const exportLinks = links.map(l => {
     const plat = platforms.find(p=>p.id===l.platform)||platforms[0];
@@ -2839,7 +2839,7 @@ function _renderOnbStep() {
   const backBtn = document.getElementById('onbBackBtn');
   if (backBtn) backBtn.style.display = _onbStep > 1 ? '' : 'none';
   const nextBtn = document.getElementById('onbNextBtn');
-  if (nextBtn) nextBtn.textContent = _onbStep === _onbTotal ? '✦ Generar mi página' : 'Siguiente →';
+  if (nextBtn) nextBtn.textContent = _onbStep === _onbTotal ? t('onbGenerateBtn') : t('onbNext');
 }
 
 function selectOnbContact(val, btn) {
@@ -2851,9 +2851,9 @@ function selectOnbContact(val, btn) {
   const label = document.getElementById('onbContactLabel');
   if (!wrap || !input) return;
   wrap.style.display = '';
-  if (val === 'whatsapp') { label.textContent = 'Link de WhatsApp'; input.placeholder = 'https://wa.me/59899322046'; input.type = 'url'; }
-  else if (val === 'email') { label.textContent = 'Tu email'; input.placeholder = 'tu@email.com'; input.type = 'email'; }
-  else { label.textContent = 'Tu link externo'; input.placeholder = 'https://mi-link.com'; input.type = 'url'; }
+  if (val === 'whatsapp') { label.textContent = t('onbContactWa'); input.placeholder = 'https://wa.me/59899322046'; input.type = 'url'; }
+  else if (val === 'email') { label.textContent = t('onbContactEmail'); input.placeholder = 'tu@email.com'; input.type = 'email'; }
+  else { label.textContent = t('onbContactLink'); input.placeholder = 'https://mi-link.com'; input.type = 'url'; }
 }
 
 function finishOnboarding() {
@@ -2873,7 +2873,7 @@ function finishOnboarding() {
   applyGeneratedProfile(generated);
   document.getElementById('onboardingModal').classList.remove('active');
   document.getElementById('regenBanner').style.display = '';
-  showToast('✦ Página generada automáticamente');
+  showToast(t('toastGenerated'));
 }
 
 /* ─── GENERATE PROFILE ─── */
@@ -2883,7 +2883,7 @@ function generateProfile(up) {
   const cat  = up.categoria || 'otro';
   const cont = up.contacto  || 'whatsapp';
 
-  const titles = {
+  const titlesEs = {
     coach:       `Ayudo a ${cli} a lograr resultados reales sin rodeos`,
     disenador:   `Diseño que hace que ${cli} elijan tu marca sin dudar`,
     fotografo:   `Fotos que hacen que ${cli} quieran lo que vendés`,
@@ -2894,8 +2894,20 @@ function generateProfile(up) {
     marketing:   `Comunicación que hace que ${cli} te elijan a vos`,
     otro:        `${act.charAt(0).toUpperCase()+act.slice(1)} pensado para ${cli}`,
   };
+  const titlesPt = {
+    coach:       `Ajudo ${cli} a conquistar resultados reais sem rodeios`,
+    disenador:   `Design que faz ${cli} escolherem sua marca sem hesitar`,
+    fotografo:   `Fotos que fazem ${cli} quererem o que você vende`,
+    terapeuta:   `O acompanhamento que ${cli} precisa para estar bem`,
+    consultor:   `Estratégia clara para ${cli} crescer sem se perder`,
+    artista:     `A arte que conecta com ${cli} de verdade`,
+    emprendedor: `Produtos que ${cli} querem ter`,
+    marketing:   `Comunicação que faz ${cli} escolherem você`,
+    otro:        `${act.charAt(0).toUpperCase()+act.slice(1)} pensado para ${cli}`,
+  };
+  const titles = _lang === 'pt' ? titlesPt : titlesEs;
 
-  const descs = {
+  const descsEs = {
     coach:       `Trabajo con ${cli} que quieren resultados concretos. Si estás cansado/a de no avanzar, acá podemos cambiar eso.`,
     disenador:   `Creo identidades visuales para ${cli}. El diseño bien hecho no es un gasto — es lo que hace que te elijan.`,
     fotografo:   `Fotografío para ${cli} que saben que la imagen lo es todo. Cada foto cuenta una historia y genera decisión de compra.`,
@@ -2906,8 +2918,20 @@ function generateProfile(up) {
     marketing:   `Ayudo a ${cli} a comunicar mejor para vender más. Estrategia, contenido y resultados medibles.`,
     otro:        `Me especializo en ${act}. Trabajo con ${cli} que buscan resultados reales y un trato directo.`,
   };
+  const descsPt = {
+    coach:       `Trabalho com ${cli} que querem resultados concretos. Se você está cansado/a de não avançar, aqui podemos mudar isso.`,
+    disenador:   `Crio identidades visuais para ${cli}. Design bem feito não é gasto — é o que faz você ser escolhido.`,
+    fotografo:   `Fotografo para ${cli} que sabem que a imagem é tudo. Cada foto conta uma história e gera decisão de compra.`,
+    terapeuta:   `Acompanho ${cli} em processos de mudança real. Um espaço seguro para ser honesto/a e começar a transformar.`,
+    consultor:   `Trabalho com ${cli} para organizar, decidir e crescer. Sem teoria vazia — só estratégia que funciona.`,
+    artista:     `Crio para ${cli} que valorizam o genuíno. Cada trabalho é único e feito com intenção.`,
+    emprendedor: `Faço produtos pensados para ${cli}. Qualidade real, sem complicação.`,
+    marketing:   `Ajudo ${cli} a comunicar melhor para vender mais. Estratégia, conteúdo e resultados mensuráveis.`,
+    otro:        `Me especializo em ${act}. Trabalho com ${cli} que buscam resultados reais e um atendimento direto.`,
+  };
+  const descs = _lang === 'pt' ? descsPt : descsEs;
 
-  const svcDescs = {
+  const svcDescsEs = {
     coach:       ['Sesión individual para definir tu objetivo y trazar el camino.', 'Proceso de acompañamiento sostenido para consolidar cambios reales.'],
     disenador:   ['Proyecto de diseño completo desde estrategia hasta archivos finales.', 'Identidad visual: logo, paleta, tipografías y usos.'],
     fotografo:   ['Sesión profesional con edición incluida. Entrega en 48hs.', 'Pack de imágenes para redes y tienda online.'],
@@ -2918,6 +2942,18 @@ function generateProfile(up) {
     marketing:   ['Auditoría de comunicación + propuesta de mejoras concretas.', 'Gestión mensual de contenido y estrategia digital.'],
     otro:        ['Servicio a medida según lo que necesitás.', 'Consulta inicial para ver cómo puedo ayudarte.'],
   };
+  const svcDescsPt = {
+    coach:       ['Sessão individual para definir seu objetivo e traçar o caminho.', 'Processo de acompanhamento contínuo para consolidar mudanças reais.'],
+    disenador:   ['Projeto de design completo da estratégia aos arquivos finais.', 'Identidade visual: logo, paleta, tipografias e usos.'],
+    fotografo:   ['Sessão profissional com edição incluída. Entrega em 48h.', 'Pack de imagens para redes sociais e loja online.'],
+    terapeuta:   ['Sessão individual de 50 minutos por videochamada ou presencial.', 'Processo terapêutico contínuo com acompanhamento personalizado.'],
+    consultor:   ['Sessão de diagnóstico + plano de ação concreto para seu negócio.', 'Acompanhamento mensal com reuniões e acesso direto.'],
+    artista:     ['Peça original criada especialmente para você ou seu projeto.', 'Trabalho colaborativo desde a ideia até o resultado final.'],
+    emprendedor: ['Produto pronto para entrega imediata. Estoque disponível.', 'Pedido personalizado — combinamos os detalhes antes de produzir.'],
+    marketing:   ['Auditoria de comunicação + proposta de melhorias concretas.', 'Gestão mensal de conteúdo e estratégia digital.'],
+    otro:        ['Serviço personalizado conforme o que você precisa.', 'Consulta inicial para ver como posso ajudar.'],
+  };
+  const svcDescs = _lang === 'pt' ? svcDescsPt : svcDescsEs;
 
   const ctaType = cont === 'whatsapp' ? 'wa' : cont === 'email' ? 'email' : 'link';
   const svcDescList = svcDescs[cat] || svcDescs.otro;
@@ -2930,7 +2966,9 @@ function generateProfile(up) {
 
   if (svcs.length === 0) {
     svcs.push({
-      name: cat === 'coach' ? 'Sesión inicial' : cat === 'disenador' ? 'Proyecto de diseño' : 'Mi servicio principal',
+      name: _lang === 'pt'
+        ? (cat === 'coach' ? 'Sessão inicial' : cat === 'disenador' ? 'Projeto de design' : 'Meu serviço principal')
+        : (cat === 'coach' ? 'Sesión inicial' : cat === 'disenador' ? 'Proyecto de diseño' : 'Mi servicio principal'),
       price: '', desc: svcDescList[0] || '',
       ctaType, ctaValue: up.contactoValue || '',
     });
@@ -3222,6 +3260,77 @@ const LANG = {
     onb3Sub: 'Hasta 2 servicios o productos. Si no sabés el precio, dejalo vacío.',
     onb4Title: '¿Cómo querés que te contacten?',
     onb4Sub: 'Este va a ser el botón principal de tu página.',
+    // Onboarding labels
+    onbLabelCategoria: 'Categoría',
+    onbLabelActividad: 'Describilo en tus palabras (opcional)',
+    onbLabelCliente: 'Tu cliente ideal',
+    onbLabelSvc1: 'Servicio / Producto 1',
+    onbLabelSvc2: 'Servicio / Producto 2 (opcional)',
+    // Onboarding placeholders
+    onbPhActividad: 'Ej: diseño packaging para emprendedores',
+    onbPhCliente: 'Ej: emprendedoras que quieren vender más',
+    onbPhSvc1Name: 'Ej: Consultoría de packaging',
+    onbPhSvc2Name: 'Ej: Mentoría 1:1',
+    onbPhPrice: 'Precio',
+    // Profile placeholders
+    phName: 'Ej: Valentina López',
+    phTag: 'Ej: Diseñadora de packaging',
+    phBio: 'Contá quién sos y qué hacés en 2 líneas...',
+    phLocation: 'Ej: Buenos Aires, Argentina',
+    // Featured placeholders
+    phFeatTitle: 'Ej: Mentoría 1:1 — Julio',
+    phFeatDesc: 'Una línea que genere interés...',
+    phFeatBtn: 'Ver más',
+    // WhatsApp
+    phWafabMessage: 'Ej: Hola! Vi tu página y quiero consultar...',
+    // Stats
+    statsRefresh: '↻ Actualizar',
+    // Toasts / errors
+    toastNameRequired: 'Ingresá tu nombre primero',
+    toastGenerated: '✦ Página generada automáticamente',
+    toastEmailRequired: 'Ingresá tu email primero para recuperar la contraseña.',
+    // Auth placeholders
+    phPassword: 'Tu contraseña',
+    phPasswordNew: 'Mínimo 6 caracteres',
+    // Onboarding — generar página (step final)
+    onbGenerateBtn: '✦ Generar mi página',
+    // Contact labels
+    onbContactWa: 'Link de WhatsApp',
+    onbContactEmail: 'Tu email',
+    onbContactLink: 'Tu link externo',
+    // Link builder
+    linkBtnText: 'Texto del botón',
+    // Servicios dinámicos
+    svcLabelName: 'Nombre del servicio',
+    svcLabelPrice: 'Precio',
+    svcLabelDesc: 'Descripción breve',
+    svcLabelCta: 'Link / número / email',
+    svcLabelWaMsg: 'Mensaje de WhatsApp',
+    svcLabelAction: 'Acción del botón',
+    svcLabelPhoto: 'Foto del servicio (opcional)',
+    svcHeader: 'Servicio',
+    svcRemove: 'Eliminar',
+    phSvcName: 'Ej: Consultoría de packaging',
+    phSvcPrice: 'Ej: USD 150 · Desde $50',
+    phSvcDesc: 'Qué incluye, para quién es...',
+    phSvcCta: 'URL, número o email',
+    phSvcWaMsg: 'Ej: Hola! Vi tu servicio y quiero consultar...',
+    // Testimonios dinámicos
+    testLabelName: 'Nombre del cliente',
+    testLabelRole: 'Rol / empresa (opcional)',
+    testLabelText: 'Testimonio',
+    phTestName: 'Ej: María García',
+    phTestRole: 'Ej: Emprendedora',
+    phTestText: 'Lo que dijo tu cliente sobre vos o tu servicio...',
+    // Featured labels
+    featLabelDesc: 'Descripción breve',
+    featLabelBtn: 'Texto del botón',
+    // Guardar estados
+    saving: '⏳ Guardando…',
+    saved: '✓ Cambios guardados',
+    saveError: '✗ Error al guardar',
+    // Password reset
+    toastPasswordReset: '✓ Te enviamos un email para restablecer tu contraseña',
   },
   pt: {
     // Auth
@@ -3307,6 +3416,77 @@ const LANG = {
     onb3Sub: 'Até 2 serviços ou produtos. Se não souber o preço, deixe em branco.',
     onb4Title: 'Como você quer ser contactado?',
     onb4Sub: 'Este será o botão principal da sua página.',
+    // Onboarding labels
+    onbLabelCategoria: 'Categoria',
+    onbLabelActividad: 'Descreva com suas palavras (opcional)',
+    onbLabelCliente: 'Seu cliente ideal',
+    onbLabelSvc1: 'Serviço / Produto 1',
+    onbLabelSvc2: 'Serviço / Produto 2 (opcional)',
+    // Onboarding placeholders
+    onbPhActividad: 'Ex: design de embalagens para empreendedores',
+    onbPhCliente: 'Ex: empreendedoras que querem vender mais',
+    onbPhSvc1Name: 'Ex: Consultoria de embalagens',
+    onbPhSvc2Name: 'Ex: Mentoria 1:1',
+    onbPhPrice: 'Preço',
+    // Profile placeholders
+    phName: 'Ex: Valentina López',
+    phTag: 'Ex: Designer de embalagens',
+    phBio: 'Conte quem você é e o que faz em 2 linhas...',
+    phLocation: 'Ex: São Paulo, Brasil',
+    // Featured placeholders
+    phFeatTitle: 'Ex: Mentoria 1:1 — Julho',
+    phFeatDesc: 'Uma linha que gere interesse...',
+    phFeatBtn: 'Ver mais',
+    // WhatsApp
+    phWafabMessage: 'Ex: Olá! Vi sua página e quero consultar...',
+    // Stats
+    statsRefresh: '↻ Atualizar',
+    // Toasts / errors
+    toastNameRequired: 'Digite seu nome primeiro',
+    toastGenerated: '✦ Página gerada automaticamente',
+    toastEmailRequired: 'Digite seu e-mail para recuperar a senha.',
+    // Auth placeholders
+    phPassword: 'Sua senha',
+    phPasswordNew: 'Mínimo 6 caracteres',
+    // Onboarding — generar página (step final)
+    onbGenerateBtn: '✦ Gerar minha página',
+    // Contact labels
+    onbContactWa: 'Link do WhatsApp',
+    onbContactEmail: 'Seu e-mail',
+    onbContactLink: 'Seu link externo',
+    // Link builder
+    linkBtnText: 'Texto do botão',
+    // Serviços dinâmicos
+    svcLabelName: 'Nome do serviço',
+    svcLabelPrice: 'Preço',
+    svcLabelDesc: 'Descrição breve',
+    svcLabelCta: 'Link / número / e-mail',
+    svcLabelWaMsg: 'Mensagem do WhatsApp',
+    svcLabelAction: 'Ação do botão',
+    svcLabelPhoto: 'Foto do serviço (opcional)',
+    svcHeader: 'Serviço',
+    svcRemove: 'Remover',
+    phSvcName: 'Ex: Consultoria de embalagens',
+    phSvcPrice: 'Ex: R$150 · A partir de R$50',
+    phSvcDesc: 'O que inclui, para quem é...',
+    phSvcCta: 'URL, número ou e-mail',
+    phSvcWaMsg: 'Ex: Olá! Vi seu serviço e quero consultar...',
+    // Depoimentos dinâmicos
+    testLabelName: 'Nome do cliente',
+    testLabelRole: 'Cargo / empresa (opcional)',
+    testLabelText: 'Depoimento',
+    phTestName: 'Ex: Maria García',
+    phTestRole: 'Ex: Empreendedora',
+    phTestText: 'O que seu cliente disse sobre você ou seu serviço...',
+    // Featured labels
+    featLabelDesc: 'Descrição breve',
+    featLabelBtn: 'Texto do botão',
+    // Salvar estados
+    saving: '⏳ Salvando…',
+    saved: '✓ Alterações salvas',
+    saveError: '✗ Erro ao salvar',
+    // Password reset
+    toastPasswordReset: '✓ Enviamos um e-mail para redefinir sua senha',
   },
 };
 
@@ -3349,6 +3529,18 @@ function applyLang() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     el.textContent = t(el.dataset.i18n);
   });
+  // placeholders
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    el.placeholder = t(el.dataset.i18nPh);
+  });
+  // select onboarding categoría
+  const sel = document.getElementById('onbCategoria');
+  if (sel) {
+    const optsEs = ['— Elegí una opción —','Coach / Mentor','Diseñador/a','Fotógrafo/a','Terapeuta / Psicólogo/a','Consultor/a','Artista / Músico/a','Emprendedor/a (producto físico)','Marketing / Comunicación','Otro'];
+    const optsPt = ['— Escolha uma opção —','Coach / Mentor','Designer/a','Fotógrafo/a','Terapeuta / Psicólogo/a','Consultor/a','Artista / Músico/a','Empreendedor/a (produto físico)','Marketing / Comunicação','Outro'];
+    const opts = _lang === 'pt' ? optsPt : optsEs;
+    [...sel.options].forEach((o, i) => { if (opts[i]) o.textContent = opts[i]; });
+  }
 }
 
 /* — Carga directa por /ID (sin necesidad de login) — */
@@ -3724,7 +3916,7 @@ function switchAuthTab(mode) {
   document.getElementById('tabRegister').classList.toggle('active', mode === 'register');
   document.getElementById('authSubmitBtn').textContent = mode === 'login' ? t('signIn') : t('createAccount');
   document.getElementById('authError').classList.remove('show');
-  document.getElementById('authPassword').placeholder = mode === 'login' ? 'Tu contraseña' : 'Mínimo 6 caracteres';
+  document.getElementById('authPassword').placeholder = mode === 'login' ? t('phPassword') : t('phPasswordNew');
   document.getElementById('forgotLink').style.display = mode === 'login' ? 'block' : 'none';
   // Mostrar campo de afiliado solo en registro y pre-llenarlo si vino por link
   const refField = document.getElementById('refCodeField');
@@ -3801,13 +3993,13 @@ function togglePassword() {
 function sendPasswordReset() {
   const email = document.getElementById('authEmail').value.trim();
   if (!email) {
-    showAuthError('Ingresá tu email primero para recuperar la contraseña.');
+    showAuthError(t('toastEmailRequired'));
     return;
   }
   auth.sendPasswordResetEmail(email)
     .then(() => {
       document.getElementById('authError').classList.remove('show');
-      showToast('✓ Te enviamos un email para restablecer tu contraseña');
+      showToast(t('toastPasswordReset'));
     })
     .catch(err => {
       const msgs = {
