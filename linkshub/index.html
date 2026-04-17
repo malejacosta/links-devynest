@@ -1650,8 +1650,12 @@ function _renderServiceItem(svc) {
     </div>
     <div class="fg"><label>${t('svcLabelDesc')}</label><textarea class="fc" placeholder="${t('phSvcDesc')}" oninput="updateSvc(${svc.id},'desc',this.value)" style="min-height:60px">${svc.desc}</textarea></div>
     <div class="service-grid">
-      <div><label>Acción del botón</label><select class="fc" onchange="updateSvc(${svc.id},'ctaType',this.value);_toggleWaMsg(${svc.id},this.value)">${ctaOpts}</select></div>
+      <div><label>${t('svcLabelAction')}</label><select class="fc" onchange="updateSvc(${svc.id},'ctaType',this.value);_toggleWaMsg(${svc.id},this.value)">${ctaOpts}</select></div>
       <div><label>${t('svcLabelCta')}</label><input type="text" class="fc" placeholder="${t('phSvcCta')}" value="${svc.ctaValue||''}" oninput="updateSvc(${svc.id},'ctaValue',this.value)"></div>
+    </div>
+    <div class="fg" style="margin-top:8px;margin-bottom:0">
+      <label>${t('svcLabelCtaText')} <span style="font-weight:400;color:var(--muted);font-size:11px">(${t('optional')})</span></label>
+      <input type="text" class="fc" placeholder="${t('phSvcCtaText')}" value="${svc.ctaText||''}" oninput="updateSvc(${svc.id},'ctaText',this.value)" maxlength="30">
     </div>
     <div id="waMsgField-${svc.id}" style="${(svc.ctaType||'wa')==='wa'?'':'display:none'}">
       <div class="fg" style="margin-top:8px;margin-bottom:0">
@@ -1969,7 +1973,7 @@ function buildPageHTML(forExport) {
         ${s.price ? `<div class="svc-price">${esc(s.price)}</div>` : ''}
       </div>
       ${s.desc ? `<div class="svc-desc">${esc(s.desc)}</div>` : ''}
-      ${ctaUrl !== '#' ? `<a class="svc-cta" href="${safeUrl(ctaUrl)}" target="_blank" rel="noopener" data-track="${trackId}">${ctaIcon} Consultar</a>` : ''}`;
+      ${ctaUrl !== '#' ? `<a class="svc-cta" href="${safeUrl(ctaUrl)}" target="_blank" rel="noopener" data-track="${trackId}">${ctaIcon} ${esc(s.ctaText||'Consultar')}</a>` : ''}`;
     // En el preview del editor se permite data: URL (temporal mientras sube)
     const photoSrc = s.photo && (s.photo.startsWith('https://') || s.photo.startsWith('data:')) ? s.photo : null;
     return photoSrc
@@ -2727,7 +2731,7 @@ var _avaSrc=(p.avatarPhoto&&/^https?:/.test(p.avatarPhoto))?p.avatarPhoto:'';
 if(_avaSrc){ava='<div class="ava"><img src="'+e(_avaSrc)+'" alt="" onerror="this.style.display=\'none\'"></div>';}else{ava='<div class="ava">'+(p.avatar||'👤')+'</div>';}
 var html='<div class="hero">'+ava+(p.tag?'<div class="badge">✦ '+e(p.tag)+'</div>':'')+'<div class="name">'+e(p.name||'')+'</div>'+(p.bio?'<div class="bio">'+e(p.bio)+'</div>':'')+(p.location?'<div class="loc">📍 '+e(p.location)+'</div>':'')+'</div>';
 if(feat.enabled&&feat.title){var _fbu=su(feat.btnUrl||'');html+='<div class="feat">'+(feat.tag?'<div class="feat-tag">✦ '+e(feat.tag)+'</div>':'')+'<div class="feat-title">'+e(feat.title)+'</div>'+(feat.desc?'<div class="feat-desc">'+e(feat.desc)+'</div>':'')+(feat.btnText&&_fbu?'<a class="feat-btn" href="'+e(_fbu)+'" target="_blank" rel="noopener">'+e(feat.btnText)+' →</a>':'')+'</div>';}
-var svcItems=svcs.filter(function(s){return s.name}).map(function(s){var cu=fcu(s.ctaType,s.ctaValue);var _spu=s.photo&&/^https?:/.test(s.photo)?s.photo:'';var _cuu=su(cu);var _inner='<div class="svc-top"><div class="svc-nm">'+e(s.name)+'</div>'+(s.price?'<div class="svc-pr">'+e(s.price)+'</div>':'')+'</div>'+(s.desc?'<div class="svc-ds">'+e(s.desc)+'</div>':'')+(_cuu&&_cuu!=='#'?'<a class="svc-ct" href="'+e(_cuu)+'" target="_blank" rel="noopener">'+cci(s.ctaType)+' Consultar</a>':'');return _spu?'<div class="svc" style="padding:0;overflow:hidden"><img src="'+e(_spu)+'" alt="'+e(s.name)+'" class="svc-img"><div class="svc-body">'+_inner+'</div></div>':'<div class="svc">'+_inner+'</div>';}).join('');
+var svcItems=svcs.filter(function(s){return s.name}).map(function(s){var cu=fcu(s.ctaType,s.ctaValue);var _spu=s.photo&&/^https?:/.test(s.photo)?s.photo:'';var _cuu=su(cu);var _inner='<div class="svc-top"><div class="svc-nm">'+e(s.name)+'</div>'+(s.price?'<div class="svc-pr">'+e(s.price)+'</div>':'')+'</div>'+(s.desc?'<div class="svc-ds">'+e(s.desc)+'</div>':'')+(_cuu&&_cuu!=='#'?'<a class="svc-ct" href="'+e(_cuu)+'" target="_blank" rel="noopener">'+cci(s.ctaType)+' '+e(s.ctaText||'Consultar')+'</a>':'');return _spu?'<div class="svc" style="padding:0;overflow:hidden"><img src="'+e(_spu)+'" alt="'+e(s.name)+'" class="svc-img"><div class="svc-body">'+_inner+'</div></div>':'<div class="svc">'+_inner+'</div>';}).join('');
 if(svcItems){html+='<div class="sec"><div class="sec-lbl">Servicios</div><div class="svcs">'+svcItems+'</div></div>';}
 var lnkItems=ls.filter(function(l){return l.url}).map(function(l){if(l.platform==='youtube_embed'){var vid=eytid(l.url);if(!vid)return'';return'<div style="padding:0 0 8px"><iframe src="https://www.youtube.com/embed/'+vid+'" frameborder="0" allowfullscreen style="width:100%;aspect-ratio:16/9;border-radius:10px;display:block"></iframe></div>';}return'<a class="lnk" href="'+e(su(fu(l.platform,l.url)))+'" target="_blank" rel="noopener"><div class="lnk-ico" style="background:'+l._color+'"><i class="'+(l._fa||'fa-solid fa-link')+'"></i></div><div class="lnk-body"><span class="lnk-txt">'+e(l.text||l.platform)+'</span></div><div class="lnk-arr"><i class="fa-solid fa-chevron-right"></i></div></a>';}).join('');
 if(lnkItems){html+='<div class="sec"><div class="sec-lbl">Contacto y redes</div><div class="links">'+lnkItems+'</div></div>';}
@@ -3307,6 +3311,9 @@ const LANG = {
     svcLabelCta: 'Link / número / email',
     svcLabelWaMsg: 'Mensaje de WhatsApp',
     svcLabelAction: 'Acción del botón',
+    svcLabelCtaText: 'Texto del botón',
+    phSvcCtaText: 'Ej: Reservar, Ver más, Pedir…',
+    optional: 'opcional',
     svcLabelPhoto: 'Foto del servicio (opcional)',
     svcHeader: 'Servicio',
     svcRemove: 'Eliminar',
@@ -3463,6 +3470,9 @@ const LANG = {
     svcLabelCta: 'Link / número / e-mail',
     svcLabelWaMsg: 'Mensagem do WhatsApp',
     svcLabelAction: 'Ação do botão',
+    svcLabelCtaText: 'Texto do botão',
+    phSvcCtaText: 'Ex: Reservar, Ver mais, Pedir…',
+    optional: 'opcional',
     svcLabelPhoto: 'Foto do serviço (opcional)',
     svcHeader: 'Serviço',
     svcRemove: 'Remover',
