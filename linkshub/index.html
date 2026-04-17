@@ -4050,6 +4050,49 @@ function initBuilder() {
   _initBuilderFallback();
 }
 
+function _applyBuilderData(d) {
+  // Aplica un objeto {profile,links,services,testimonials,featured,wafab} al builder.
+  // Usado tanto desde localStorage como desde /api/get (cross-device restore).
+  profileData = d.profile || profileData;
+  document.getElementById('profileName').value     = profileData.name || '';
+  document.getElementById('profileTag').value      = profileData.tag || '';
+  document.getElementById('profileBio').value      = profileData.bio || '';
+  document.getElementById('profileLocation').value = profileData.location || '';
+  if (profileData.slug) {
+    const slugEl = document.getElementById('profileSlug');
+    if (slugEl) {
+      slugEl.value = profileData.slug;
+      const autoFromName = (profileData.name||'')
+        .toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+        .replace(/[^a-z0-9\s-]/g,'').trim()
+        .replace(/\s+/g,'-').replace(/-+/g,'-').slice(0,30);
+      slugEl.dataset.autoFilled = (profileData.slug === autoFromName) ? 'true' : 'false';
+    }
+  }
+  if (d.links)        d.links.forEach(l => restoreLink(l));
+  if (d.services)     d.services.forEach(s => restoreService(s));
+  if (d.testimonials) d.testimonials.forEach(t => restoreTestimonial(t));
+  if (d.featured) {
+    document.getElementById('featuredEnabled').checked = d.featured.enabled || false;
+    document.getElementById('featTag').value     = d.featured.tag || '';
+    document.getElementById('featTitle').value   = d.featured.title || '';
+    document.getElementById('featDesc').value    = d.featured.desc || '';
+    document.getElementById('featBtnText').value = d.featured.btnText || '';
+    document.getElementById('featBtnUrl').value  = d.featured.btnUrl || '';
+    if (d.featured.slots != null) document.getElementById('featSlots').value = d.featured.slots;
+    if (d.featured.deadline) document.getElementById('featDeadline').value = d.featured.deadline;
+  }
+  if (d.wafab) {
+    document.getElementById('wafabEnabled').checked = d.wafab.enabled || false;
+    document.getElementById('wafabNumber').value    = _normalizeWaLink(d.wafab.number || '');
+    document.getElementById('wafabMessage').value   = d.wafab.message || '';
+  }
+  if (profileData.avatarPhoto) setAvatarImage(profileData.avatarPhoto);
+  if (profileData.bgImage) restoreBgImage(profileData.bgImage, profileData.bgOverlay);
+  toggleFeaturedFields(d.featured?.enabled || false);
+}
+
 function _initBuilderFallback() {
   // Restaurar ID publicado si existe
   if (currentUser) {
@@ -4060,60 +4103,38 @@ function _initBuilderFallback() {
     }
   }
 
-  const storageKey = 'linkshub_v3' + (currentUser ? '_' + currentUser.uid : '');
-  const saved = localStorage.getItem(storageKey);
-  if (saved) {
-    try {
-      const d = JSON.parse(saved);
-      profileData = d.profile || profileData;
-      document.getElementById('profileName').value     = profileData.name || '';
-      document.getElementById('profileTag').value      = profileData.tag || '';
-      document.getElementById('profileBio').value      = profileData.bio || '';
-      document.getElementById('profileLocation').value = profileData.location || '';
-      if (profileData.slug) {
-        const slugEl = document.getElementById('profileSlug');
-        if (slugEl) {
-          slugEl.value = profileData.slug;
-          // Si el slug coincide con el nombre auto-generado, mantenerlo como auto-llenado
-          const autoFromName = (profileData.name||'')
-            .toLowerCase()
-            .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-            .replace(/[^a-z0-9\s-]/g,'').trim()
-            .replace(/\s+/g,'-').replace(/-+/g,'-').slice(0,30);
-          slugEl.dataset.autoFilled = (profileData.slug === autoFromName) ? 'true' : 'false';
-        }
-      }
-      if (d.links)        d.links.forEach(l => restoreLink(l));
-      if (d.services)     d.services.forEach(s => restoreService(s));
-      if (d.testimonials) d.testimonials.forEach(t => restoreTestimonial(t));
-      if (d.featured) {
-        document.getElementById('featuredEnabled').checked = d.featured.enabled || false;
-        document.getElementById('featTag').value     = d.featured.tag || '';
-        document.getElementById('featTitle').value   = d.featured.title || '';
-        document.getElementById('featDesc').value    = d.featured.desc || '';
-        document.getElementById('featBtnText').value = d.featured.btnText || '';
-        document.getElementById('featBtnUrl').value  = d.featured.btnUrl || '';
-        if (d.featured.slots != null) document.getElementById('featSlots').value = d.featured.slots;
-        if (d.featured.deadline) document.getElementById('featDeadline').value = d.featured.deadline;
-      }
-      if (d.wafab) {
-        document.getElementById('wafabEnabled').checked = d.wafab.enabled || false;
-        document.getElementById('wafabNumber').value    = _normalizeWaLink(d.wafab.number || '');
-        document.getElementById('wafabMessage').value   = d.wafab.message || '';
-      }
-      if (profileData.avatarPhoto) setAvatarImage(profileData.avatarPhoto);
-      if (profileData.bgImage) restoreBgImage(profileData.bgImage, profileData.bgOverlay);
-      toggleFeaturedFields(d.featured?.enabled || false);
-    } catch(e) {}
-  }
-
   initEmojis();
   initBackgrounds();
-  if (links.length === 0) addLink();
-  updatePreview();
 
-  // Mostrar onboarding a usuarios nuevos (sin borrador guardado)
-  if (!saved) {
+  const storageKey = 'linkshub_v3' + (currentUser ? '_' + currentUser.uid : '');
+  const saved = localStorage.getItem(storageKey);
+
+  if (saved) {
+    // Camino normal: draft local disponible
+    try { _applyBuilderData(JSON.parse(saved)); } catch(e) {}
+    if (links.length === 0) addLink();
+    updatePreview();
+  } else if (_publishedId) {
+    // Sin draft local pero hay datos publicados (otro dispositivo o caché borrada)
+    // → cargar desde Redis para no perder datos
+    fetch('/api/get?id=' + encodeURIComponent(_publishedId))
+      .then(r => r.ok ? r.json() : null)
+      .then(entry => {
+        if (entry?.data) {
+          try { _applyBuilderData(entry.data); } catch(e) {}
+          saveDraft(); // sincronizar al localStorage local
+        }
+        if (links.length === 0) addLink();
+        updatePreview();
+      })
+      .catch(() => {
+        if (links.length === 0) addLink();
+        updatePreview();
+      });
+  } else {
+    // Usuario nuevo: sin draft ni publicación
+    if (links.length === 0) addLink();
+    updatePreview();
     setTimeout(() => showOnboarding(), 400);
   }
 }
